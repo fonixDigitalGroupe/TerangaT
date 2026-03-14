@@ -20,32 +20,26 @@ class AgentAuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'shop_name' => 'required|string|max:255',
-            'ninea' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'wave_number' => 'nullable|string|max:20',
-            'om_number' => 'nullable|string|max:20',
+            'country' => 'required|string|max:100',
+            'password' => 'required|numeric|digits:4|confirmed',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'name' => $request->first_name . ' ' . $request->last_name,
             'phone' => $request->phone,
+            'country' => $request->country,
             'password' => Hash::make($request->password),
             'role' => 'agent',
         ]);
 
         $agent = Agent::create([
             'user_id' => $user->id,
-            'shop_name' => $request->shop_name,
-            'ninea' => $request->ninea,
-            'address' => $request->address,
-            'wave_number' => $request->wave_number,
-            'om_number' => $request->om_number,
+            'shop_name' => 'Ma Boutique', // Default value or placeholder
         ]);
 
         Wallet::create([
@@ -66,7 +60,7 @@ class AgentAuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'phone' => 'required|string',
             'password' => 'required',
         ]);
 
@@ -81,8 +75,8 @@ class AgentAuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Les informations d\'identification fournies ne correspondent pas à nos enregistrements.',
-        ])->onlyInput('email');
+            'phone' => 'Les informations d\'identification fournies ne correspondent pas à nos enregistrements.',
+        ])->onlyInput('phone');
     }
 
     public function logout(Request $request)

@@ -7,6 +7,10 @@ export default {
     ],
     theme: {
         extend: {
+            colors: {
+                'teranga-blue': '#2d547d',
+                'teranga-orange': '#fb6300',
+            },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
             },
