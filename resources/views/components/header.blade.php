@@ -6,7 +6,7 @@
                 <img src="{{ asset('images/logo-teranga-partial.png') }}" alt="Téranga" style="height: 60px; width: auto; object-fit: contain;">
                 
                 <!-- 'Transfert' in Cursive/Italic Font as requested -->
-                <span class="text-5xl font-bold italic" style="color: #fb6300; font-family: 'Dancing Script', cursive; margin-left: 4px; transform: translateY(-4px);">Transfert</span>
+                <span class="text-[2.75rem] font-bold italic" style="color: #fb6300; font-family: 'Dancing Script', cursive; margin-left: 4px; transform: translateY(-3px);">Transfert</span>
             </a>
             <div class="hidden md:flex items-center gap-6 text-slate-600 font-medium">
                 <!-- Accueil link removed for now -->
