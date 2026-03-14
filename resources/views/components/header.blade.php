@@ -1,23 +1,12 @@
 <header class="bg-white border-b border-slate-200 sticky top-0 z-50 h-24">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         <div class="flex items-center gap-8">
-            <a href="/" class="flex items-center gap-4 group">
-                <!-- Circular Icon SVG (Professional & Sharp) -->
-                <div class="relative flex items-center justify-center shrink-0" style="width: 60px; height: 60px;">
-                    <svg viewBox="0 0 100 100" class="w-full h-full shadow-sm rounded-full">
-                        <circle cx="50" cy="50" r="48" fill="#fb6300" />
-                        <!-- Clean T Shape -->
-                        <rect x="28" y="35" width="44" height="8" rx="2" fill="white" />
-                        <rect x="46" y="35" width="8" height="35" rx="2" fill="white" />
-                        <!-- Elegant Upward Arrow -->
-                        <path d="M40 28 L50 14 L60 28 Z" fill="white" />
-                    </svg>
-                </div>
-                <!-- Text Logo with Premium Typography -->
-                <div class="flex items-baseline gap-1 select-none">
-                    <span class="text-3xl font-extrabold tracking-tight" style="color: #2d547d; font-family: 'Inter', sans-serif;">Téranga</span>
-                    <span class="text-4xl font-bold italic" style="color: #fb6300; font-family: 'Dancing Script', cursive; margin-left: 6px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.05);">Transfert</span>
-                </div>
+            <a href="/" class="flex items-center gap-1 group">
+                <!-- Original Icon + Téranga (Isolated from image) -->
+                <img src="{{ asset('images/logo-teranga-partial.png') }}" alt="Téranga" style="height: 60px; width: auto; object-fit: contain;">
+                
+                <!-- 'Transfert' in Cursive/Italic Font as requested -->
+                <span class="text-4xl font-bold italic" style="color: #fb6300; font-family: 'Dancing Script', cursive; margin-left: 2px; transform: translateY(-2px);">Transfert</span>
             </a>
             <div class="hidden md:flex items-center gap-6 text-slate-600 font-medium">
                 <!-- Accueil link removed for now -->
