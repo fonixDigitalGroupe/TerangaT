@@ -9,7 +9,7 @@
                 <span class="text-5xl font-bold italic" style="color: #fb6300; font-family: 'Dancing Script', cursive; margin-left: -12px; transform: translateY(-4px);">Transfert</span>
                 
                 <!-- Country Selector -->
-                <div class="ml-10 flex items-center gap-2 pl-6 border-l border-slate-200 cursor-pointer hover:opacity-80 transition-opacity">
+                <div class="ml-20 flex items-center gap-2 pl-6 border-l border-slate-200 cursor-pointer hover:opacity-80 transition-opacity">
                     <img src="https://flagcdn.com/w40/sn.png" alt="Sénégal" class="w-6 h-auto rounded-sm border border-slate-100">
                     <span class="text-[#2d547d] font-semibold text-lg">Sénégal</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-[#2d547d]">
