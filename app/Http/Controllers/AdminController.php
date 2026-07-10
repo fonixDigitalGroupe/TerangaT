@@ -390,8 +390,13 @@ class AdminController extends Controller
                 ->count(),
         ];
 
+        // SQL compatible SQLite (local) ET MySQL (production)
+        $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+        $yearSql  = $driver === 'sqlite' ? "strftime('%Y', created_at)" : "DATE_FORMAT(created_at, '%Y')";
+        $monthSql = $driver === 'sqlite' ? "strftime('%m', created_at)" : "DATE_FORMAT(created_at, '%m')";
+
         $year = (int) $request->input('year', now()->year);
-        $years = \App\Models\Transaction::selectRaw("strftime('%Y', created_at) as y")
+        $years = \App\Models\Transaction::selectRaw("$yearSql as y")
             ->whereNotNull('created_at')->distinct()->orderByDesc('y')->pluck('y')
             ->map(fn ($y) => (int) $y);
         if (! $years->contains($year)) {
@@ -401,8 +406,8 @@ class AdminController extends Controller
         $monthLabels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 
         // Volume par mois (année sélectionnée + période Du/Au)
-        $monthRows = $base()->selectRaw("strftime('%m', created_at) as m, SUM(amount) as v")
-            ->whereRaw("strftime('%Y', created_at) = ?", [(string) $year])
+        $monthRows = $base()->selectRaw("$monthSql as m, SUM(amount) as v")
+            ->whereRaw("$yearSql = ?", [(string) $year])
             ->groupBy('m')->get()->keyBy('m');
         $monthlyData = [];
         for ($i = 1; $i <= 12; $i++) {
@@ -410,9 +415,9 @@ class AdminController extends Controller
         }
 
         // Helper : datasets mensuels empilés par dimension (type / statut), filtrés par période
-        $buildMonthlyDatasets = function (string $column) use ($year, $base) {
-            $rows = $base()->selectRaw("strftime('%m', created_at) as m, COALESCE($column, '—') as k, COUNT(*) as c")
-                ->whereRaw("strftime('%Y', created_at) = ?", [(string) $year])
+        $buildMonthlyDatasets = function (string $column) use ($year, $base, $yearSql, $monthSql) {
+            $rows = $base()->selectRaw("$monthSql as m, COALESCE($column, '—') as k, COUNT(*) as c")
+                ->whereRaw("$yearSql = ?", [(string) $year])
                 ->groupBy('m', 'k')->get();
 
             $keys = $rows->pluck('k')->unique()->values();
