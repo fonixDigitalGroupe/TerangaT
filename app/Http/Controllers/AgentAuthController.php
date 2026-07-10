@@ -60,23 +60,27 @@ class AgentAuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'phone' => 'required|string',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
+
+            if (auth()->user()->isAdmin()) {
+                return redirect()->intended(route('admin.dashboard'));
+            }
+
             if (auth()->user()->isAgent()) {
                 return redirect()->intended('/dashboard');
             }
-            
+
             return redirect()->intended('/');
         }
 
         return back()->withErrors([
-            'phone' => 'Les informations d\'identification fournies ne correspondent pas à nos enregistrements.',
-        ])->onlyInput('phone');
+            'email' => 'Les informations d\'identification fournies ne correspondent pas à nos enregistrements.',
+        ])->onlyInput('email');
     }
 
     public function logout(Request $request)

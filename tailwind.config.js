@@ -4,12 +4,13 @@ export default {
         "./resources/**/*.blade.php",
         "./resources/**/*.js",
         "./resources/**/*.vue",
+        "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php",
     ],
     theme: {
         extend: {
             colors: {
                 'teranga-blue': '#2d547d',
-                'teranga-orange': '#fb6300',
+                'teranga-orange': '#F26522',
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
