@@ -1,0 +1,16 @@
+---
+deployment:
+  tasks:
+    # Adapte ce chemin : /home/<UTILISATEUR_CPANEL>/<DOSSIER_APP>
+    - export DEPLOYPATH=/home/CPANELUSER/teranga
+    - /bin/mkdir -p $DEPLOYPATH
+    # Copie du code cloné vers le dossier de l'application
+    - /bin/cp -R ./* $DEPLOYPATH/
+    - /bin/cp -R ./.env* $DEPLOYPATH/ 2>/dev/null || true
+    # Dépendances PHP (retire cette ligne si tu téléverses déjà /vendor)
+    - cd $DEPLOYPATH && /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader 2>/dev/null || true
+    # Migrations + optimisation Laravel (nécessite un .env valide déjà présent)
+    - cd $DEPLOYPATH && php artisan migrate --force 2>/dev/null || true
+    - cd $DEPLOYPATH && php artisan storage:link 2>/dev/null || true
+    - cd $DEPLOYPATH && php artisan config:cache 2>/dev/null || true
+    - cd $DEPLOYPATH && php artisan route:cache 2>/dev/null || true
