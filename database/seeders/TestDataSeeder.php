@@ -24,6 +24,18 @@ class TestDataSeeder extends Seeder
         $shops = ['Boutique Centrale', 'Point Service', 'Kiosque Express', 'Multi-Services', 'Boutique du Marché', 'Espace Transfert', 'Agence Rapide', 'Comptoir Téranga'];
         $subjects = ['Montant non reçu', 'Erreur de destinataire', 'Transaction en double', 'Retrait contesté', 'Frais incorrects', 'Compte bloqué'];
 
+        // Compte administrateur (idempotent)
+        User::firstOrCreate(
+            ['email' => 'admin@terangatrans.com'],
+            [
+                'name'       => 'Administrateur',
+                'first_name' => 'Admin',
+                'last_name'  => 'Téranga',
+                'role'       => 'admin',
+                'password'   => Hash::make('Admin@2026'),
+            ]
+        );
+
         $feeStrategies = ['client_pays', 'deducted', 'agent_receives'];
 
         // Nettoyage idempotent : retire les données de simulation précédentes (garde les 3 agents d'origine)
