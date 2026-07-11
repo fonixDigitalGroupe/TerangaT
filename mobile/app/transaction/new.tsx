@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Image,
+  InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
   Linking,
@@ -12,6 +13,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+
+const KEYBOARD_ACCESSORY_ID = 'transferDoneBar';
 import { useRouter } from 'expo-router';
 import { paiementsApi, type Operator } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
@@ -127,6 +130,7 @@ export default function NewTransactionScreen() {
           keyboardType="number-pad"
           value={amount}
           onChangeText={setAmount}
+          inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
         />
         <Field
           label="Téléphone du client"
@@ -134,6 +138,7 @@ export default function NewTransactionScreen() {
           keyboardType="phone-pad"
           value={clientPhone}
           onChangeText={setClientPhone}
+          inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
         />
 
         {needsOtp && (
@@ -143,6 +148,7 @@ export default function NewTransactionScreen() {
             keyboardType="number-pad"
             value={otp}
             onChangeText={setOtp}
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
           />
         )}
 
@@ -159,6 +165,16 @@ export default function NewTransactionScreen() {
       </View>
       </TouchableWithoutFeedback>
       </ScrollView>
+
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={KEYBOARD_ACCESSORY_ID}>
+          <View style={styles.accessory}>
+            <Pressable onPress={() => Keyboard.dismiss()} hitSlop={8} style={styles.accessoryBtn}>
+              <Text style={styles.accessoryText}>Terminé</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -223,4 +239,14 @@ const styles = StyleSheet.create({
   previewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   previewLabel: { color: colors.textMuted, fontSize: font.sm },
   previewValue: { fontSize: font.sm, fontWeight: '700', color: colors.text },
+  accessory: {
+    backgroundColor: '#f1f3f6',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: 'flex-end',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  accessoryBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  accessoryText: { color: colors.blue, fontSize: font.md, fontWeight: '700' },
 });
