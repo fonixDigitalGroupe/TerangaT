@@ -62,6 +62,35 @@ export const dashboardApi = {
   },
 };
 
+export type Operator = 'wave' | 'orange-money';
+
+export interface PaiementPayload {
+  operator: Operator;
+  amount: number;
+  client_phone: string;
+  otp?: string;
+}
+
+export interface PaiementResponse {
+  message: string;
+  reference: string;
+  status: string;
+  pay_url?: string; // URL Wave à ouvrir (retrait Wave)
+}
+
+export const paiementsApi = {
+  // Retrait : le client envoie vers l'agent (SOFTPAY Wave/OM)
+  async retrait(payload: PaiementPayload): Promise<PaiementResponse> {
+    const { data } = await api.post<PaiementResponse>('/paiements/retrait', payload);
+    return data;
+  },
+  // Dépôt : l'agent envoie vers le client (déboursement)
+  async depot(payload: PaiementPayload): Promise<PaiementResponse> {
+    const { data } = await api.post<PaiementResponse>('/paiements/depot', payload);
+    return data;
+  },
+};
+
 export const transactionsApi = {
   async list(page = 1): Promise<Paginated<Transaction>> {
     const { data } = await api.get<Paginated<Transaction>>('/transactions', {

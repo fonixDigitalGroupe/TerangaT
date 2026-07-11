@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -9,65 +11,75 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { transactionsApi } from '../../src/api/endpoints';
+import { paiementsApi, type Operator } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { useAuth } from '../../src/auth/AuthContext';
 import { Alert, Button, Card, Field } from '../../src/components/ui';
 import { colors, font, formatXof, radius, spacing } from '../../src/theme';
-import type { FeeStrategy, TransactionType } from '../../src/types';
+import type { TransactionType } from '../../src/types';
 
-const FEE_LABELS: Record<FeeStrategy, string> = {
-  client_pays: 'Le client paie les frais',
-  deducted: 'Frais déduits du montant',
-  agent_receives: 'Frais déduits (agent)',
-};
+const OPERATORS: { key: Operator; name: string; logo: any; fee: number }[] = [
+  { key: 'wave', name: 'Wave', logo: require('../../assets/logo-wave.png'), fee: 1 },
+  { key: 'orange-money', name: 'Orange Money', logo: require('../../assets/logo-om.png'), fee: 1.5 },
+];
 
 export default function NewTransactionScreen() {
   const router = useRouter();
   const { refresh } = useAuth();
   const [type, setType] = useState<TransactionType>('dépôt');
-  const [feeStrategy, setFeeStrategy] = useState<FeeStrategy>('client_pays');
+  const [operator, setOperator] = useState<Operator>('wave'); // Wave par défaut
   const [amount, setAmount] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const needsOtp = type === 'retrait' && operator === 'orange-money';
+
   const preview = useMemo(() => {
     const value = parseFloat(amount) || 0;
-    const totalFee = value * 0.05;
-    const agentCommission = totalFee * 0.6;
-    let walletImpact = 0;
-    if (type === 'dépôt') {
-      walletImpact = feeStrategy === 'client_pays' ? -value : -(value - totalFee);
-    } else {
-      walletImpact = value + agentCommission;
-    }
-    return { totalFee, agentCommission, walletImpact };
-  }, [amount, type, feeStrategy]);
+    const fee = OPERATORS.find((o) => o.key === operator)?.fee ?? 1;
+    const commission = Math.round((value * fee) / 100);
+    return { commission, fee };
+  }, [amount, operator]);
 
   const onSubmit = async () => {
     setError(null);
     const value = parseFloat(amount);
-    if (!value || value < 1) {
-      setError('Saisissez un montant valide.');
+    if (!value || value < 100) {
+      setError('Saisissez un montant valide (min. 100 FCFA).');
       return;
     }
     if (!clientPhone.trim()) {
       setError('Le téléphone du client est requis.');
       return;
     }
+    if (needsOtp && !otp.trim()) {
+      setError('Le code Orange Money (#144#391#) est requis.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const tx = await transactionsApi.create({
-        type,
-        fee_strategy: feeStrategy,
+      const payload = {
+        operator,
         amount: value,
         client_phone: clientPhone.trim(),
-      });
+        ...(needsOtp ? { otp: otp.trim() } : {}),
+      };
+
+      const res =
+        type === 'retrait' ? await paiementsApi.retrait(payload) : await paiementsApi.depot(payload);
+
+      // Retrait Wave : ouvrir l'app/URL Wave pour que le client valide
+      if (res.pay_url) {
+        await Linking.openURL(res.pay_url);
+      }
+
       await refresh();
-      router.replace(`/transaction/${tx.id}`);
+      router.replace('/(tabs)/transactions');
     } catch (e) {
-      setError(apiErrorMessage(e, 'Transaction refusée.'));
+      setError(apiErrorMessage(e, 'Opération refusée.'));
     } finally {
       setLoading(false);
     }
@@ -81,31 +93,29 @@ export default function NewTransactionScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {error && <Alert message={error} />}
 
+        {/* Type d'opération */}
         <Text style={styles.label}>Type d'opération</Text>
         <View style={styles.segment}>
           <SegmentButton active={type === 'dépôt'} label="📤 Dépôt" onPress={() => setType('dépôt')} />
           <SegmentButton active={type === 'retrait'} label="📥 Retrait" onPress={() => setType('retrait')} />
         </View>
 
-        {type === 'dépôt' && (
-          <>
-            <Text style={styles.label}>Gestion des frais</Text>
-            <View style={styles.feeGroup}>
-              {(Object.keys(FEE_LABELS) as FeeStrategy[]).map((key) => (
-                <Pressable
-                  key={key}
-                  onPress={() => setFeeStrategy(key)}
-                  style={[styles.feeOption, feeStrategy === key && styles.feeOptionActive]}
-                >
-                  <View style={[styles.radio, feeStrategy === key && styles.radioActive]} />
-                  <Text style={[styles.feeText, feeStrategy === key && styles.feeTextActive]}>
-                    {FEE_LABELS[key]}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </>
-        )}
+        {/* Opérateur */}
+        <Text style={styles.label}>Opérateur</Text>
+        <View style={styles.operatorRow}>
+          {OPERATORS.map((op) => (
+            <Pressable
+              key={op.key}
+              onPress={() => setOperator(op.key)}
+              style={[styles.operatorCard, operator === op.key && styles.operatorCardActive]}
+            >
+              <Image source={op.logo} style={styles.operatorLogo} resizeMode="contain" />
+              <Text style={[styles.operatorName, operator === op.key && styles.operatorNameActive]}>
+                {op.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
 
         <Field
           label="Montant (FCFA)"
@@ -122,15 +132,23 @@ export default function NewTransactionScreen() {
           onChangeText={setClientPhone}
         />
 
-        {/* Live preview */}
+        {needsOtp && (
+          <Field
+            label="Code Orange Money (#144#391#)"
+            placeholder="Code généré par le client"
+            keyboardType="number-pad"
+            value={otp}
+            onChangeText={setOtp}
+          />
+        )}
+
         <Card style={styles.preview}>
           <Text style={styles.previewTitle}>Aperçu</Text>
-          <PreviewRow label="Commission agent (3%)" value={formatXof(preview.agentCommission)} />
-          <PreviewRow label="Frais totaux (5%)" value={formatXof(preview.totalFee)} />
+          <PreviewRow label={`Commission (${preview.fee}%)`} value={formatXof(preview.commission)} />
         </Card>
 
         <Button
-          title={type === 'dépôt' ? 'Valider le dépôt' : 'Valider le retrait'}
+          title={type === 'dépôt' ? 'Envoyer le dépôt' : 'Encaisser le retrait'}
           onPress={onSubmit}
           loading={loading}
         />
@@ -155,20 +173,11 @@ function SegmentButton({
   );
 }
 
-function PreviewRow({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  highlight?: 'success' | 'danger';
-}) {
-  const color = highlight === 'success' ? colors.success : highlight === 'danger' ? colors.danger : colors.text;
+function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.previewRow}>
       <Text style={styles.previewLabel}>{label}</Text>
-      <Text style={[styles.previewValue, { color }]}>{value}</Text>
+      <Text style={styles.previewValue}>{value}</Text>
     </View>
   );
 }
@@ -188,32 +197,24 @@ const styles = StyleSheet.create({
   segmentBtnActive: { backgroundColor: colors.white },
   segmentText: { fontSize: font.md, fontWeight: '700', color: colors.textMuted },
   segmentTextActive: { color: colors.blue },
-  feeGroup: { marginBottom: spacing.md, gap: spacing.xs },
-  feeOption: {
-    flexDirection: 'row',
+  operatorRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  operatorCard: {
+    flex: 1,
     alignItems: 'center',
-    padding: spacing.md,
+    paddingVertical: spacing.md,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.white,
+    gap: spacing.xs,
   },
-  feeOptionActive: { borderColor: colors.blue, backgroundColor: '#e7eef6' },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: radius.full,
-    borderWidth: 2,
-    borderColor: colors.border,
-    marginRight: spacing.sm,
-  },
-  radioActive: { borderColor: colors.blue, borderWidth: 6 },
-  feeText: { fontSize: font.sm, color: colors.text },
-  feeTextActive: { fontWeight: '700', color: colors.blueDark },
+  operatorCardActive: { borderColor: colors.orange, backgroundColor: '#fff4ec' },
+  operatorLogo: { width: 44, height: 44, borderRadius: radius.sm },
+  operatorName: { fontSize: font.sm, fontWeight: '700', color: colors.textMuted },
+  operatorNameActive: { color: colors.orange },
   preview: { marginBottom: spacing.md, backgroundColor: colors.white },
   previewTitle: { fontSize: font.sm, fontWeight: '700', color: colors.blue, marginBottom: spacing.sm },
   previewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   previewLabel: { color: colors.textMuted, fontSize: font.sm },
-  previewValue: { fontSize: font.sm, fontWeight: '700' },
-  previewDivider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
+  previewValue: { fontSize: font.sm, fontWeight: '700', color: colors.text },
 });
