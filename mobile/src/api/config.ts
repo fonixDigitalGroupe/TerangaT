@@ -11,7 +11,7 @@ const API_PORT = 8000;
  * If set, this URL wins over auto-detection. Use it for a deployed backend,
  * e.g. 'https://api.terangatrans.com/api'.
  */
-const MANUAL_API_URL: string | null = null;
+const MANUAL_API_URL: string | null = 'http://teranga.complexebbchotel.sn/api';
 
 /**
  * Derive the LAN host of the Metro/Expo dev server so a physical phone running
