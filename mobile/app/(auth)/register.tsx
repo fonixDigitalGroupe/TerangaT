@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,20 +12,12 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/auth/AuthContext';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import type { KeyboardTypeOptions } from 'react-native';
 import { colors, spacing } from '../../src/theme';
-
-const REGIONS = [
-  'Dakar', 'Thiès', 'Diourbel', 'Fatick', 'Kaolack', 'Kaffrine', 'Louga',
-  'Saint-Louis', 'Matam', 'Tambacounda', 'Kédougou', 'Kolda', 'Sédhiou', 'Ziguinchor',
-];
 
 // Input with a label that floats onto the border once focused or filled.
 function FloatingInput({
@@ -66,22 +56,6 @@ function FloatingInput({
   );
 }
 
-// Capture card for scanning a document side (front / back).
-function ScanCard({ label, uri, onPress }: { label: string; uri: string | null; onPress: () => void }) {
-  return (
-    <Pressable style={styles.scanCard} onPress={onPress}>
-      {uri ? (
-        <Image source={{ uri }} style={styles.scanImg} resizeMode="cover" />
-      ) : (
-        <>
-          <Ionicons name="camera-outline" size={26} color={colors.textMuted} />
-          <Text style={styles.scanLabel}>{label}</Text>
-        </>
-      )}
-    </Pressable>
-  );
-}
-
 export default function RegisterScreen() {
   const { register } = useAuth();
   const router = useRouter();
@@ -92,39 +66,15 @@ export default function RegisterScreen() {
     country: 'Sénégal',
     password: '',
   });
-  const [birthDate, setBirthDate] = useState('');
-  const [dateValue, setDateValue] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [birthPlace, setBirthPlace] = useState('');
-  const [region, setRegion] = useState('');
-  const [regionOpen, setRegionOpen] = useState(false);
   const [phoneFocused, setPhoneFocused] = useState(false);
-  const [cni, setCni] = useState('');
   const [raisonSociale, setRaisonSociale] = useState('');
-  const [recto, setRecto] = useState<string | null>(null);
-  const [verso, setVerso] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const scan = async (side: 'recto' | 'verso') => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      setError('Autorisez la caméra pour scanner la CNI.');
-      return;
-    }
-    const res = await ImagePicker.launchCameraAsync({ quality: 0.6 });
-    if (!res.canceled && res.assets?.[0]) {
-      if (side === 'recto') setRecto(res.assets[0].uri);
-      else setVerso(res.assets[0].uri);
-    }
-  };
-
   const set = (key: keyof typeof form) => (value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
-
-  const formatDate = (d: Date) =>
-    `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
   // Format a Senegalese mobile number as "XX XXX XX XX" (9 digits) while typing.
   const onPhoneChange = (text: string) => {
@@ -135,16 +85,6 @@ export default function RegisterScreen() {
     if (digits.length > 5) g.push(digits.slice(5, 7));
     if (digits.length > 7) g.push(digits.slice(7, 9));
     setForm((f) => ({ ...f, phone: g.join(' ') }));
-  };
-
-  // Senegalese national ID (NIN): 13 digits, grouped "XXXX XXXX XXXXX".
-  const onCniChange = (text: string) => {
-    const digits = text.replace(/\D/g, '').slice(0, 13);
-    const g: string[] = [];
-    if (digits.length > 0) g.push(digits.slice(0, 4));
-    if (digits.length > 4) g.push(digits.slice(4, 8));
-    if (digits.length > 8) g.push(digits.slice(8, 13));
-    setCni(g.join(' '));
   };
 
   const onSubmit = async () => {
@@ -203,34 +143,7 @@ export default function RegisterScreen() {
 
           <FloatingInput label="Prénom" value={form.first_name} onChangeText={set('first_name')} />
           <FloatingInput label="Nom" value={form.last_name} onChangeText={set('last_name')} />
-          <Pressable style={styles.selectField} onPress={() => setShowDatePicker(true)}>
-            <Text style={birthDate ? styles.selectValue : styles.selectPlaceholder}>
-              {birthDate || 'Date de naissance'}
-            </Text>
-            <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
-          </Pressable>
           <FloatingInput label="Lieu de naissance" value={birthPlace} onChangeText={setBirthPlace} />
-
-          <Pressable style={styles.selectField} onPress={() => setRegionOpen(true)}>
-            <Text style={region ? styles.selectValue : styles.selectPlaceholder}>
-              {region || 'Région'}
-            </Text>
-            <Text style={styles.selectChevron}>▾</Text>
-          </Pressable>
-
-          <FloatingInput
-            label="Numéro CNI (13 chiffres)"
-            keyboardType="number-pad"
-            maxLength={15}
-            value={cni}
-            onChangeText={onCniChange}
-          />
-
-          <Text style={styles.scanTitle}>Scanner la CNI</Text>
-          <View style={styles.scanRow}>
-            <ScanCard label="Recto" uri={recto} onPress={() => scan('recto')} />
-            <ScanCard label="Verso" uri={verso} onPress={() => scan('verso')} />
-          </View>
 
           <FloatingInput label="Raison sociale" value={raisonSociale} onChangeText={setRaisonSociale} />
 
@@ -283,75 +196,6 @@ export default function RegisterScreen() {
         </TouchableWithoutFeedback>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Region picker */}
-      <Modal
-        visible={regionOpen}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setRegionOpen(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setRegionOpen(false)}>
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Choisir une région</Text>
-            <ScrollView>
-              {REGIONS.map((r) => (
-                <Pressable
-                  key={r}
-                  style={styles.regionItem}
-                  onPress={() => {
-                    setRegion(r);
-                    setRegionOpen(false);
-                  }}
-                >
-                  <Text style={[styles.regionItemText, r === region && styles.regionItemActive]}>
-                    {r}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </Pressable>
-      </Modal>
-
-      {/* Date of birth picker */}
-      <Modal
-        visible={showDatePicker}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowDatePicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.dateBar}>
-              <Pressable onPress={() => setShowDatePicker(false)} hitSlop={8}>
-                <Text style={styles.dateCancel}>Annuler</Text>
-              </Pressable>
-              <Pressable
-                hitSlop={8}
-                onPress={() => {
-                  const d = dateValue ?? new Date(2000, 0, 1);
-                  setDateValue(d);
-                  setBirthDate(formatDate(d));
-                  setShowDatePicker(false);
-                }}
-              >
-                <Text style={styles.dateOk}>Terminé</Text>
-              </Pressable>
-            </View>
-            <DateTimePicker
-              value={dateValue ?? new Date(2000, 0, 1)}
-              mode="date"
-              display="spinner"
-              locale="fr-FR"
-              maximumDate={new Date()}
-              onChange={(_e, d) => {
-                if (d) setDateValue(d);
-              }}
-            />
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
