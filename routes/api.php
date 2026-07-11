@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/otp/send', [AuthController::class, 'sendOtp']);
 Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
+
+// IPN PayDunya (public — appelé par les serveurs PayDunya)
+Route::post('/paydunya/ipn', [PaymentController::class, 'ipn']);
 
 // Authenticated endpoints (Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -24,5 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/transactions', [TransactionController::class, 'index']);
         Route::post('/transactions', [TransactionController::class, 'store']);
         Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
+
+        // Paiements PayDunya
+        Route::post('/paiements/retrait', [PaymentController::class, 'retrait']);
+        Route::post('/paiements/depot', [PaymentController::class, 'depot']);
     });
 });

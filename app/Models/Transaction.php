@@ -11,6 +11,7 @@ class Transaction extends Model
     protected $fillable = [
         'agent_id',
         'type',
+        'operator',
         'fee_strategy',
         'amount',
         'commission',
@@ -18,6 +19,7 @@ class Transaction extends Model
         'client_phone',
         'status',
         'reference',
+        'paydunya_token',
     ];
 
     public function agent()
