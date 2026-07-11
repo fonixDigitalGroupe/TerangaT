@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { paiementsApi, type Operator } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { useAuth } from '../../src/auth/AuthContext';
+import { DismissKeyboard } from '../../src/components/DismissKeyboard';
 import { Alert, Button, Card, Field } from '../../src/components/ui';
 import { colors, font, formatXof, radius, spacing } from '../../src/theme';
 import type { TransactionType } from '../../src/types';
@@ -90,7 +91,8 @@ export default function NewTransactionScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <DismissKeyboard>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         {error && <Alert message={error} />}
 
         {/* Type d'opération */}
@@ -153,6 +155,7 @@ export default function NewTransactionScreen() {
           loading={loading}
         />
       </ScrollView>
+      </DismissKeyboard>
     </KeyboardAvoidingView>
   );
 }

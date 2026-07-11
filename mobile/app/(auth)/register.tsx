@@ -20,6 +20,7 @@ import { useAuth } from '../../src/auth/AuthContext';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import type { KeyboardTypeOptions } from 'react-native';
+import { DismissKeyboard } from '../../src/components/DismissKeyboard';
 import { colors, spacing } from '../../src/theme';
 
 const REGIONS = [
@@ -184,7 +185,8 @@ export default function RegisterScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <DismissKeyboard>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           {/* Back */}
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
             <Text style={styles.backIcon}>‹</Text>
@@ -276,6 +278,7 @@ export default function RegisterScreen() {
             <Text style={styles.ctaText}>{loading ? 'Création…' : 'Continuer'}</Text>
           </Pressable>
         </ScrollView>
+        </DismissKeyboard>
       </KeyboardAvoidingView>
 
       {/* Region picker */}

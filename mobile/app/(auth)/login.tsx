@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
+import { DismissKeyboard } from '../../src/components/DismissKeyboard';
 import { colors, spacing } from '../../src/theme';
 
 export default function LoginScreen() {
@@ -60,6 +61,7 @@ export default function LoginScreen() {
           <Ionicons name="arrow-back" size={26} color="#1c1c1e" />
         </Pressable>
 
+        <DismissKeyboard>
         <View style={styles.content}>
           <Text style={styles.title}>Entrez votre numéro</Text>
           <Text style={styles.subtitle}>
@@ -98,6 +100,7 @@ export default function LoginScreen() {
 
           <View style={styles.spacerBottom} />
         </View>
+        </DismissKeyboard>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
