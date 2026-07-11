@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -9,6 +10,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -20,7 +22,6 @@ import { useAuth } from '../../src/auth/AuthContext';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import type { KeyboardTypeOptions } from 'react-native';
-import { DismissKeyboard } from '../../src/components/DismissKeyboard';
 import { colors, spacing } from '../../src/theme';
 
 const REGIONS = [
@@ -185,8 +186,9 @@ export default function RegisterScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <DismissKeyboard>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View>
           {/* Back */}
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
             <Text style={styles.backIcon}>‹</Text>
@@ -277,8 +279,9 @@ export default function RegisterScreen() {
           >
             <Text style={styles.ctaText}>{loading ? 'Création…' : 'Continuer'}</Text>
           </Pressable>
+        </View>
+        </TouchableWithoutFeedback>
         </ScrollView>
-        </DismissKeyboard>
       </KeyboardAvoidingView>
 
       {/* Region picker */}
