@@ -2,13 +2,19 @@ import { useMemo, useState } from 'react';
 import {
   FlatList,
   Image,
+  InputAccessoryView,
+  Keyboard,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
+
+const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
@@ -145,6 +151,7 @@ export default function TransfertScreen() {
         </View>
       </View>
 
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.content}>
         {error && <Alert message={error} />}
         {success && <Alert message={success} tone="success" />}
@@ -186,6 +193,7 @@ export default function TransfertScreen() {
                 keyboardType="phone-pad"
                 value={recipient}
                 onChangeText={setRecipient}
+                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
               />
               <Text style={styles.flag}>🇸🇳</Text>
             </View>
@@ -204,6 +212,7 @@ export default function TransfertScreen() {
               keyboardType="number-pad"
               value={amount}
               onChangeText={setAmount}
+              inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
             />
             <Text style={styles.currency}>FCFA</Text>
           </View>
@@ -242,6 +251,17 @@ export default function TransfertScreen() {
           </Pressable>
         </View>
       </View>
+      </TouchableWithoutFeedback>
+
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={KEYBOARD_ACCESSORY_ID}>
+          <View style={styles.accessory}>
+            <Pressable onPress={() => Keyboard.dismiss()} hitSlop={8} style={styles.accessoryBtn}>
+              <Text style={styles.accessoryText}>Terminé</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      )}
 
       {/* Custom contact picker */}
       <Modal
@@ -467,6 +487,16 @@ const styles = StyleSheet.create({
   contactName: { fontSize: font.md, fontWeight: '500', color: colors.text },
   contactNumber: { fontSize: font.sm, color: colors.textMuted, marginTop: 2 },
   contactDivider: { height: 1, backgroundColor: colors.border },
+  accessory: {
+    backgroundColor: '#f1f3f6',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: 'flex-end',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  accessoryBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  accessoryText: { color: colors.blue, fontSize: font.md, fontWeight: '700' },
   closeBtn: {
     position: 'absolute',
     bottom: spacing.xl,
