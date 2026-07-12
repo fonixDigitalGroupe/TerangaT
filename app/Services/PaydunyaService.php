@@ -126,34 +126,56 @@ class PaydunyaService
         ];
     }
 
+    /** URL de base du déboursement (API PUSH, en v2). */
+    private function disburseUrl(): string
+    {
+        $mode = config('paydunya.mode', 'test');
+
+        return config("paydunya.disburse_url.$mode");
+    }
+
     /**
-     * 3) DÉPÔT : déboursement (envoi d'argent vers un numéro Wave/OM).
+     * 3) DÉPÔT / crédit du bénéficiaire : déboursement (API PUSH v2).
      *    withdraw_mode : 'wave-senegal' | 'orange-money-senegal' | ...
+     *
+     * Étape 1 (get-invoice) : account_alias, amount, withdraw_mode, callback_url (OBLIGATOIRE).
+     * Étape 2 (submit-invoice) : disburse_invoice (= disburse_token), disburse_id (référence).
      */
-    public function disburse(string $phone, int $amount, string $withdrawMode): array
+    public function disburse(string $phone, int $amount, string $withdrawMode, ?string $reference = null): array
     {
         // Étape 1 : obtenir un token de déboursement
-        $invoice = Http::withHeaders($this->headers())
-            ->post($this->baseUrl() . '/disburse/get-invoice', [
+        $invoiceRes = Http::withHeaders($this->headers())
+            ->post($this->disburseUrl() . '/disburse/get-invoice', [
                 'account_alias' => $phone,
                 'amount'        => $amount,
                 'withdraw_mode' => $withdrawMode,
-            ])->json() ?? [];
+                'callback_url'  => config('paydunya.callback_url'), // obligatoire
+            ]);
 
-        if (($invoice['response_code'] ?? null) !== '00') {
-            return ['ok' => false, 'step' => 'get-invoice', 'raw' => $invoice];
+        $invoice = $invoiceRes->json() ?? [];
+        Log::info('[PayDunya] disburse/get-invoice', ['status' => $invoiceRes->status(), 'response' => $invoice]);
+
+        if (($invoice['response_code'] ?? null) !== '00' || empty($invoice['disburse_token'])) {
+            return ['ok' => false, 'step' => 'get-invoice', 'message' => $invoice['response_text'] ?? null, 'raw' => $invoice];
         }
 
-        // Étape 2 : soumettre le déboursement
-        $submit = Http::withHeaders($this->headers())
-            ->post($this->baseUrl() . '/disburse/submit-invoice', [
-                'disburse_invoice' => $invoice['disburse_token'] ?? null,
-                'disburse_id'      => $phone,
-            ])->json() ?? [];
+        // Étape 2 : soumettre le déboursement (push effectif)
+        $submitRes = Http::withHeaders($this->headers())
+            ->post($this->disburseUrl() . '/disburse/submit-invoice', [
+                'disburse_invoice' => $invoice['disburse_token'],
+                'disburse_id'      => $reference ?? $phone,
+            ]);
+
+        $submit = $submitRes->json() ?? [];
+        Log::info('[PayDunya] disburse/submit-invoice', ['status' => $submitRes->status(), 'response' => $submit]);
+
+        // response_code "00" = accepté ; statut final : success | pending | failed
+        $status = $submit['status'] ?? (($submit['response_code'] ?? null) === '00' ? 'success' : 'failed');
 
         return [
-            'ok'      => ($submit['response_code'] ?? null) === '00',
-            'message' => $submit['response_text'] ?? null,
+            'ok'      => ($submit['response_code'] ?? null) === '00' && $status !== 'failed',
+            'status'  => $status,               // success | pending | failed
+            'message' => $submit['response_text'] ?? ($submit['description'] ?? null),
             'raw'     => $submit,
         ];
     }

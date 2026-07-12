@@ -31,6 +31,14 @@ return [
     ],
 
     /*
+    | Déboursement (API PUSH) — endpoints en v2 (obligatoire d'après la doc).
+    */
+    'disburse_url' => [
+        'live' => 'https://app.paydunya.com/api/v2',
+        'test' => 'https://app.paydunya.com/api/v2',
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Informations de la boutique (affichées sur les paiements)
     |--------------------------------------------------------------------------

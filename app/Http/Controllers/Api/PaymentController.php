@@ -93,9 +93,12 @@ class PaymentController extends Controller
         $tx = $this->createTransaction($agent->id, 'dépôt', $data);
 
         $mode = self::OPERATORS[$data['operator']]['mode'];
-        $res = $this->paydunya->disburse($data['client_phone'], $data['amount'], $mode);
+        $res = $this->paydunya->disburse($data['client_phone'], $data['amount'], $mode, $tx->reference);
 
-        $tx->update(['status' => $res['ok'] ? 'completed' : 'échoué']);
+        $status = ($res['status'] ?? null) === 'pending'
+            ? 'en attente'
+            : ($res['ok'] ? 'completed' : 'échoué');
+        $tx->update(['status' => $status]);
 
         return response()->json([
             'message'   => $res['ok'] ? 'Dépôt effectué avec succès.' : ($res['message'] ?? 'Échec du dépôt.'),
@@ -219,14 +222,17 @@ class PaymentController extends Controller
             ?? 0
         );
 
-        // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement).
+        // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement API PUSH v2).
         if ($tx->sender_phone) {
             $mode = self::OPERATORS[$tx->operator]['mode'] ?? 'wave-senegal';
-            $disb = $this->paydunya->disburse($tx->client_phone, max(0, $tx->amount - $fee), $mode);
-            $tx->update([
-                'status'     => $disb['ok'] ? 'completed' : 'échoué',
-                'commission' => $fee,
-            ]);
+            $disb = $this->paydunya->disburse($tx->client_phone, max(0, $tx->amount - $fee), $mode, $tx->reference);
+
+            // success -> completed ; pending -> en attente (statut final via API) ; sinon échoué
+            $status = ($disb['status'] ?? null) === 'pending'
+                ? 'en attente'
+                : ($disb['ok'] ? 'completed' : 'échoué');
+
+            $tx->update(['status' => $status, 'commission' => $fee ?: $tx->commission]);
         } else {
             $tx->update(['status' => 'completed', 'commission' => $fee ?: $tx->commission]);
         }
