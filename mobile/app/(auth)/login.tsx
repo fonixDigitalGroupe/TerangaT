@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.grayLight,
     overflow: 'hidden',
   },
-  inputWrapFocused: { borderColor: '#f6b184', borderWidth: 1.5 },
+  inputWrapFocused: { borderColor: colors.primary, borderWidth: 1.5 },
   phonePrefix: {
     flexDirection: 'row',
     alignItems: 'center',

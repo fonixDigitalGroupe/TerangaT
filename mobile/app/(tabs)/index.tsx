@@ -303,7 +303,7 @@ export default function TransfertScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#eef1f5' },
   header: {
-    backgroundColor: colors.orange,
+    backgroundColor: colors.blue,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     flexDirection: 'row',
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.orange,
+    backgroundColor: colors.blue,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

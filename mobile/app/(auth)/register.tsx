@@ -19,7 +19,8 @@ import { authApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 
-const TEAL = '#0FA9BE';
+const PRIMARY = '#0577DE'; // bleu primaire — marque Téranga (header, accents)
+const ACCENT = '#F88B1A'; // orange secondaire — bouton d'action (CTA)
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -98,7 +99,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header turquoise */}
+      {/* Header bleu nuit */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
           <Ionicons name="chevron-back" size={26} color="#fff" />
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#eef1f5' },
   flex: { flex: 1 },
   header: {
-    backgroundColor: TEAL,
+    backgroundColor: PRIMARY,
     paddingHorizontal: 12,
     paddingBottom: 14,
     flexDirection: 'row',
@@ -300,11 +301,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 10,
   },
-  checkboxOn: { backgroundColor: TEAL, borderColor: TEAL },
+  checkboxOn: { backgroundColor: PRIMARY, borderColor: PRIMARY },
   check: { color: '#fff', fontSize: 14, fontWeight: '900' },
   cguText: { flex: 1, fontSize: 13, color: '#4b5563' },
-  link: { color: TEAL, fontWeight: '700' },
-  cta: { backgroundColor: TEAL, height: 54, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  link: { color: PRIMARY, fontWeight: '700' },
+  cta: { backgroundColor: ACCENT, height: 54, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   loginRow: { textAlign: 'center', marginTop: 18, fontSize: 14, color: '#4b5563' },
 });

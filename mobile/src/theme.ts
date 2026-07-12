@@ -3,16 +3,22 @@
  * Brand colours mirror the web app (tailwind.config.js).
  */
 export const colors = {
-  // Couleur principale : turquoise (style MyDunya)
-  blue: '#0FA9BE',
-  blueDark: '#0B8B9C',
-  blueLight: '#e2f5f8',
+  // Marque Téranga — inspirée ExpressPay : bleu primaire + orange secondaire
+  primary: '#0577DE',
+  primaryDark: '#0563BC',
+  primaryLight: '#E4F0FC',
+  // Alias primaire (headers, marque, accents)
+  blue: '#0577DE',
+  blueDark: '#0563BC',
+  blueLight: '#E4F0FC',
   // Neutral greys
   gray: '#5b6675',
   grayLight: '#eef1f5',
-  // Accent (désormais aligné sur le turquoise)
-  orange: '#0FA9BE',
-  orangeDark: '#0B8B9C',
+  // Secondaire : orange (boutons d'action / CTA)
+  secondary: '#F88B1A',
+  secondaryDark: '#E07A0E',
+  orange: '#F88B1A',
+  orangeDark: '#E07A0E',
   gold: '#c9a227',
   white: '#ffffff',
   background: '#f4f6f9',

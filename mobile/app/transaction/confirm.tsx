@@ -87,7 +87,7 @@ export default function ConfirmScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header turquoise */}
+      {/* Header bleu nuit */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={26} color={colors.white} />
@@ -162,7 +162,7 @@ export default function ConfirmScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#eef1f5' },
   header: {
-    backgroundColor: colors.orange,
+    backgroundColor: colors.blue,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     flexDirection: 'row',
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   amountLabel: { fontSize: font.sm, color: colors.textMuted, marginBottom: 6 },
-  amountValue: { fontSize: 34, fontWeight: '900', color: colors.orange },
+  amountValue: { fontSize: 34, fontWeight: '900', color: colors.blue },
   card: {
     backgroundColor: colors.card,
     borderRadius: 16,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: colors.orange,
+    backgroundColor: colors.blue,
     alignItems: 'center',
     justifyContent: 'center',
   },
