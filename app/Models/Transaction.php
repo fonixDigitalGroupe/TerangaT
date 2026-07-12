@@ -17,6 +17,7 @@ class Transaction extends Model
         'commission',
         'total',
         'client_phone',
+        'sender_phone',
         'status',
         'reference',
         'paydunya_token',

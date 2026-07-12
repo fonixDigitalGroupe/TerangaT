@@ -110,6 +110,70 @@ class PaymentController extends Controller
     }
 
     /**
+     * TRANSFERT inter-wallet : débit du numéro « De » (agent) via SOFTPAY,
+     * puis crédit du « Vers » (déboursement) déclenché à la confirmation (IPN).
+     * Body: operator, amount, from_number (De = agent), to_number (Vers), [otp]
+     */
+    public function transfert(Request $request)
+    {
+        $data = $request->validate([
+            'operator'    => 'required|in:wave,orange-money',
+            'amount'      => 'required|integer|min:100',
+            'from_number' => 'required|string|max:20',
+            'to_number'   => 'required|string|max:20',
+            'otp'         => 'required_if:operator,orange-money|string|nullable',
+        ]);
+
+        $agent = $request->user()->agent;
+
+        $tx = $this->createTransaction($agent->id, 'dépôt', [
+            'operator'     => $data['operator'],
+            'client_phone' => $data['to_number'],   // Vers
+            'amount'       => $data['amount'],
+        ]);
+        $tx->update(['sender_phone' => $data['from_number']]);
+
+        // 1) Facture PayDunya
+        $invoice = $this->paydunya->createInvoice(
+            $data['amount'],
+            "Transfert {$data['from_number']} -> {$data['to_number']}",
+            ['transaction_id' => $tx->id, 'transfert' => true]
+        );
+        if (! $invoice['ok'] || ! $invoice['token']) {
+            $tx->update(['status' => 'échoué']);
+            return response()->json(['message' => 'Échec de création du paiement.', 'details' => $invoice['raw']], 422);
+        }
+        $tx->update(['paydunya_token' => $invoice['token']]);
+
+        // 2) Débit du numéro « De » via SOFTPAY
+        if ($data['operator'] === 'wave') {
+            $pay = $this->paydunya->softpayWave($invoice['token'], $agent->user->name ?? 'Agent', $data['from_number']);
+            if (! $pay['ok']) {
+                $tx->update(['status' => 'échoué']);
+                return response()->json(['message' => $pay['message'] ?? 'Échec Wave.', 'details' => $pay['raw']], 422);
+            }
+            return response()->json([
+                'message'   => 'Validez le débit dans Wave pour finaliser le transfert.',
+                'reference' => $tx->reference,
+                'pay_url'   => $pay['url'],
+                'status'    => 'en attente',
+            ]);
+        }
+
+        $pay = $this->paydunya->softpayOrangeMoney($invoice['token'], $agent->user->name ?? 'Agent', $data['from_number'], $data['otp']);
+        if (! $pay['ok']) {
+            $tx->update(['status' => 'échoué']);
+            return response()->json(['message' => $pay['message'] ?? 'Échec Orange Money.', 'details' => $pay['raw']], 422);
+        }
+
+        return response()->json([
+            'message'   => 'Transfert Orange Money initié.',
+            'reference' => $tx->reference,
+            'status'    => 'en attente',
+        ]);
+    }
+
+    /**
      * IPN : PayDunya notifie le serveur du statut final d'un paiement.
      * Route publique (pas d'auth) — PayDunya l'appelle.
      */
@@ -130,10 +194,32 @@ class PaymentController extends Controller
         }
 
         $check = $this->paydunya->confirmInvoice($token);
-        if ($check['ok']) {
-            $status = $check['status'] === 'completed' ? 'completed'
-                : ($check['status'] === 'cancelled' ? 'échoué' : 'en attente');
-            $tx->update(['status' => $status]);
+        \Illuminate\Support\Facades\Log::info('[PayDunya] IPN confirm', ['ref' => $tx->reference, 'raw' => $check['raw'] ?? null]);
+
+        if (! ($check['ok'] && $check['status'] === 'completed')) {
+            $tx->update(['status' => $check['status'] === 'cancelled' ? 'échoué' : 'en attente']);
+            return response()->json(['message' => 'IPN traité (non finalisé).']);
+        }
+
+        // Frais réels renvoyés par PayDunya (option B) — plusieurs chemins possibles selon l'API
+        $raw = $check['raw'] ?? [];
+        $fee = (int) round(
+            data_get($raw, 'invoice.fees')
+            ?? data_get($raw, 'invoice.fee_amount')
+            ?? data_get($raw, 'fees')
+            ?? 0
+        );
+
+        // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement).
+        if ($tx->sender_phone) {
+            $mode = self::OPERATORS[$tx->operator]['mode'] ?? 'wave-senegal';
+            $disb = $this->paydunya->disburse($tx->client_phone, max(0, $tx->amount - $fee), $mode);
+            $tx->update([
+                'status'     => $disb['ok'] ? 'completed' : 'échoué',
+                'commission' => $fee,
+            ]);
+        } else {
+            $tx->update(['status' => 'completed', 'commission' => $fee ?: $tx->commission]);
         }
 
         return response()->json(['message' => 'IPN traité.']);

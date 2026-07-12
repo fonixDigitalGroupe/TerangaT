@@ -32,5 +32,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Paiements PayDunya
         Route::post('/paiements/retrait', [PaymentController::class, 'retrait']);
         Route::post('/paiements/depot', [PaymentController::class, 'depot']);
+        Route::post('/paiements/transfert', [PaymentController::class, 'transfert']);
     });
 });

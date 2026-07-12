@@ -4,6 +4,7 @@ import {
   Image,
   InputAccessoryView,
   Keyboard,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -16,14 +17,12 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
-import { transactionsApi } from '../../src/api/endpoints';
+import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
-const FEE_RATE = 0.02; // 2%
-const FEE_FIXED = 100; // + 100 FCFA fixe
 
 type Operator = 'wave' | 'om';
 const OP_LOGOS: Record<Operator, ReturnType<typeof require>> = {
@@ -51,12 +50,14 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
+  const [otp, setOtp] = useState('');
+  const needsOtp = fromOp === 'om';
+
   const numericAmount = useMemo(() => {
     const n = parseFloat(amount.replace(/[^0-9.]/g, ''));
     return Number.isFinite(n) ? n : 0;
   }, [amount]);
 
-  const fees = numericAmount > 0 ? Math.round(numericAmount * FEE_RATE + FEE_FIXED) : 0;
   const canSend =
     numericAmount > 0 && fromNumber.trim().length > 0 && toNumber.trim().length > 0 && !sending;
 
@@ -103,17 +104,29 @@ export default function TransfertScreen() {
       setError('Renseignez le montant et les deux numéros.');
       return;
     }
+    if (needsOtp && !otp.trim()) {
+      setError('Entrez le code Orange Money (#144#391#) du numéro « De ».');
+      return;
+    }
     setSending(true);
     try {
-      await transactionsApi.create({
-        type: 'dépôt',
-        fee_strategy: supportFees ? 'agent_receives' : 'client_pays',
+      const res = await paiementsApi.transfert({
+        operator: fromOp === 'om' ? 'orange-money' : 'wave',
         amount: numericAmount,
-        client_phone: toNumber.trim(),
+        from_number: fromNumber.trim(),
+        to_number: toNumber.trim(),
+        ...(needsOtp ? { otp: otp.trim() } : {}),
       });
-      setSuccess(`Transfert de ${formatXof(numericAmount)} vers ${toNumber.trim()} envoyé.`);
+
+      // Wave : ouvrir l'app Wave pour valider le débit du numéro « De »
+      if (res.pay_url) {
+        await Linking.openURL(res.pay_url);
+      }
+
+      setSuccess(res.message ?? `Transfert de ${formatXof(numericAmount)} initié.`);
       setAmount('');
       setToNumber('');
+      setOtp('');
     } catch (e) {
       setError(apiErrorMessage(e, 'Transfert impossible.'));
     } finally {
@@ -179,6 +192,20 @@ export default function TransfertScreen() {
               </View>
             </View>
 
+            {needsOtp && (
+              <View style={styles.otpBox}>
+                <TextInput
+                  style={[styles.numberInput, { outlineStyle: 'none' } as object]}
+                  placeholder="Code Orange Money (#144#391#)"
+                  placeholderTextColor="#9aa3b0"
+                  keyboardType="number-pad"
+                  value={otp}
+                  onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
+                  inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+                />
+              </View>
+            )}
+
             <Pressable style={styles.checkRow} onPress={() => setSupportFees((v) => !v)}>
               <View style={[styles.checkbox, supportFees && styles.checkboxOn]}>
                 {supportFees && <Text style={styles.check}>✓</Text>}
@@ -211,7 +238,7 @@ export default function TransfertScreen() {
               </Pressable>
             </View>
 
-            <Text style={styles.fees}>Frais: {fees} Fcfa</Text>
+            <Text style={styles.fees}>Frais : calculés par PayDunya</Text>
 
             <Pressable
               onPress={onSend}
@@ -370,6 +397,15 @@ const styles = StyleSheet.create({
   },
   codeMuted: { color: colors.textMuted, fontSize: font.md, marginRight: 8, fontWeight: '600' },
   numberInput: { flex: 1, color: colors.text, fontSize: font.md },
+  otpBox: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    height: 52,
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
   flag: { fontSize: 20 },
   contactBtn: { width: 40, height: 52, alignItems: 'center', justifyContent: 'center' },
   checkRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },

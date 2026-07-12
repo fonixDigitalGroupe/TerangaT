@@ -78,6 +78,14 @@ export interface PaiementResponse {
   pay_url?: string; // URL Wave à ouvrir (retrait Wave)
 }
 
+export interface TransfertPayload {
+  operator: Operator;
+  amount: number;
+  from_number: string; // « De » (numéro de l'agent, débité)
+  to_number: string; // « Vers » (destinataire)
+  otp?: string;
+}
+
 export const paiementsApi = {
   // Retrait : le client envoie vers l'agent (SOFTPAY Wave/OM)
   async retrait(payload: PaiementPayload): Promise<PaiementResponse> {
@@ -87,6 +95,11 @@ export const paiementsApi = {
   // Dépôt : l'agent envoie vers le client (déboursement)
   async depot(payload: PaiementPayload): Promise<PaiementResponse> {
     const { data } = await api.post<PaiementResponse>('/paiements/depot', payload);
+    return data;
+  },
+  // Transfert inter-wallet : débit du « De » puis crédit du « Vers »
+  async transfert(payload: TransfertPayload): Promise<PaiementResponse> {
+    const { data } = await api.post<PaiementResponse>('/paiements/transfert', payload);
     return data;
   },
 };
