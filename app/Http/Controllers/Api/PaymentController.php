@@ -125,52 +125,65 @@ class PaymentController extends Controller
         ]);
 
         $agent = $request->user()->agent;
-
-        $tx = $this->createTransaction($agent->id, 'dépôt', [
-            'operator'     => $data['operator'],
-            'client_phone' => $data['to_number'],   // Vers
-            'amount'       => $data['amount'],
-        ]);
-        $tx->update(['sender_phone' => $data['from_number']]);
-
-        // 1) Facture PayDunya
-        $invoice = $this->paydunya->createInvoice(
-            $data['amount'],
-            "Transfert {$data['from_number']} -> {$data['to_number']}",
-            ['transaction_id' => $tx->id, 'transfert' => true]
-        );
-        if (! $invoice['ok'] || ! $invoice['token']) {
-            $tx->update(['status' => 'échoué']);
-            return response()->json(['message' => 'Échec de création du paiement.', 'details' => $invoice['raw']], 422);
+        if (! $agent) {
+            return response()->json(['message' => 'Compte agent introuvable.'], 422);
         }
-        $tx->update(['paydunya_token' => $invoice['token']]);
 
-        // 2) Débit du numéro « De » via SOFTPAY
-        if ($data['operator'] === 'wave') {
-            $pay = $this->paydunya->softpayWave($invoice['token'], $agent->user->name ?? 'Agent', $data['from_number']);
+        try {
+            $tx = $this->createTransaction($agent->id, 'dépôt', [
+                'operator'     => $data['operator'],
+                'client_phone' => $data['to_number'],   // Vers
+                'amount'       => $data['amount'],
+            ]);
+            $tx->update(['sender_phone' => $data['from_number']]);
+
+            // 1) Facture PayDunya
+            $invoice = $this->paydunya->createInvoice(
+                $data['amount'],
+                "Transfert {$data['from_number']} -> {$data['to_number']}",
+                ['transaction_id' => $tx->id, 'transfert' => true]
+            );
+            if (! $invoice['ok'] || ! $invoice['token']) {
+                $tx->update(['status' => 'échoué']);
+                return response()->json(['message' => 'Échec de création du paiement PayDunya.', 'details' => $invoice['raw']], 422);
+            }
+            $tx->update(['paydunya_token' => $invoice['token']]);
+
+            // 2) Débit du numéro « De » via SOFTPAY
+            if ($data['operator'] === 'wave') {
+                $pay = $this->paydunya->softpayWave($invoice['token'], $agent->user->name ?? 'Agent', $data['from_number']);
+                if (! $pay['ok']) {
+                    $tx->update(['status' => 'échoué']);
+                    return response()->json(['message' => $pay['message'] ?? 'Échec Wave.', 'details' => $pay['raw']], 422);
+                }
+                return response()->json([
+                    'message'   => 'Validez le débit dans Wave pour finaliser le transfert.',
+                    'reference' => $tx->reference,
+                    'pay_url'   => $pay['url'],
+                    'status'    => 'en attente',
+                ]);
+            }
+
+            $pay = $this->paydunya->softpayOrangeMoney($invoice['token'], $agent->user->name ?? 'Agent', $data['from_number'], $data['otp']);
             if (! $pay['ok']) {
                 $tx->update(['status' => 'échoué']);
-                return response()->json(['message' => $pay['message'] ?? 'Échec Wave.', 'details' => $pay['raw']], 422);
+                return response()->json(['message' => $pay['message'] ?? 'Échec Orange Money.', 'details' => $pay['raw']], 422);
             }
+
             return response()->json([
-                'message'   => 'Validez le débit dans Wave pour finaliser le transfert.',
+                'message'   => 'Transfert Orange Money initié.',
                 'reference' => $tx->reference,
-                'pay_url'   => $pay['url'],
                 'status'    => 'en attente',
             ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('[PayDunya] transfert exception', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return response()->json([
+                'message' => 'Erreur PayDunya : ' . $e->getMessage(),
+            ], 500);
         }
-
-        $pay = $this->paydunya->softpayOrangeMoney($invoice['token'], $agent->user->name ?? 'Agent', $data['from_number'], $data['otp']);
-        if (! $pay['ok']) {
-            $tx->update(['status' => 'échoué']);
-            return response()->json(['message' => $pay['message'] ?? 'Échec Orange Money.', 'details' => $pay['raw']], 422);
-        }
-
-        return response()->json([
-            'message'   => 'Transfert Orange Money initié.',
-            'reference' => $tx->reference,
-            'status'    => 'en attente',
-        ]);
     }
 
     /**
