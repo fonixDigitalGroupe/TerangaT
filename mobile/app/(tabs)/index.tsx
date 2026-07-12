@@ -4,7 +4,6 @@ import {
   Image,
   InputAccessoryView,
   Keyboard,
-  Linking,
   Modal,
   Platform,
   Pressable,
@@ -15,12 +14,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
-import { paiementsApi } from '../../src/api/endpoints';
-import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
-import { colors, font, formatXof, spacing } from '../../src/theme';
+import { colors, font, spacing } from '../../src/theme';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
@@ -40,6 +38,7 @@ function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
 
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [amount, setAmount] = useState('');
   const [fromNumber, setFromNumber] = useState('');
   const [toNumber, setToNumber] = useState('');
@@ -47,8 +46,6 @@ export default function TransfertScreen() {
   const [toOp, setToOp] = useState<Operator>('wave');
   const [supportFees, setSupportFees] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
 
   const [otp, setOtp] = useState('');
   const needsOtp = fromOp === 'om';
@@ -59,7 +56,7 @@ export default function TransfertScreen() {
   }, [amount]);
 
   const canSend =
-    numericAmount > 0 && fromNumber.trim().length > 0 && toNumber.trim().length > 0 && !sending;
+    numericAmount > 0 && fromNumber.trim().length > 0 && toNumber.trim().length > 0;
 
   // Contacts picker
   const [contactsVisible, setContactsVisible] = useState(false);
@@ -97,9 +94,9 @@ export default function TransfertScreen() {
     return name.includes(q) || number.replace(/\s/g, '').includes(q);
   });
 
-  const onSend = async () => {
+  // « Envoyer » ouvre la page de résumé/confirmation (pas d'appel API ici).
+  const onSend = () => {
     setError(null);
-    setSuccess(null);
     if (!canSend) {
       setError('Renseignez le montant et les deux numéros.');
       return;
@@ -108,30 +105,18 @@ export default function TransfertScreen() {
       setError('Entrez le code Orange Money (#144#391#) du numéro « De ».');
       return;
     }
-    setSending(true);
-    try {
-      const res = await paiementsApi.transfert({
-        operator: fromOp === 'om' ? 'orange-money' : 'wave',
-        amount: numericAmount,
-        from_number: fromNumber.trim(),
-        to_number: toNumber.trim(),
-        ...(needsOtp ? { otp: otp.trim() } : {}),
-      });
-
-      // Wave : ouvrir l'app Wave pour valider le débit du numéro « De »
-      if (res.pay_url) {
-        await Linking.openURL(res.pay_url);
-      }
-
-      setSuccess(res.message ?? `Transfert de ${formatXof(numericAmount)} initié.`);
-      setAmount('');
-      setToNumber('');
-      setOtp('');
-    } catch (e) {
-      setError(apiErrorMessage(e, 'Transfert impossible.'));
-    } finally {
-      setSending(false);
-    }
+    router.push({
+      pathname: '/transaction/confirm',
+      params: {
+        amount: String(numericAmount),
+        from: fromNumber.trim(),
+        to: toNumber.trim(),
+        fromOp,
+        toOp,
+        support: supportFees ? '1' : '0',
+        otp: otp.trim(),
+      },
+    });
   };
 
   return (
@@ -155,7 +140,6 @@ export default function TransfertScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.content}>
           {error && <Alert message={error} />}
-          {success && <Alert message={success} tone="success" />}
 
           <View style={styles.card}>
             {/* ===== DE ===== */}
@@ -249,7 +233,7 @@ export default function TransfertScreen() {
                 pressed && canSend && { opacity: 0.9 },
               ]}
             >
-              <Text style={styles.sendText}>{sending ? 'Envoi…' : 'Envoyer'}</Text>
+              <Text style={styles.sendText}>Envoyer</Text>
             </Pressable>
           </View>
         </View>
