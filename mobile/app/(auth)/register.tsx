@@ -14,18 +14,19 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../src/auth/AuthContext';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { authApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 
 const TEAL = '#0FA9BE';
 
 export default function RegisterScreen() {
-  const { register } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -35,7 +36,6 @@ export default function RegisterScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Format d'un numéro sénégalais "XX XXX XX XX" (9 chiffres)
   const onPhoneChange = (text: string) => {
     const digits = text.replace(/\D/g, '').slice(0, 9);
     const g: string[] = [];
@@ -48,11 +48,10 @@ export default function RegisterScreen() {
 
   const onSubmit = async () => {
     setError(null);
-    const name = fullName.trim().replace(/\s+/g, ' ');
     const phoneDigits = phone.replace(/\D/g, '');
 
-    if (!name) {
-      setError('Entrez votre nom complet.');
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('Entrez votre prénom et votre nom.');
       return;
     }
     if (phoneDigits.length !== 9) {
@@ -72,19 +71,23 @@ export default function RegisterScreen() {
       return;
     }
 
-    const parts = name.split(' ');
-    const first_name = parts[0];
-    const last_name = parts.slice(1).join(' ') || parts[0];
-
     setLoading(true);
     try {
-      await register({
-        first_name,
-        last_name,
+      // 1) Créer le compte
+      await authApi.register({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
         phone: phoneDigits,
         country: 'Sénégal',
         password,
         password_confirmation: confirm,
+      });
+
+      // 2) Envoyer le code OTP puis aller à l'écran de vérification
+      const otp = await authApi.sendOtp(phoneDigits);
+      router.push({
+        pathname: '/(auth)/code',
+        params: { phone: phoneDigits, dev_code: otp.dev_code ?? '' },
       });
     } catch (e) {
       setError(apiErrorMessage(e, 'Inscription impossible.'));
@@ -94,7 +97,16 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
+      {/* Header turquoise */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
+          <Ionicons name="chevron-back" size={26} color="#fff" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Inscription</Text>
+        <View style={{ width: 26 }} />
+      </View>
+
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -106,26 +118,35 @@ export default function RegisterScreen() {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.card}>
-              {/* Logo */}
               <Image
                 source={require('../../assets/logo-teranga.png')}
                 style={styles.logo}
                 resizeMode="contain"
               />
-
               <Text style={styles.title}>Bienvenue sur Téranga</Text>
               <Text style={styles.subtitle}>Créons votre compte</Text>
 
               {error && <Alert message={error} />}
 
-              {/* Nom complet */}
+              {/* Prénom */}
               <View style={styles.field}>
                 <TextInput
                   style={[styles.input, { outlineStyle: 'none' } as object]}
-                  placeholder="Nom complet"
+                  placeholder="Prénom"
                   placeholderTextColor="#9aa3b0"
-                  value={fullName}
-                  onChangeText={setFullName}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                />
+              </View>
+
+              {/* Nom */}
+              <View style={styles.field}>
+                <TextInput
+                  style={[styles.input, { outlineStyle: 'none' } as object]}
+                  placeholder="Nom"
+                  placeholderTextColor="#9aa3b0"
+                  value={lastName}
+                  onChangeText={setLastName}
                 />
               </View>
 
@@ -199,7 +220,7 @@ export default function RegisterScreen() {
                 disabled={loading}
                 style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}
               >
-                <Text style={styles.ctaText}>{loading ? 'Création…' : 'Créer'}</Text>
+                <Text style={styles.ctaText}>{loading ? 'Envoi…' : 'Créer'}</Text>
               </Pressable>
 
               <Text style={styles.loginRow}>
@@ -219,16 +240,21 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#eef1f5' },
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
+  header: {
+    backgroundColor: TEAL,
+    paddingHorizontal: 12,
+    paddingBottom: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  logo: { width: 120, height: 48, alignSelf: 'center', marginBottom: 18 },
+  back: { width: 26, alignItems: 'flex-start' },
+  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: 16 },
+  card: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 26, paddingHorizontal: 20 },
+  logo: { width: 120, height: 46, alignSelf: 'center', marginBottom: 16 },
   title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#7b8494', textAlign: 'center', marginTop: 4, marginBottom: 20 },
+  subtitle: { fontSize: 14, color: '#7b8494', textAlign: 'center', marginTop: 4, marginBottom: 18 },
   field: {
     height: 54,
     borderWidth: 1,
@@ -278,13 +304,7 @@ const styles = StyleSheet.create({
   check: { color: '#fff', fontSize: 14, fontWeight: '900' },
   cguText: { flex: 1, fontSize: 13, color: '#4b5563' },
   link: { color: TEAL, fontWeight: '700' },
-  cta: {
-    backgroundColor: TEAL,
-    height: 54,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  cta: { backgroundColor: TEAL, height: 54, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   loginRow: { textAlign: 'center', marginTop: 18, fontSize: 14, color: '#4b5563' },
 });

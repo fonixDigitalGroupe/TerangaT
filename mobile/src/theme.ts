@@ -3,16 +3,16 @@
  * Brand colours mirror the web app (tailwind.config.js).
  */
 export const colors = {
-  // Primary palette: professional finance blue + neutral greys (only these two).
-  blue: '#12568f',
-  blueDark: '#0d4272',
-  blueLight: '#e7eef6',
+  // Couleur principale : turquoise (style MyDunya)
+  blue: '#0FA9BE',
+  blueDark: '#0B8B9C',
+  blueLight: '#e2f5f8',
   // Neutral greys
   gray: '#5b6675',
   grayLight: '#eef1f5',
-  // Kept for status only (not part of the main brand palette)
-  orange: '#fb6300',
-  orangeDark: '#d95400',
+  // Accent (désormais aligné sur le turquoise)
+  orange: '#0FA9BE',
+  orangeDark: '#0B8B9C',
   gold: '#c9a227',
   white: '#ffffff',
   background: '#f4f6f9',
