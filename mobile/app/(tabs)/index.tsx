@@ -4,6 +4,7 @@ import {
   Image,
   InputAccessoryView,
   Keyboard,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -14,11 +15,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
+import { paiementsApi } from '../../src/api/endpoints';
+import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
-import { colors, font, spacing } from '../../src/theme';
+import { colors, font, formatXof, spacing } from '../../src/theme';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
@@ -27,6 +29,7 @@ const OP_LOGOS: Record<Operator, ReturnType<typeof require>> = {
   wave: require('../../assets/logo-wave.png'),
   om: require('../../assets/logo-om.png'),
 };
+const OP_NAMES: Record<Operator, string> = { wave: 'Wave', om: 'Orange Money' };
 
 function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
   return (
@@ -38,7 +41,6 @@ function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
 
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [amount, setAmount] = useState('');
   const [fromNumber, setFromNumber] = useState('');
   const [toNumber, setToNumber] = useState('');
@@ -46,6 +48,11 @@ export default function TransfertScreen() {
   const [toOp, setToOp] = useState<Operator>('wave');
   const [supportFees, setSupportFees] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Popup de confirmation (résumé) sur la même page
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const [otp, setOtp] = useState('');
   const needsOtp = fromOp === 'om';
@@ -94,9 +101,10 @@ export default function TransfertScreen() {
     return name.includes(q) || number.replace(/\s/g, '').includes(q);
   });
 
-  // « Envoyer » ouvre la page de résumé/confirmation (pas d'appel API ici).
+  // « Envoyer » ouvre le popup de résumé/confirmation (pas d'appel API ici).
   const onSend = () => {
     setError(null);
+    setSuccess(null);
     if (!canSend) {
       setError('Renseignez le montant et les deux numéros.');
       return;
@@ -105,18 +113,37 @@ export default function TransfertScreen() {
       setError('Entrez le code Orange Money (#144#391#) du numéro « De ».');
       return;
     }
-    router.push({
-      pathname: '/transaction/confirm',
-      params: {
-        amount: String(numericAmount),
-        from: fromNumber.trim(),
-        to: toNumber.trim(),
-        fromOp,
-        toOp,
-        support: supportFees ? '1' : '0',
-        otp: otp.trim(),
-      },
-    });
+    setConfirmVisible(true);
+  };
+
+  // « Valider » dans le popup : lance le transfert réel puis ouvre Wave.
+  const onConfirm = async () => {
+    setError(null);
+    setSending(true);
+    try {
+      const res = await paiementsApi.transfert({
+        operator: fromOp === 'om' ? 'orange-money' : 'wave',
+        amount: numericAmount,
+        from_number: fromNumber.trim(),
+        to_number: toNumber.trim(),
+        ...(needsOtp ? { otp: otp.trim() } : {}),
+      });
+
+      // Ouvre la page de paiement / l'app Wave pour valider le débit du « De »
+      if (res.pay_url) {
+        await Linking.openURL(res.pay_url);
+      }
+
+      setConfirmVisible(false);
+      setSuccess(res.message ?? `Transfert de ${formatXof(numericAmount)} initié.`);
+      setAmount('');
+      setToNumber('');
+      setOtp('');
+    } catch (e) {
+      setError(apiErrorMessage(e, 'Transfert impossible.'));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -139,7 +166,8 @@ export default function TransfertScreen() {
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.content}>
-          {error && <Alert message={error} />}
+          {error && !confirmVisible && <Alert message={error} />}
+          {success && <Alert message={success} tone="success" />}
 
           <View style={styles.card}>
             {/* ===== DE ===== */}
@@ -296,6 +324,81 @@ export default function TransfertScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Popup de confirmation (résumé) */}
+      <Modal
+        visible={confirmVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => !sending && setConfirmVisible(false)}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Confirmer le transfert</Text>
+
+            <Text style={styles.confirmAmount}>{formatXof(numericAmount)}</Text>
+
+            <View style={styles.confirmWallets}>
+              {/* De */}
+              <View style={styles.confirmRow}>
+                <Image source={OP_LOGOS[fromOp]} style={styles.confirmLogo} resizeMode="cover" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.confirmLabel}>Envoyeur (De)</Text>
+                  <Text style={styles.confirmPhone}>+221 {fromNumber}</Text>
+                </View>
+                <Text style={styles.confirmOp}>{OP_NAMES[fromOp]}</Text>
+              </View>
+
+              <View style={styles.confirmArrowWrap}>
+                <View style={styles.confirmArrow}>
+                  <Ionicons name="arrow-down" size={16} color={colors.white} />
+                </View>
+              </View>
+
+              {/* Vers */}
+              <View style={styles.confirmRow}>
+                <Image source={OP_LOGOS[toOp]} style={styles.confirmLogo} resizeMode="cover" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.confirmLabel}>Receveur (Vers)</Text>
+                  <Text style={styles.confirmPhone}>+221 {toNumber}</Text>
+                </View>
+                <Text style={styles.confirmOp}>{OP_NAMES[toOp]}</Text>
+              </View>
+            </View>
+
+            <View style={styles.confirmFeeRow}>
+              <Text style={styles.confirmFeeKey}>Frais</Text>
+              <Text style={styles.confirmFeeVal}>Calculés par PayDunya</Text>
+            </View>
+
+            {error && confirmVisible ? (
+              <View style={{ marginTop: spacing.sm }}>
+                <Alert message={error} />
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={onConfirm}
+              disabled={sending}
+              style={({ pressed }) => [
+                styles.confirmValidate,
+                sending && styles.sendBtnDisabled,
+                pressed && !sending && { opacity: 0.9 },
+              ]}
+            >
+              <Text style={styles.sendText}>{sending ? 'Traitement…' : 'Valider'}</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setConfirmVisible(false)}
+              disabled={sending}
+              style={styles.confirmCancel}
+            >
+              <Text style={styles.confirmCancelText}>Modifier</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -309,8 +412,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomLeftRadius: 22,
-    borderBottomRightRadius: 22,
   },
   brandScript: { color: colors.white, fontSize: 30, fontFamily: 'KaushanScript_400Regular' },
   brandSub: {
@@ -476,4 +577,64 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
+
+  // ===== Popup de confirmation =====
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  confirmCard: {
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    padding: spacing.lg,
+  },
+  confirmTitle: { fontSize: font.lg, fontWeight: '800', color: colors.text, textAlign: 'center' },
+  confirmAmount: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: colors.blue,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  confirmWallets: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: spacing.md,
+  },
+  confirmRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  confirmLogo: { width: 40, height: 40, borderRadius: 20 },
+  confirmLabel: { fontSize: font.xs, color: colors.textMuted },
+  confirmPhone: { fontSize: font.md, fontWeight: '700', color: colors.text, marginTop: 2 },
+  confirmOp: { fontSize: font.sm, fontWeight: '700', color: colors.text },
+  confirmArrowWrap: { alignItems: 'center', marginVertical: spacing.xs },
+  confirmArrow: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.blue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmFeeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  confirmFeeKey: { fontSize: font.md, color: colors.textMuted },
+  confirmFeeVal: { fontSize: font.md, fontWeight: '700', color: colors.text },
+  confirmValidate: {
+    backgroundColor: colors.orange,
+    borderRadius: 12,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.lg,
+  },
+  confirmCancel: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.xs },
+  confirmCancelText: { color: colors.textMuted, fontSize: font.md, fontWeight: '600' },
 });
