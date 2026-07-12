@@ -54,9 +54,6 @@ export default function TransfertScreen() {
   const [sending, setSending] = useState(false);
   const transferDate = new Date().toLocaleDateString('fr-FR');
 
-  const [otp, setOtp] = useState('');
-  const needsOtp = fromOp === 'om';
-
   const numericAmount = useMemo(() => {
     const n = parseFloat(amount.replace(/[^0-9.]/g, ''));
     return Number.isFinite(n) ? n : 0;
@@ -109,14 +106,10 @@ export default function TransfertScreen() {
       setError('Renseignez le montant et les deux numéros.');
       return;
     }
-    if (needsOtp && !otp.trim()) {
-      setError('Entrez le code Orange Money (#144#391#) du numéro « De ».');
-      return;
-    }
     setConfirmVisible(true);
   };
 
-  // « Valider » dans le popup : lance le transfert réel puis ouvre Wave.
+  // « Valider » dans le popup : lance le transfert réel puis redirige (Wave / Max it).
   const onConfirm = async () => {
     setError(null);
     setSending(true);
@@ -126,10 +119,9 @@ export default function TransfertScreen() {
         amount: numericAmount,
         from_number: fromNumber.trim(),
         to_number: toNumber.trim(),
-        ...(needsOtp ? { otp: otp.trim() } : {}),
       });
 
-      // Ouvre la page de paiement / l'app Wave pour valider le débit du « De »
+      // Redirige vers Wave (pay.wave.com) ou Max it / Orange Money pour valider le débit
       if (res.pay_url) {
         await Linking.openURL(res.pay_url);
       }
@@ -138,7 +130,6 @@ export default function TransfertScreen() {
       setSuccess(res.message ?? `Transfert de ${formatXof(numericAmount)} initié.`);
       setAmount('');
       setToNumber('');
-      setOtp('');
     } catch (e) {
       setError(apiErrorMessage(e, 'Transfert impossible.'));
     } finally {
@@ -203,20 +194,6 @@ export default function TransfertScreen() {
                 <Text style={styles.flag}>🇸🇳</Text>
               </View>
             </View>
-
-            {needsOtp && (
-              <View style={styles.otpBox}>
-                <TextInput
-                  style={[styles.numberInput, { outlineStyle: 'none' } as object]}
-                  placeholder="Code Orange Money (#144#391#)"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="number-pad"
-                  value={otp}
-                  onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
-                  inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                />
-              </View>
-            )}
 
             <Pressable style={styles.checkRow} onPress={() => setSupportFees((v) => !v)}>
               <View style={[styles.checkbox, supportFees && styles.checkboxOn]}>
@@ -504,15 +481,6 @@ const styles = StyleSheet.create({
   },
   codeMuted: { color: colors.textMuted, fontSize: font.md, marginRight: 8, fontWeight: '600' },
   numberInput: { flex: 1, color: colors.text, fontSize: font.md },
-  otpBox: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    height: 52,
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
   flag: { fontSize: 20 },
   contactBtn: { width: 40, height: 52, alignItems: 'center', justifyContent: 'center' },
   checkRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },

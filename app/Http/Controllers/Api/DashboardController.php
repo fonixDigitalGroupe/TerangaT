@@ -13,11 +13,15 @@ class DashboardController extends Controller
     {
         $agent = $request->user()->agent;
 
+        // Seules les transactions réellement abouties (« completed ») comptent :
+        // l'argent n'est débité qu'à la confirmation du paiement.
+        $done = fn () => $agent->transactions()->where('status', 'completed');
+
         $stats = [
-            'total_transactions' => (int) $agent->transactions()->count(),
-            'total_depot' => (float) $agent->transactions()->where('type', 'dépôt')->sum('amount'),
-            'total_retrait' => (float) $agent->transactions()->where('type', 'retrait')->sum('amount'),
-            'total_commission' => (float) $agent->transactions()->sum('commission'),
+            'total_transactions' => (int) $done()->count(),
+            'total_depot' => (float) $done()->where('type', 'dépôt')->sum('amount'),
+            'total_retrait' => (float) $done()->where('type', 'retrait')->sum('amount'),
+            'total_commission' => (float) $done()->sum('commission'),
         ];
 
         return response()->json([

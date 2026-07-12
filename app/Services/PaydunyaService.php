@@ -88,31 +88,39 @@ class PaydunyaService
 
         return [
             'ok'      => (bool) ($data['success'] ?? false),
-            'url'     => $data['url'] ?? null,       // URL Wave à ouvrir
+            'url'     => $data['url'] ?? null,       // URL Wave à ouvrir (pay.wave.com)
+            'fees'    => isset($data['fees']) ? (int) $data['fees'] : null,
             'message' => $data['message'] ?? null,
             'raw'     => $data,
         ];
     }
 
     /**
-     * 2b) RETRAIT via Orange Money Sénégal (SOFTPAY, avec code OTP client #144#391#).
+     * 2b) Orange Money Sénégal — NOUVELLE API QR CODE (sans OTP).
+     *     Renvoie une URL de redirection vers l'app Max it / Orange Money.
      */
-    public function softpayOrangeMoney(string $invoiceToken, string $customerName, string $phone, string $otpCode, ?string $email = null): array
+    public function softpayOrangeMoney(string $invoiceToken, string $customerName, string $phone, ?string $email = null): array
     {
         $res = Http::withHeaders($this->headers())
-            ->post($this->baseUrl() . '/softpay/orange-money-senegal', [
-                'customer_name'      => $customerName,
-                'customer_email'     => $email ?? 'client@terangatrans.sn',
-                'phone_number'       => $phone,
-                'authorization_code' => $otpCode,
-                'invoice_token'      => $invoiceToken,
+            ->post($this->baseUrl() . '/softpay/new-orange-money-senegal', [
+                'customer_name'  => $customerName,
+                'customer_email' => $email ?? 'client@terangatrans.sn',
+                'phone_number'   => $phone,
+                'invoice_token'  => $invoiceToken,
             ]);
 
         $data = $res->json() ?? [];
         Log::info('[PayDunya] softpayOrangeMoney', ['status' => $res->status(), 'response' => $data]);
 
+        // Priorité : Max it, puis Orange Money, puis page QR hébergée
+        $url = data_get($data, 'other_url.maxit_url')
+            ?? data_get($data, 'other_url.om_url')
+            ?? ($data['url'] ?? null);
+
         return [
             'ok'      => (bool) ($data['success'] ?? false),
+            'url'     => $url,
+            'fees'    => isset($data['fees']) ? (int) $data['fees'] : null,
             'message' => $data['message'] ?? null,
             'raw'     => $data,
         ];

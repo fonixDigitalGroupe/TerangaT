@@ -32,7 +32,6 @@ class PaymentController extends Controller
             'operator'     => 'required|in:wave,orange-money',
             'amount'       => 'required|integer|min:100',
             'client_phone' => 'required|string|max:20',
-            'otp'          => 'required_if:operator,orange-money|string|nullable',
         ]);
 
         $agent = $request->user()->agent;
@@ -52,15 +51,17 @@ class PaymentController extends Controller
 
         $tx->update(['paydunya_token' => $invoice['token']]);
 
-        // 2) SOFTPAY natif, sinon page de paiement hébergée PayDunya (fallback)
+        // 2) SOFTPAY (Wave -> pay.wave.com, OM -> Max it), sinon page hébergée PayDunya
         $name = $agent->user->name ?? 'Client';
 
-        if ($data['operator'] === 'wave') {
-            $pay = $this->paydunya->softpayWave($invoice['token'], $name, $data['client_phone']);
-            $payUrl = ($pay['ok'] && $pay['url']) ? $pay['url'] : ($invoice['url'] ?? null);
-        } else {
-            $pay = $this->paydunya->softpayOrangeMoney($invoice['token'], $name, $data['client_phone'], $data['otp']);
-            $payUrl = $pay['ok'] ? null : ($invoice['url'] ?? null);
+        $pay = $data['operator'] === 'wave'
+            ? $this->paydunya->softpayWave($invoice['token'], $name, $data['client_phone'])
+            : $this->paydunya->softpayOrangeMoney($invoice['token'], $name, $data['client_phone']);
+
+        $payUrl = ($pay['ok'] && $pay['url']) ? $pay['url'] : ($invoice['url'] ?? null);
+
+        if (! empty($pay['fees'])) {
+            $tx->update(['commission' => (int) $pay['fees']]);
         }
 
         if (! $pay['ok'] && ! $payUrl) {
@@ -69,7 +70,7 @@ class PaymentController extends Controller
         }
 
         return response()->json([
-            'message'   => $payUrl ? 'Ouvrez le paiement pour valider.' : 'Paiement initié. Confirmez sur votre téléphone.',
+            'message'   => 'Ouvrez le paiement pour valider.',
             'reference' => $tx->reference,
             'pay_url'   => $payUrl,
             'status'    => 'en attente',
@@ -116,7 +117,6 @@ class PaymentController extends Controller
             'amount'      => 'required|integer|min:100',
             'from_number' => 'required|string|max:20',
             'to_number'   => 'required|string|max:20',
-            'otp'         => 'required_if:operator,orange-money|string|nullable',
         ]);
 
         $agent = $request->user()->agent;
@@ -144,31 +144,31 @@ class PaymentController extends Controller
             }
             $tx->update(['paydunya_token' => $invoice['token']]);
 
-            // 2) Débit du numéro « De » : on tente SOFTPAY natif, sinon on bascule
-            //    sur la page de paiement hébergée PayDunya (fonctionne sans activation SoftPay).
+            // 2) Débit du numéro « De » via SOFTPAY (Wave -> pay.wave.com, OM -> Max it).
+            //    Si SOFTPAY échoue, on bascule sur la page de paiement hébergée PayDunya.
             $name = $agent->user->name ?? 'Agent';
 
-            if ($data['operator'] === 'wave') {
-                $pay = $this->paydunya->softpayWave($invoice['token'], $name, $data['from_number']);
-                $payUrl = ($pay['ok'] && $pay['url']) ? $pay['url'] : ($invoice['url'] ?? null);
-            } else {
-                $pay = $this->paydunya->softpayOrangeMoney($invoice['token'], $name, $data['from_number'], $data['otp']);
-                // OM SoftPay ne renvoie pas d'URL ; si échec on bascule sur la page hébergée.
-                $payUrl = $pay['ok'] ? null : ($invoice['url'] ?? null);
+            $pay = $data['operator'] === 'wave'
+                ? $this->paydunya->softpayWave($invoice['token'], $name, $data['from_number'])
+                : $this->paydunya->softpayOrangeMoney($invoice['token'], $name, $data['from_number']);
+
+            $payUrl = ($pay['ok'] && $pay['url']) ? $pay['url'] : ($invoice['url'] ?? null);
+
+            // Frais réels renvoyés par PayDunya dès l'initiation (option B).
+            if (! empty($pay['fees'])) {
+                $tx->update(['commission' => (int) $pay['fees']]);
             }
 
-            // Échec SoftPay ET pas de page hébergée : on abandonne.
+            // Échec SOFTPAY ET pas de page hébergée : on abandonne (transaction échouée).
             if (! $pay['ok'] && ! $payUrl) {
                 $tx->update(['status' => 'échoué']);
                 return response()->json(['message' => $pay['message'] ?? 'Paiement indisponible.', 'details' => $pay['raw']], 422);
             }
 
             return response()->json([
-                'message'   => $payUrl
-                    ? 'Ouvrez le paiement pour valider le débit et finaliser le transfert.'
-                    : 'Transfert initié. Confirmez sur votre téléphone.',
+                'message'   => 'Ouvrez le paiement pour valider le débit et finaliser le transfert.',
                 'reference' => $tx->reference,
-                'pay_url'   => $payUrl,   // page hébergée ou deeplink SoftPay
+                'pay_url'   => $payUrl,   // pay.wave.com / Max it / page hébergée
                 'status'    => 'en attente',
             ]);
         } catch (\Throwable $e) {

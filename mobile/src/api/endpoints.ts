@@ -83,7 +83,6 @@ export interface TransfertPayload {
   amount: number;
   from_number: string; // « De » (numéro de l'agent, débité)
   to_number: string; // « Vers » (destinataire)
-  otp?: string;
 }
 
 export const paiementsApi = {

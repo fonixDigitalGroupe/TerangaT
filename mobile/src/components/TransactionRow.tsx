@@ -17,9 +17,25 @@ function formatDateTime(iso: string): string {
   return `${date} à ${time}`;
 }
 
+type StatusKind = 'done' | 'pending' | 'failed';
+
+/** Normalise le statut serveur en 3 états d'affichage. */
+function statusInfo(status: string): { kind: StatusKind; label: string; color: string; bg: string } {
+  const s = (status ?? '').toLowerCase();
+  if (['completed', 'réussi', 'reussi', 'terminé', 'termine', 'success', 'payé', 'paye'].includes(s)) {
+    return { kind: 'done', label: 'Réussi', color: colors.success, bg: colors.successBg };
+  }
+  if (['échoué', 'echoue', 'failed', 'cancelled', 'annulé', 'annule', 'refusé', 'refuse'].includes(s)) {
+    return { kind: 'failed', label: 'Échoué', color: colors.danger, bg: colors.dangerBg };
+  }
+  return { kind: 'pending', label: 'En attente', color: colors.orangeDark, bg: '#fdecd8' };
+}
+
 export function TransactionRow({ tx }: { tx: Transaction }) {
   const router = useRouter();
   const isDeposit = tx.type === 'dépôt';
+  const st = statusInfo(tx.status);
+  const debited = st.kind === 'done'; // l'argent n'est réellement débité qu'une fois « Réussi »
 
   return (
     <Pressable
@@ -34,9 +50,19 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
       <View style={styles.middle}>
         <Text style={styles.title}>{isDeposit ? 'Dépôt' : 'Retrait'}</Text>
         <Text style={styles.date}>{formatDateTime(tx.created_at)}</Text>
+        <View style={[styles.badge, { backgroundColor: st.bg }]}>
+          <View style={[styles.dot, { backgroundColor: st.color }]} />
+          <Text style={[styles.badgeText, { color: st.color }]}>{st.label}</Text>
+        </View>
       </View>
-      <Text style={styles.amount}>
-        {isDeposit ? '' : '-'}
+      <Text
+        style={[
+          styles.amount,
+          !debited && styles.amountMuted,
+          st.kind === 'failed' && styles.amountFailed,
+        ]}
+      >
+        {debited && isDeposit ? '' : debited ? '-' : ''}
         {formatXof(tx.amount)}
       </Text>
     </Pressable>
@@ -65,5 +91,18 @@ const styles = StyleSheet.create({
   middle: { flex: 1 },
   title: { fontSize: font.md, fontWeight: '700', color: colors.text },
   date: { fontSize: font.sm, color: colors.textMuted, marginTop: 2 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+    marginTop: 6,
+  },
+  dot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  badgeText: { fontSize: font.xs, fontWeight: '700' },
   amount: { fontSize: font.md, fontWeight: '700', color: colors.text },
+  amountMuted: { color: colors.textMuted },
+  amountFailed: { color: colors.textMuted, textDecorationLine: 'line-through' },
 });
