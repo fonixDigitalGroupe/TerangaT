@@ -29,7 +29,6 @@ const OP_LOGOS: Record<Operator, ReturnType<typeof require>> = {
   wave: require('../../assets/logo-wave.png'),
   om: require('../../assets/logo-om.png'),
 };
-const OP_NAMES: Record<Operator, string> = { wave: 'Wave', om: 'Orange Money' };
 
 function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
   return (
@@ -53,6 +52,7 @@ export default function TransfertScreen() {
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [sending, setSending] = useState(false);
+  const transferDate = new Date().toLocaleDateString('fr-FR');
 
   const [otp, setOtp] = useState('');
   const needsOtp = fromOp === 'om';
@@ -334,68 +334,90 @@ export default function TransfertScreen() {
       >
         <View style={styles.confirmOverlay}>
           <View style={styles.confirmCard}>
-            <Text style={styles.confirmTitle}>Confirmer le transfert</Text>
-
-            <Text style={styles.confirmAmount}>{formatXof(numericAmount)}</Text>
-
-            <View style={styles.confirmWallets}>
-              {/* De */}
-              <View style={styles.confirmRow}>
-                <Image source={OP_LOGOS[fromOp]} style={styles.confirmLogo} resizeMode="cover" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.confirmLabel}>Envoyeur (De)</Text>
-                  <Text style={styles.confirmPhone}>+221 {fromNumber}</Text>
-                </View>
-                <Text style={styles.confirmOp}>{OP_NAMES[fromOp]}</Text>
-              </View>
-
-              <View style={styles.confirmArrowWrap}>
-                <View style={styles.confirmArrow}>
-                  <Ionicons name="arrow-down" size={16} color={colors.white} />
-                </View>
-              </View>
-
-              {/* Vers */}
-              <View style={styles.confirmRow}>
-                <Image source={OP_LOGOS[toOp]} style={styles.confirmLogo} resizeMode="cover" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.confirmLabel}>Receveur (Vers)</Text>
-                  <Text style={styles.confirmPhone}>+221 {toNumber}</Text>
-                </View>
-                <Text style={styles.confirmOp}>{OP_NAMES[toOp]}</Text>
+            {/* En-tête du reçu */}
+            <View style={styles.receiptHeader}>
+              <Image source={require('../../assets/logo-teranga.png')} style={styles.receiptLogoBrand} resizeMode="contain" />
+              <View>
+                <Text style={styles.receiptBrand}>TÉRANGA TRANSFERT</Text>
+                <Text style={styles.receiptSubtitle}>Reçu de transfert</Text>
               </View>
             </View>
 
-            <View style={styles.confirmFeeRow}>
-              <Text style={styles.confirmFeeKey}>Frais</Text>
-              <Text style={styles.confirmFeeVal}>Calculés par PayDunya</Text>
-            </View>
-
-            {error && confirmVisible ? (
-              <View style={{ marginTop: spacing.sm }}>
-                <Alert message={error} />
+            <View style={styles.receiptBody}>
+              {/* Méta */}
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptKey}>Date</Text>
+                <Text style={styles.receiptVal}>{transferDate}</Text>
               </View>
-            ) : null}
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptKey}>Type</Text>
+                <Text style={styles.receiptVal}>Transfert inter-wallet</Text>
+              </View>
 
-            <Pressable
-              onPress={onConfirm}
-              disabled={sending}
-              style={({ pressed }) => [
-                styles.confirmValidate,
-                sending && styles.sendBtnDisabled,
-                pressed && !sending && { opacity: 0.9 },
-              ]}
-            >
-              <Text style={styles.sendText}>{sending ? 'Traitement…' : 'Valider'}</Text>
-            </Pressable>
+              <View style={styles.dashed} />
 
-            <Pressable
-              onPress={() => setConfirmVisible(false)}
-              disabled={sending}
-              style={styles.confirmCancel}
-            >
-              <Text style={styles.confirmCancelText}>Modifier</Text>
-            </Pressable>
+              {/* Envoyeur / Receveur */}
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptKey}>Envoyeur (De)</Text>
+                <View style={styles.receiptValWrap}>
+                  <Image source={OP_LOGOS[fromOp]} style={styles.receiptOpLogo} />
+                  <Text style={styles.receiptVal}>+221 {fromNumber}</Text>
+                </View>
+              </View>
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptKey}>Receveur (Vers)</Text>
+                <View style={styles.receiptValWrap}>
+                  <Image source={OP_LOGOS[toOp]} style={styles.receiptOpLogo} />
+                  <Text style={styles.receiptVal}>+221 {toNumber}</Text>
+                </View>
+              </View>
+
+              <View style={styles.dashed} />
+
+              {/* Montants */}
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptKey}>Montant</Text>
+                <Text style={styles.receiptVal}>{formatXof(numericAmount)}</Text>
+              </View>
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptKey}>Frais</Text>
+                <Text style={styles.receiptVal}>Calculés par PayDunya</Text>
+              </View>
+
+              <View style={styles.solidDivider} />
+
+              {/* Total */}
+              <View style={styles.receiptTotalRow}>
+                <Text style={styles.receiptTotalKey}>Montant à débiter</Text>
+                <Text style={styles.receiptTotalVal}>{formatXof(numericAmount)}</Text>
+              </View>
+
+              {error && confirmVisible ? (
+                <View style={{ marginTop: spacing.sm }}>
+                  <Alert message={error} />
+                </View>
+              ) : null}
+
+              <Pressable
+                onPress={onConfirm}
+                disabled={sending}
+                style={({ pressed }) => [
+                  styles.confirmValidate,
+                  sending && styles.sendBtnDisabled,
+                  pressed && !sending && { opacity: 0.9 },
+                ]}
+              >
+                <Text style={styles.sendText}>{sending ? 'Traitement…' : 'Valider le transfert'}</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setConfirmVisible(false)}
+                disabled={sending}
+                style={styles.confirmCancel}
+              >
+                <Text style={styles.confirmCancelText}>Modifier</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
@@ -587,53 +609,54 @@ const styles = StyleSheet.create({
   },
   confirmCard: {
     backgroundColor: colors.card,
-    borderRadius: 18,
-    padding: spacing.lg,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  confirmTitle: { fontSize: font.lg, fontWeight: '800', color: colors.text, textAlign: 'center' },
-  confirmAmount: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: colors.blue,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  confirmWallets: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: spacing.md,
-  },
-  confirmRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  confirmLogo: { width: 40, height: 40, borderRadius: 20 },
-  confirmLabel: { fontSize: font.xs, color: colors.textMuted },
-  confirmPhone: { fontSize: font.md, fontWeight: '700', color: colors.text, marginTop: 2 },
-  confirmOp: { fontSize: font.sm, fontWeight: '700', color: colors.text },
-  confirmArrowWrap: { alignItems: 'center', marginVertical: spacing.xs },
-  confirmArrow: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  // En-tête du reçu
+  receiptHeader: {
     backgroundColor: colors.blue,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing.md,
   },
-  confirmFeeRow: {
+  receiptLogoBrand: { width: 40, height: 40 },
+  receiptBrand: { color: colors.white, fontSize: font.md, fontWeight: '800', letterSpacing: 0.5 },
+  receiptSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: font.xs, marginTop: 2 },
+  receiptBody: { padding: spacing.lg },
+  receiptRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.md,
+    paddingVertical: 7,
   },
-  confirmFeeKey: { fontSize: font.md, color: colors.textMuted },
-  confirmFeeVal: { fontSize: font.md, fontWeight: '700', color: colors.text },
+  receiptKey: { fontSize: font.sm, color: colors.textMuted },
+  receiptValWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  receiptOpLogo: { width: 18, height: 18, borderRadius: 9 },
+  receiptVal: { fontSize: font.sm, fontWeight: '700', color: colors.text },
+  dashed: {
+    borderBottomWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#cdd3dc',
+    marginVertical: spacing.sm,
+  },
+  solidDivider: { height: 2, backgroundColor: colors.text, marginTop: spacing.sm, marginBottom: 2 },
+  receiptTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  receiptTotalKey: { fontSize: font.md, fontWeight: '800', color: colors.text },
+  receiptTotalVal: { fontSize: font.lg, fontWeight: '900', color: colors.blue },
   confirmValidate: {
     backgroundColor: colors.orange,
     borderRadius: 12,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
   confirmCancel: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.xs },
   confirmCancelText: { color: colors.textMuted, fontSize: font.md, fontWeight: '600' },
