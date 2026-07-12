@@ -59,7 +59,7 @@ class PaydunyaService
             ->post($this->baseUrl() . '/checkout-invoice/create', $payload);
 
         $data = $res->json() ?? [];
-        Log::info('[PayDunya] createInvoice', ['status' => $res->status(), 'code' => $data['response_code'] ?? null]);
+        Log::info('[PayDunya] createInvoice', ['status' => $res->status(), 'response' => $data]);
 
         // response_code "00" = succès ; token à réutiliser pour SOFTPAY
         return [
@@ -84,6 +84,7 @@ class PaydunyaService
             ]);
 
         $data = $res->json() ?? [];
+        Log::info('[PayDunya] softpayWave', ['status' => $res->status(), 'response' => $data]);
 
         return [
             'ok'      => (bool) ($data['success'] ?? false),
@@ -108,6 +109,7 @@ class PaydunyaService
             ]);
 
         $data = $res->json() ?? [];
+        Log::info('[PayDunya] softpayOrangeMoney', ['status' => $res->status(), 'response' => $data]);
 
         return [
             'ok'      => (bool) ($data['success'] ?? false),
