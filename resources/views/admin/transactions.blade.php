@@ -48,7 +48,18 @@
             <tbody>
                 @forelse($transactions as $tx)
                     <tr class="odd:bg-slate-50 hover:bg-slate-100">
-                        <td class="border border-slate-200 px-4 py-3 font-mono text-xs text-slate-600">{{ $tx->reference ?? '—' }}</td>
+                        <td class="border border-slate-200 px-4 py-3 font-mono text-xs text-slate-600">
+                            <div class="font-semibold text-slate-700">{{ $tx->reference ?? '—' }}</div>
+                            @if($tx->paydunya_token)
+                                <div class="text-[10px] text-slate-400 mt-0.5" title="Token facture PayDunya">PD&nbsp;: {{ $tx->paydunya_token }}</div>
+                            @endif
+                            @if($tx->paydunya_ref)
+                                <div class="text-[10px] text-slate-400" title="Réf. collecte (débit envoyeur, traçable opérateur)">↓&nbsp;{{ $tx->paydunya_ref }}</div>
+                            @endif
+                            @if($tx->disburse_ref)
+                                <div class="text-[10px] text-slate-400" title="Réf. déboursement (versement destinataire)">↑&nbsp;{{ $tx->disburse_ref }}</div>
+                            @endif
+                        </td>
                         <td class="border border-slate-200 px-4 py-3 text-xs text-slate-700">{{ $tx->agent->user->name ?? '—' }}</td>
                         <td class="border border-slate-200 px-4 py-3 text-xs text-slate-600 capitalize">{{ $tx->type }}</td>
                         <td class="border border-slate-200 px-4 py-3 text-xs text-slate-900" data-sort="{{ $tx->amount }}">{{ number_format($tx->amount, 0, ',', ' ') }} XOF</td>

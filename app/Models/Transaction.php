@@ -21,6 +21,8 @@ class Transaction extends Model
         'status',
         'reference',
         'paydunya_token',
+        'paydunya_ref',
+        'disburse_ref',
     ];
 
     public function agent()

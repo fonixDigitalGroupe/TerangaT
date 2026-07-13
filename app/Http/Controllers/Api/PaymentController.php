@@ -226,6 +226,10 @@ class PaymentController extends Controller
             ? $rawFee
             : (int) ceil($tx->amount * config('paydunya.fee_percent', 3) / 100);
 
+        // Référence réelle de la collecte (traçable chez PayDunya/opérateur) — pour les litiges.
+        $collectRef = data_get($raw, 'provider_reference') ?? data_get($raw, 'receipt_identifier');
+        $tx->update(['paydunya_ref' => $collectRef]);
+
         // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement API PUSH v2).
         if ($tx->sender_phone) {
             $mode = self::OPERATORS[$tx->operator]['mode'] ?? 'wave-senegal';
@@ -236,7 +240,14 @@ class PaymentController extends Controller
                 ? 'en attente'
                 : ($disb['ok'] ? 'completed' : 'échoué');
 
-            $tx->update(['status' => $status, 'commission' => $fee ?: $tx->commission]);
+            // Référence réelle du déboursement (versement au client) — pour les litiges.
+            $disburseRef = data_get($disb, 'raw.provider_ref') ?? data_get($disb, 'raw.transaction_id');
+
+            $tx->update([
+                'status'       => $status,
+                'commission'   => $fee ?: $tx->commission,
+                'disburse_ref' => $disburseRef,
+            ]);
         } else {
             $tx->update(['status' => 'completed', 'commission' => $fee ?: $tx->commission]);
         }
