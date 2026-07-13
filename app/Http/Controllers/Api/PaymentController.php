@@ -214,14 +214,17 @@ class PaymentController extends Controller
             return response()->json(['message' => 'IPN traité (non finalisé).']);
         }
 
-        // Frais réels renvoyés par PayDunya (option B) — plusieurs chemins possibles selon l'API
+        // Frais PayDunya : réels si renvoyés par l'API, sinon estimés via le taux configuré.
         $raw = $check['raw'] ?? [];
-        $fee = (int) round(
+        $rawFee = (int) round(
             data_get($raw, 'invoice.fees')
             ?? data_get($raw, 'invoice.fee_amount')
             ?? data_get($raw, 'fees')
             ?? 0
         );
+        $fee = $rawFee > 0
+            ? $rawFee
+            : (int) ceil($tx->amount * config('paydunya.fee_percent', 3) / 100);
 
         // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement API PUSH v2).
         if ($tx->sender_phone) {

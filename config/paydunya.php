@@ -21,6 +21,14 @@ return [
     'token'       => env('PAYDUNYA_TOKEN'),
 
     /*
+    | Taux estimé des frais PayDunya (collecte + déboursement), en %.
+    | Utilisé pour déduire les frais du montant reçu par le destinataire
+    | quand PayDunya ne renvoie pas le montant exact des frais.
+    | À ajuster selon les frais réels constatés dans les logs.
+    */
+    'fee_percent' => (float) env('PAYDUNYA_FEE_PERCENT', 3),
+
+    /*
     |--------------------------------------------------------------------------
     | URLs de base de l'API PayDunya
     |--------------------------------------------------------------------------
