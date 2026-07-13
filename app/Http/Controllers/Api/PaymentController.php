@@ -196,8 +196,9 @@ class PaymentController extends Controller
             ?? $request->input('token')
             ?? data_get($request->all(), 'invoice.token');
 
+        // Pas de token = sonde d'accessibilité PayDunya (avant déboursement) -> répondre 200.
         if (! $token) {
-            return response()->json(['message' => 'Token manquant.'], 400);
+            return response()->json(['message' => 'OK'], 200);
         }
 
         $tx = Transaction::where('paydunya_token', $token)->first();

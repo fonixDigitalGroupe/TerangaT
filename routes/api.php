@@ -13,8 +13,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/otp/send', [AuthController::class, 'sendOtp']);
 Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
 
-// IPN PayDunya (public — appelé par les serveurs PayDunya)
-Route::post('/paydunya/ipn', [PaymentController::class, 'ipn']);
+// IPN PayDunya (public — appelé par les serveurs PayDunya).
+// GET autorisé : PayDunya sonde l'URL en GET avant un déboursement (doit répondre 200).
+Route::match(['get', 'post'], '/paydunya/ipn', [PaymentController::class, 'ipn']);
 
 // Authenticated endpoints (Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
