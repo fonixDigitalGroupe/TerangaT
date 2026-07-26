@@ -65,7 +65,7 @@ export default function WelcomeScreen() {
           <View style={[styles.slide, { width }]}>
             <Image
               source={item.img}
-              style={{ width: circle, height: circle, borderRadius: circle / 2, marginBottom: spacing.xl }}
+              style={{ width: circle, height: circle, borderRadius: 24, marginBottom: spacing.xl }}
             />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.text}</Text>
