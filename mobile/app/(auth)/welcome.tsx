@@ -71,10 +71,18 @@ export default function WelcomeScreen() {
         style={styles.list}
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
-            <Image
-              source={item.img}
-              style={{ width: circle, height: circle, borderRadius: circle / 2, marginBottom: spacing.xl }}
-            />
+            <View style={[styles.heroWrap, { width: circle + 44, height: circle + 40 }]}>
+              <View
+                style={[
+                  styles.accentCircle,
+                  { width: circle * 0.5, height: circle * 0.5, borderRadius: circle * 0.25 },
+                ]}
+              />
+              <Image
+                source={item.img}
+                style={{ width: circle, height: circle, borderRadius: circle / 2, marginTop: 34 }}
+              />
+            </View>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.text}</Text>
           </View>
@@ -126,6 +134,8 @@ const styles = StyleSheet.create({
   logoDesc: { fontSize: 16, color: '#9aa7b8', fontWeight: '600' },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 24 },
+  heroWrap: { alignItems: 'center', justifyContent: 'flex-start', marginBottom: spacing.xl },
+  accentCircle: { position: 'absolute', top: 0, right: 12, backgroundColor: colors.orange },
   title: {
     fontSize: 21,
     fontWeight: '600',
@@ -154,6 +164,6 @@ const styles = StyleSheet.create({
   },
   btnConnexion: { backgroundColor: colors.orange, shadowColor: colors.orange },
   btnInscription: { backgroundColor: colors.blue, shadowColor: colors.blue },
-  btnText: { color: colors.white, fontSize: 17, fontWeight: '700' },
+  btnText: { color: colors.white, fontSize: 15, fontWeight: '700' },
   pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
 });
