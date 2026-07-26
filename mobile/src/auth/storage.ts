@@ -50,3 +50,24 @@ export const avatarStorage = {
     await SecureStore.setItemAsync(key, uri);
   },
 };
+
+const FIELD_PREFIX = 'teranga_field_';
+
+/** Persistance locale d'un champ de profil (KYC, numéro boutique…), par utilisateur. */
+export const profileStore = {
+  async get(userId: number | string, field: string): Promise<string | null> {
+    const key = `${FIELD_PREFIX}${userId}_${field}`;
+    if (Platform.OS === 'web') {
+      return globalThis.localStorage?.getItem(key) ?? null;
+    }
+    return SecureStore.getItemAsync(key);
+  },
+  async set(userId: number | string, field: string, value: string): Promise<void> {
+    const key = `${FIELD_PREFIX}${userId}_${field}`;
+    if (Platform.OS === 'web') {
+      globalThis.localStorage?.setItem(key, value);
+      return;
+    }
+    await SecureStore.setItemAsync(key, value);
+  },
+};

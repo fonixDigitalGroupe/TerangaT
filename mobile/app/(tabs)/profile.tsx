@@ -1,10 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/auth/AuthContext';
-import { avatarStorage } from '../../src/auth/storage';
+import { avatarStorage, profileStore } from '../../src/auth/storage';
 import { colors, font, radius, spacing } from '../../src/theme';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -19,32 +31,70 @@ export default function ProfileScreen() {
   const [pushOn, setPushOn] = useState(true);
   const [photo, setPhoto] = useState<string | null>(null);
 
+  // KYC / boutique
+  const [shopNumber, setShopNumber] = useState('');
+  const [cniRecto, setCniRecto] = useState<string | null>(null);
+  const [cniVerso, setCniVerso] = useState<string | null>(null);
+  const [selfie, setSelfie] = useState<string | null>(null);
+  const [shopModal, setShopModal] = useState(false);
+  const [shopInput, setShopInput] = useState('');
+
   const initials = (user?.first_name?.[0] ?? '') + (user?.last_name?.[0] ?? '');
 
-  // Charge la photo enregistrée localement
+  // Charge la photo + les champs enregistrés localement
   useEffect(() => {
-    if (user?.id != null) {
-      avatarStorage.get(user.id).then(setPhoto);
-    }
+    if (user?.id == null) return;
+    const id = user.id;
+    avatarStorage.get(id).then(setPhoto);
+    profileStore.get(id, 'shop_number').then((v) => setShopNumber(v ?? ''));
+    profileStore.get(id, 'cni_recto').then(setCniRecto);
+    profileStore.get(id, 'cni_verso').then(setCniVerso);
+    profileStore.get(id, 'selfie').then(setSelfie);
   }, [user?.id]);
 
-  const changePhoto = async () => {
+  // Sélecteur d'image générique (retourne l'URI ou null)
+  const pickImage = async (square: boolean): Promise<string | null> => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Autorisation requise', 'Autorisez l’accès aux photos pour changer votre photo de profil.');
-      return;
+      Alert.alert('Autorisation requise', 'Autorisez l’accès aux photos pour continuer.');
+      return null;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: square ? [1, 1] : undefined,
       quality: 0.6,
     });
-    if (!result.canceled && result.assets[0]?.uri && user?.id != null) {
-      const uri = result.assets[0].uri;
+    return !result.canceled && result.assets[0]?.uri ? result.assets[0].uri : null;
+  };
+
+  const changePhoto = async () => {
+    const uri = await pickImage(true);
+    if (uri && user?.id != null) {
       setPhoto(uri);
       await avatarStorage.set(user.id, uri);
     }
+  };
+
+  // Ajout/mise à jour d'une pièce KYC
+  const pickDoc = async (field: string, setter: (u: string) => void) => {
+    const uri = await pickImage(false);
+    if (uri && user?.id != null) {
+      setter(uri);
+      await profileStore.set(user.id, field, uri);
+    }
+  };
+
+  const openShopModal = () => {
+    setShopInput(shopNumber);
+    setShopModal(true);
+  };
+
+  const saveShopNumber = async () => {
+    const v = shopInput.trim();
+    setShopNumber(v);
+    setShopModal(false);
+    if (user?.id != null) await profileStore.set(user.id, 'shop_number', v);
   };
 
   const confirmLogout = () =>
@@ -91,6 +141,23 @@ export default function ProfileScreen() {
             <InfoRow icon="storefront-outline" label="Boutique" value={agent?.shop_name ?? '—'} />
             <Sep />
             <InfoRow icon="phone-portrait-outline" label="Numéro Wave" value={agent?.wave_number ?? 'Non renseigné'} />
+          </View>
+
+          {/* VÉRIFICATION (KYC) */}
+          <Text style={styles.sectionTitle}>Vérification d'identité</Text>
+          <View style={styles.card}>
+            <ActionRow
+              icon="business-outline"
+              label="Numéro de la boutique"
+              value={shopNumber || 'Renseigner'}
+              onPress={openShopModal}
+            />
+            <Sep />
+            <DocRow icon="card-outline" label="CNI recto" uri={cniRecto} onPress={() => pickDoc('cni_recto', setCniRecto)} />
+            <Sep />
+            <DocRow icon="card-outline" label="CNI verso" uri={cniVerso} onPress={() => pickDoc('cni_verso', setCniVerso)} />
+            <Sep />
+            <DocRow icon="camera-outline" label="Selfie avec CNI" uri={selfie} onPress={() => pickDoc('selfie', setSelfie)} />
           </View>
 
           {/* PRÉFÉRENCES */}
@@ -146,7 +213,58 @@ export default function ProfileScreen() {
           <Text style={styles.version}>Téranga Transfert · v1.0.0</Text>
         </View>
       </ScrollView>
+
+      {/* Modal — numéro de la boutique */}
+      <Modal visible={shopModal} transparent animationType="fade" onRequestClose={() => setShopModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Numéro de la boutique</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Ex : 33 800 00 00"
+              placeholderTextColor="#9aa3b0"
+              keyboardType="phone-pad"
+              value={shopInput}
+              onChangeText={setShopInput}
+              autoFocus
+            />
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalCancel} onPress={() => setShopModal(false)}>
+                <Text style={styles.modalCancelText}>Annuler</Text>
+              </Pressable>
+              <Pressable style={styles.modalSave} onPress={saveShopNumber}>
+                <Text style={styles.modalSaveText}>Enregistrer</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
+  );
+}
+
+function DocRow({
+  icon,
+  label,
+  uri,
+  onPress,
+}: {
+  icon: IoniconName;
+  label: string;
+  uri: string | null;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { backgroundColor: '#f5f7fa' }]}>
+      <IconCircle name={icon} />
+      <Text style={[styles.rowLabel, { flex: 1 }]}>{label}</Text>
+      {uri ? (
+        <Image source={{ uri }} style={styles.docThumb} />
+      ) : (
+        <Text style={styles.docAdd}>Ajouter</Text>
+      )}
+      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+    </Pressable>
   );
 }
 
@@ -303,4 +421,35 @@ const styles = StyleSheet.create({
   },
   logoutText: { color: colors.danger, fontSize: font.md, fontWeight: '700' },
   version: { textAlign: 'center', color: colors.textMuted, fontSize: font.xs, marginTop: spacing.lg },
+  docThumb: { width: 40, height: 28, borderRadius: 6, marginRight: 4, backgroundColor: colors.grayLight },
+  docAdd: { fontSize: font.sm, color: colors.blue, fontWeight: '700', marginRight: 4 },
+  // Modal boutique
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  modalCard: { backgroundColor: colors.card, borderRadius: 16, padding: spacing.lg },
+  modalTitle: { fontSize: font.md, fontWeight: '800', color: colors.text, marginBottom: spacing.md },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    height: 50,
+    fontSize: font.md,
+    color: colors.text,
+  },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.lg },
+  modalCancel: { paddingHorizontal: spacing.md, height: 44, justifyContent: 'center' },
+  modalCancelText: { color: colors.textMuted, fontSize: font.md, fontWeight: '600' },
+  modalSave: {
+    backgroundColor: colors.blue,
+    borderRadius: 10,
+    paddingHorizontal: spacing.lg,
+    height: 44,
+    justifyContent: 'center',
+  },
+  modalSaveText: { color: colors.white, fontSize: font.md, fontWeight: '700' },
 });
