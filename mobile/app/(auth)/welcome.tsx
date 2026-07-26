@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors, font, spacing } from '../../src/theme';
 
 const SLIDES = [
@@ -54,24 +53,10 @@ export default function WelcomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {/* Logo façon "ting business" : marque colorée + descriptif gris */}
       <View style={styles.logoWrap}>
-        {/* Mark : badge dégradé + monogramme « t » + point orange */}
-        <LinearGradient
-          colors={['#1E8BFF', '#0553A8']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.mark}
-        >
-          <Text style={styles.markT}>t</Text>
-          <View style={styles.markDot} />
-        </LinearGradient>
-
-        {/* Wordmark */}
-        <View>
-          <Text style={styles.logoBrand}>
-            téran<Text style={{ color: colors.blue }}>g</Text>a
-          </Text>
-          <Text style={styles.logoDesc}>TRANSFERT</Text>
-        </View>
+        <Text style={styles.logoBrand}>
+          téran<Text style={{ color: colors.blue }}>g</Text>a
+        </Text>
+        <Text style={styles.logoDesc}>TRANSFERT</Text>
       </View>
 
       {/* Carrousel (remplit l'espace central) */}
@@ -125,42 +110,13 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   logoWrap: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  mark: {
-    width: 56,
-    height: 56,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.blue,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 7,
-  },
-  markT: {
-    color: colors.white,
-    fontSize: 34,
-    fontFamily: 'Quicksand_700Bold',
-    marginTop: -4,
-  },
-  markDot: {
-    position: 'absolute',
-    right: 11,
-    bottom: 13,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.orange,
-  },
   logoBrand: {
-    fontSize: 32,
+    fontSize: 34,
     color: colors.orange,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: 0.3,
@@ -168,7 +124,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0.5,
   },
-  logoDesc: { fontSize: 11, color: '#9aa7b8', fontWeight: '700', letterSpacing: 3.5, marginTop: -3 },
+  logoDesc: { fontSize: 12, color: '#9aa7b8', fontWeight: '700', letterSpacing: 4, marginTop: -2 },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
   title: {
