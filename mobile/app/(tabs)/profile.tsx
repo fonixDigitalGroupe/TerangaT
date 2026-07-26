@@ -17,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/auth/AuthContext';
 import { avatarStorage, profileStore } from '../../src/auth/storage';
+import { agentApi } from '../../src/api/endpoints';
+import { apiErrorMessage } from '../../src/api/client';
 import { colors, font, radius, spacing } from '../../src/theme';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -26,9 +28,10 @@ const bientot = () =>
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user, logout, refresh } = useAuth();
   const agent = user?.agent;
   const [pushOn, setPushOn] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
 
   // KYC / boutique
@@ -97,6 +100,35 @@ export default function ProfileScreen() {
     if (user?.id != null) await profileStore.set(user.id, 'shop_number', v);
   };
 
+  // Envoi des pièces au serveur pour vérification par l'admin
+  const submitKyc = async () => {
+    if (!cniRecto || !cniVerso || !selfie) {
+      Alert.alert('Documents incomplets', 'Ajoutez la CNI recto, la CNI verso et le selfie avant d’envoyer.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const form = new FormData();
+      if (shopNumber) form.append('shop_number', shopNumber);
+      const appendImg = (field: string, uri: string) => {
+        if (uri.startsWith('http')) return; // déjà sur le serveur
+        const name = uri.split('/').pop() || `${field}.jpg`;
+        form.append(field, { uri, name, type: 'image/jpeg' } as unknown as Blob);
+      };
+      appendImg('cni_recto', cniRecto);
+      appendImg('cni_verso', cniVerso);
+      appendImg('selfie', selfie);
+
+      const res = await agentApi.uploadKyc(form);
+      await refresh();
+      Alert.alert('Envoyé ✓', res.message ?? 'Vos documents ont été envoyés pour vérification.');
+    } catch (e) {
+      Alert.alert('Erreur', apiErrorMessage(e, 'Envoi impossible.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const confirmLogout = () =>
     Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
@@ -144,7 +176,22 @@ export default function ProfileScreen() {
           </View>
 
           {/* VÉRIFICATION (KYC) */}
-          <Text style={styles.sectionTitle}>Vérification d'identité</Text>
+          <View style={styles.kycHead}>
+            <Text style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>Vérification d'identité</Text>
+            {(() => {
+              const st = (agent?.status ?? '').toLowerCase();
+              const map = st.includes('vérif') || st.includes('verif')
+                ? { label: 'Vérifié', color: colors.success, bg: colors.successBg }
+                : st.includes('rejet')
+                  ? { label: 'Rejeté', color: colors.danger, bg: colors.dangerBg }
+                  : { label: 'En attente', color: colors.orangeDark, bg: '#fdecd8' };
+              return (
+                <View style={[styles.kycBadge, { backgroundColor: map.bg }]}>
+                  <Text style={[styles.kycBadgeText, { color: map.color }]}>{map.label}</Text>
+                </View>
+              );
+            })()}
+          </View>
           <View style={styles.card}>
             <ActionRow
               icon="business-outline"
@@ -159,6 +206,15 @@ export default function ProfileScreen() {
             <Sep />
             <DocRow icon="camera-outline" label="Selfie avec CNI" uri={selfie} onPress={() => pickDoc('selfie', setSelfie)} />
           </View>
+
+          <Pressable
+            onPress={submitKyc}
+            disabled={submitting}
+            style={({ pressed }) => [styles.kycSubmit, submitting && { opacity: 0.6 }, pressed && !submitting && { opacity: 0.9 }]}
+          >
+            <Ionicons name="cloud-upload-outline" size={18} color={colors.white} />
+            <Text style={styles.kycSubmitText}>{submitting ? 'Envoi…' : 'Soumettre pour vérification'}</Text>
+          </Pressable>
 
           {/* PRÉFÉRENCES */}
           <Text style={styles.sectionTitle}>Préférences</Text>
@@ -423,6 +479,27 @@ const styles = StyleSheet.create({
   version: { textAlign: 'center', color: colors.textMuted, fontSize: font.xs, marginTop: spacing.lg },
   docThumb: { width: 40, height: 28, borderRadius: 6, marginRight: 4, backgroundColor: colors.grayLight },
   docAdd: { fontSize: font.sm, color: colors.blue, fontWeight: '700', marginRight: 4 },
+  kycHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+    marginHorizontal: 4,
+  },
+  kycBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.full },
+  kycBadgeText: { fontSize: font.xs, fontWeight: '700' },
+  kycSubmit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.blue,
+    borderRadius: 12,
+    height: 50,
+    marginTop: spacing.md,
+  },
+  kycSubmitText: { color: colors.white, fontSize: font.md, fontWeight: '700' },
   // Modal boutique
   modalOverlay: {
     flex: 1,

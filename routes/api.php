@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PaymentController;
@@ -34,5 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/paiements/retrait', [PaymentController::class, 'retrait']);
         Route::post('/paiements/depot', [PaymentController::class, 'depot']);
         Route::post('/paiements/transfert', [PaymentController::class, 'transfert']);
+
+        // KYC : soumission des pièces d'identité
+        Route::post('/agent/kyc', [AgentController::class, 'uploadKyc']);
     });
 });

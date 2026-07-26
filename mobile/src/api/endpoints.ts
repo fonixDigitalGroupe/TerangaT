@@ -103,6 +103,16 @@ export const paiementsApi = {
   },
 };
 
+export const agentApi = {
+  // Envoi des pièces KYC (multipart : shop_number + cni_recto/verso + selfie)
+  async uploadKyc(form: FormData): Promise<{ message: string }> {
+    const { data } = await api.post<{ message: string }>('/agent/kyc', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
+};
+
 export const transactionsApi = {
   async list(page = 1): Promise<Paginated<Transaction>> {
     const { data } = await api.get<Paginated<Transaction>>('/transactions', {

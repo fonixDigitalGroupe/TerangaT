@@ -12,10 +12,18 @@ export interface Agent {
   id: number;
   code?: string | null;
   shop_name: string;
+  shop_number?: string | null;
   ninea: string | null;
   address: string | null;
   wave_number: string | null;
   om_number: string | null;
+  status?: string;
+  kyc?: {
+    submitted: boolean;
+    cni_recto: string | null;
+    cni_verso: string | null;
+    selfie: string | null;
+  };
   wallet?: Wallet;
 }
 

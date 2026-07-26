@@ -85,4 +85,78 @@
         </div>
     </div>
 </div>
+
+{{-- Vérification d'identité (KYC) --}}
+<div class="mt-5 bg-white border border-slate-200 shadow-sm">
+    <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="background-color:#5b6675;">
+        <h2 class="font-normal text-white uppercase text-sm tracking-wide">Vérification d'identité (KYC)</h2>
+        @if($agent->kyc_submitted_at)
+            <span class="text-[11px] text-white/80">Soumis le {{ $agent->kyc_submitted_at->format('d/m/Y H:i') }}</span>
+        @endif
+    </div>
+
+    <div class="p-6">
+        @if(!$agent->kyc_submitted_at && !$agent->cni_recto_path)
+            <p class="text-sm text-slate-400 text-center py-4">L'agent n'a pas encore soumis ses pièces d'identité.</p>
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div class="flex justify-between px-1 py-2 border-b border-slate-100">
+                    <span class="text-slate-500 text-sm">Numéro de la boutique</span>
+                    <span class="text-slate-800 text-sm font-medium">{{ $agent->shop_number ?? 'Non renseigné' }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                @php
+                    $docs = [
+                        'CNI recto'       => $agent->cni_recto_path,
+                        'CNI verso'       => $agent->cni_verso_path,
+                        'Selfie avec CNI' => $agent->selfie_path,
+                    ];
+                @endphp
+                @foreach($docs as $label => $path)
+                    <div>
+                        <p class="text-xs font-semibold text-slate-600 mb-2">{{ $label }}</p>
+                        @if($path)
+                            <a href="{{ asset('storage/' . $path) }}" target="_blank" class="block">
+                                <img src="{{ asset('storage/' . $path) }}" alt="{{ $label }}"
+                                     class="w-full h-40 object-cover rounded-md border border-slate-200 hover:opacity-90 transition">
+                            </a>
+                        @else
+                            <div class="w-full h-40 rounded-md border border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xs">
+                                Non fourni
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Actions de validation --}}
+            <div class="flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-slate-100">
+                <span class="text-sm text-slate-500">Décision :</span>
+                <form method="POST" action="{{ route('admin.agents.kyc-status', $agent) }}">
+                    @csrf
+                    <input type="hidden" name="status" value="vérifié">
+                    <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-sm transition-colors">
+                        ✓ Valider l'agent
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.agents.kyc-status', $agent) }}">
+                    @csrf
+                    <input type="hidden" name="status" value="rejeté">
+                    <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-2 rounded-sm transition-colors">
+                        ✕ Rejeter
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.agents.kyc-status', $agent) }}">
+                    @csrf
+                    <input type="hidden" name="status" value="en attente">
+                    <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-sm transition-colors">
+                        Remettre en attente
+                    </button>
+                </form>
+            </div>
+        @endif
+    </div>
+</div>
 @endsection

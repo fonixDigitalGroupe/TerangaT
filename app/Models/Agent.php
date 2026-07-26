@@ -13,11 +13,16 @@ class Agent extends Model
         'user_id',
         'code',
         'shop_name',
+        'shop_number',
         'status',
         'ninea',
         'address',
         'wave_number',
         'om_number',
+        'cni_recto_path',
+        'cni_verso_path',
+        'selfie_path',
+        'kyc_submitted_at',
     ];
 
     protected $attributes = [

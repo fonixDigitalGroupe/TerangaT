@@ -62,6 +62,18 @@ class AdminController extends Controller
         return view('admin.agent-detail', compact('agent', 'recentTransactions'));
     }
 
+    public function updateKycStatus(Request $request, Agent $agent)
+    {
+        $data = $request->validate([
+            'status' => 'required|in:vérifié,rejeté,en attente',
+        ]);
+
+        $agent->update(['status' => $data['status']]);
+
+        return redirect()->route('admin.agents.show', $agent)
+            ->with('success', "Statut de l'agent mis à jour : {$data['status']}.");
+    }
+
     public function editAgent(Agent $agent)
     {
         $agent->load(['user', 'wallet']);

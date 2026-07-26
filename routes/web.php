@@ -28,6 +28,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/agents', [AdminController::class, 'agents'])->name('agents');
     Route::get('/agents/{agent}', [AdminController::class, 'showAgent'])->name('agents.show');
+    Route::post('/agents/{agent}/kyc-status', [AdminController::class, 'updateKycStatus'])->name('agents.kyc-status');
     Route::get('/agents/{agent}/edit', [AdminController::class, 'editAgent'])->name('agents.edit');
     Route::put('/agents/{agent}', [AdminController::class, 'updateAgent'])->name('agents.update');
     Route::delete('/agents/{agent}', [AdminController::class, 'destroyAgent'])->name('agents.destroy');

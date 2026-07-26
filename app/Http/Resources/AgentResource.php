@@ -16,10 +16,18 @@ class AgentResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'shop_name' => $this->shop_name,
+            'shop_number' => $this->shop_number,
             'ninea' => $this->ninea,
             'address' => $this->address,
             'wave_number' => $this->wave_number,
             'om_number' => $this->om_number,
+            'status' => $this->status,
+            'kyc' => [
+                'submitted'  => (bool) $this->kyc_submitted_at,
+                'cni_recto'  => $this->cni_recto_path ? asset('storage/' . $this->cni_recto_path) : null,
+                'cni_verso'  => $this->cni_verso_path ? asset('storage/' . $this->cni_verso_path) : null,
+                'selfie'     => $this->selfie_path ? asset('storage/' . $this->selfie_path) : null,
+            ],
             'wallet' => new WalletResource($this->whenLoaded('wallet')),
         ];
     }
