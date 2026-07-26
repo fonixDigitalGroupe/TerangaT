@@ -47,7 +47,7 @@ export default function WelcomeScreen() {
     return () => clearInterval(id);
   }, [width]);
 
-  const circle = Math.min(width * 0.66, 270);
+  const circle = Math.min(width * 0.8, 320);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -71,18 +71,10 @@ export default function WelcomeScreen() {
         style={styles.list}
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
-            <View style={[styles.heroWrap, { width: circle + 44, height: circle + 40 }]}>
-              <Image
-                source={item.img}
-                style={{ width: circle, height: circle, borderRadius: circle / 2, marginTop: 34 }}
-              />
-              <View
-                style={[
-                  styles.accentCircle,
-                  { width: circle * 0.4, height: circle * 0.4, borderRadius: circle * 0.2 },
-                ]}
-              />
-            </View>
+            <Image
+              source={item.img}
+              style={{ width: circle, height: circle, borderRadius: circle / 2, marginBottom: spacing.xl }}
+            />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.text}</Text>
           </View>
@@ -134,8 +126,6 @@ const styles = StyleSheet.create({
   logoDesc: { fontSize: 16, color: '#9aa7b8', fontWeight: '600' },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 24 },
-  heroWrap: { alignItems: 'center', justifyContent: 'flex-start', marginBottom: spacing.xl },
-  accentCircle: { position: 'absolute', top: 0, right: 12, backgroundColor: colors.orange, opacity: 0.82 },
   title: {
     fontSize: 21,
     fontWeight: '600',
