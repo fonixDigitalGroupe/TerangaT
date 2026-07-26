@@ -54,7 +54,7 @@ export default function WelcomeScreen() {
       {/* Logo façon "ting business" : marque colorée + descriptif gris */}
       <View style={styles.logoWrap}>
         <Text style={styles.logoBrand}>
-          téran<Text style={{ color: colors.orange }}>g</Text>a
+          téran<Text style={{ color: colors.blue }}>g</Text>a
         </Text>
         <Text style={styles.logoDesc}>transfert</Text>
       </View>
@@ -119,11 +119,11 @@ const styles = StyleSheet.create({
   },
   logoBrand: {
     fontSize: 34,
-    color: colors.blue,
+    color: colors.orange,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: 0.3,
     // léger renforcement des traits (effet "plus gras")
-    textShadowColor: colors.blue,
+    textShadowColor: colors.orange,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0.5,
   },
