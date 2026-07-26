@@ -1,81 +1,253 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/auth/AuthContext';
-import { Button, Card } from '../../src/components/ui';
 import { colors, font, radius, spacing } from '../../src/theme';
 
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
+const bientot = () =>
+  Alert.alert('Bientôt disponible', 'Cette fonctionnalité arrive prochainement.');
+
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const agent = user?.agent;
+  const [pushOn, setPushOn] = useState(true);
+
+  const initials = (user?.first_name?.[0] ?? '') + (user?.last_name?.[0] ?? '');
+
+  const confirmLogout = () =>
+    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Se déconnecter', style: 'destructive', onPress: logout },
+    ]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.avatarWrap}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {(user?.first_name?.[0] ?? '') + (user?.last_name?.[0] ?? '')}
-            </Text>
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* En-tête de marque */}
+        <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
+          <Text style={styles.headerTitle}>Paramètres</Text>
+          <View style={styles.profileRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials.toUpperCase() || '👤'}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{user?.name ?? 'Agent'}</Text>
+              <Text style={styles.phone}>+221 {user?.phone}</Text>
+            </View>
+            {agent?.code ? (
+              <View style={styles.codeBadge}>
+                <Text style={styles.codeText}>{agent.code}</Text>
+              </View>
+            ) : null}
           </View>
-          <Text style={styles.name}>{user?.name}</Text>
-          <Text style={styles.phone}>{user?.phone}</Text>
         </View>
 
-        <Card style={styles.card}>
-          <Row label="Boutique" value={agent?.shop_name ?? '—'} />
-          <Divider />
-          <Row label="Pays" value={user?.country ?? '—'} />
-          <Divider />
-          <Row label="NINEA" value={agent?.ninea ?? 'Non renseigné'} />
-          <Divider />
-          <Row label="Numéro Wave" value={agent?.wave_number ?? 'Non renseigné'} />
-          <Divider />
-          <Row label="Numéro Orange Money" value={agent?.om_number ?? 'Non renseigné'} />
-        </Card>
+        <View style={styles.body}>
+          {/* MON COMPTE */}
+          <Text style={styles.sectionTitle}>Mon compte</Text>
+          <View style={styles.card}>
+            <InfoRow icon="storefront-outline" label="Boutique" value={agent?.shop_name ?? '—'} />
+            <Sep />
+            <InfoRow icon="flag-outline" label="Pays" value={user?.country ?? 'Sénégal'} />
+            <Sep />
+            <InfoRow icon="id-card-outline" label="NINEA" value={agent?.ninea ?? 'Non renseigné'} />
+            <Sep />
+            <InfoRow icon="phone-portrait-outline" label="Numéro Wave" value={agent?.wave_number ?? 'Non renseigné'} />
+            <Sep />
+            <InfoRow icon="phone-portrait-outline" label="Numéro Orange Money" value={agent?.om_number ?? 'Non renseigné'} />
+          </View>
 
-        <View style={{ marginTop: spacing.lg }}>
-          <Button title="Se déconnecter" variant="outline" onPress={logout} />
+          {/* PRÉFÉRENCES */}
+          <Text style={styles.sectionTitle}>Préférences</Text>
+          <View style={styles.card}>
+            <ActionRow
+              icon="notifications-outline"
+              label="Notifications push"
+              right={
+                <Switch
+                  value={pushOn}
+                  onValueChange={setPushOn}
+                  trackColor={{ true: colors.blue, false: '#c7cdd6' }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <Sep />
+            <ActionRow icon="language-outline" label="Langue" value="Français" onPress={bientot} />
+          </View>
+
+          {/* SÉCURITÉ */}
+          <Text style={styles.sectionTitle}>Sécurité</Text>
+          <View style={styles.card}>
+            <ActionRow icon="lock-closed-outline" label="Changer le code secret" onPress={bientot} />
+            <Sep />
+            <ActionRow icon="shield-checkmark-outline" label="Confidentialité" onPress={bientot} />
+          </View>
+
+          {/* ASSISTANCE */}
+          <Text style={styles.sectionTitle}>Assistance</Text>
+          <View style={styles.card}>
+            <ActionRow icon="help-circle-outline" label="Centre d'aide" onPress={bientot} />
+            <Sep />
+            <ActionRow
+              icon="chatbubble-ellipses-outline"
+              label="Nous contacter"
+              onPress={() => Linking.openURL('tel:+221338000000')}
+            />
+            <Sep />
+            <ActionRow icon="document-text-outline" label="Conditions d'utilisation" onPress={bientot} />
+          </View>
+
+          {/* DÉCONNEXION */}
+          <Pressable
+            onPress={confirmLogout}
+            style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.85 }]}
+          >
+            <Ionicons name="log-out-outline" size={20} color={colors.danger} />
+            <Text style={styles.logoutText}>Se déconnecter</Text>
+          </Pressable>
+
+          <Text style={styles.version}>Téranga Transfert · v1.0.0</Text>
         </View>
-
-        <Text style={styles.version}>Téranga Trans · v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function IconCircle({ name }: { name: IoniconName }) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+    <View style={styles.iconCircle}>
+      <Ionicons name={name} size={19} color={colors.blue} />
     </View>
   );
 }
 
-function Divider() {
-  return <View style={styles.divider} />;
+function InfoRow({ icon, label, value }: { icon: IoniconName; label: string; value: string }) {
+  return (
+    <View style={styles.row}>
+      <IconCircle name={icon} />
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue} numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function ActionRow({
+  icon,
+  label,
+  value,
+  right,
+  onPress,
+}: {
+  icon: IoniconName;
+  label: string;
+  value?: string;
+  right?: React.ReactNode;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      style={({ pressed }) => [styles.row, pressed && onPress && { backgroundColor: '#f5f7fa' }]}
+    >
+      <IconCircle name={icon} />
+      <Text style={[styles.rowLabel, { flex: 1 }]}>{label}</Text>
+      {value ? <Text style={styles.rowValueMuted}>{value}</Text> : null}
+      {right ?? (onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} /> : null)}
+    </Pressable>
+  );
+}
+
+function Sep() {
+  return <View style={styles.sep} />;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md },
-  avatarWrap: { alignItems: 'center', marginVertical: spacing.lg },
-  avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: radius.full,
+  scroll: { paddingBottom: spacing.xl },
+  header: {
     backgroundColor: colors.blue,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerTitle: { color: colors.white, fontSize: font.xl, fontWeight: '800', marginBottom: spacing.lg },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
-  avatarText: { color: colors.blue, fontSize: font.xl, fontWeight: '800' },
-  name: { fontSize: font.lg, fontWeight: '800', color: colors.text },
-  phone: { fontSize: font.sm, color: colors.textMuted, marginTop: 2 },
-  card: { padding: spacing.md },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm },
-  rowLabel: { color: colors.textMuted, fontSize: font.sm },
-  rowValue: { color: colors.text, fontSize: font.sm, fontWeight: '600', maxWidth: '60%', textAlign: 'right' },
-  divider: { height: 1, backgroundColor: colors.border },
-  version: { textAlign: 'center', color: colors.textMuted, fontSize: font.xs, marginTop: spacing.xl },
+  avatarText: { color: colors.white, fontSize: font.lg, fontWeight: '800' },
+  name: { color: colors.white, fontSize: font.lg, fontWeight: '800' },
+  phone: { color: 'rgba(255,255,255,0.85)', fontSize: font.sm, marginTop: 2 },
+  codeBadge: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.full,
+  },
+  codeText: { color: colors.white, fontSize: font.xs, fontWeight: '700' },
+  body: { paddingHorizontal: spacing.md, marginTop: spacing.lg },
+  sectionTitle: {
+    fontSize: font.xs,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+    marginTop: spacing.lg,
+    marginLeft: 4,
+  },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 13,
+  },
+  iconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.full,
+    backgroundColor: colors.blueLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowLabel: { fontSize: font.md, color: colors.text, fontWeight: '500' },
+  rowValue: { flex: 1, textAlign: 'right', fontSize: font.sm, color: colors.text, fontWeight: '600' },
+  rowValueMuted: { fontSize: font.sm, color: colors.textMuted, marginRight: 4 },
+  sep: { height: 1, backgroundColor: colors.border, marginLeft: 60 },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.dangerBg,
+    borderRadius: 14,
+    height: 52,
+    marginTop: spacing.xl,
+  },
+  logoutText: { color: colors.danger, fontSize: font.md, fontWeight: '700' },
+  version: { textAlign: 'center', color: colors.textMuted, fontSize: font.xs, marginTop: spacing.lg },
 });

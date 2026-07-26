@@ -10,6 +10,7 @@ export interface Wallet {
 
 export interface Agent {
   id: number;
+  code?: string | null;
   shop_name: string;
   ninea: string | null;
   address: string | null;

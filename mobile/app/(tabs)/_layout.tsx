@@ -40,7 +40,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Paramètre',
+          title: 'Paramètres',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={(size ?? 24) - 2} color={color} />
           ),
