@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,13 +18,17 @@ import { authApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 
-const PRIMARY = '#0577DE'; // bleu primaire — marque Téranga (header, accents)
-const ACCENT = '#F88B1A'; // orange secondaire — bouton d'action (CTA)
+const PRIMARY = '#0577DE';
+const ACCENT = '#F88B1A';
+const LABEL = '#26415e';
+const SHOP_MAX = 34;
 
 export default function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const [step, setStep] = useState<1 | 2>(1);
+  const [shopName, setShopName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -47,16 +50,31 @@ export default function RegisterScreen() {
     setPhone(g.join(' '));
   };
 
+  const goBack = () => {
+    setError(null);
+    if (step === 2) setStep(1);
+    else router.back();
+  };
+
+  const next = () => {
+    setError(null);
+    if (!shopName.trim()) {
+      setError('Indiquez le nom de votre commerce.');
+      return;
+    }
+    if (phone.replace(/\D/g, '').length !== 9) {
+      setError('Entrez un numéro sénégalais valide (9 chiffres).');
+      return;
+    }
+    setStep(2);
+  };
+
   const onSubmit = async () => {
     setError(null);
     const phoneDigits = phone.replace(/\D/g, '');
 
     if (!firstName.trim() || !lastName.trim()) {
       setError('Entrez votre prénom et votre nom.');
-      return;
-    }
-    if (phoneDigits.length !== 9) {
-      setError('Entrez un numéro sénégalais valide (9 chiffres).');
       return;
     }
     if (password.length !== 4) {
@@ -74,17 +92,15 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      // 1) Créer le compte
       await authApi.register({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         phone: phoneDigits,
         country: 'Sénégal',
+        shop_name: shopName.trim(),
         password,
         password_confirmation: confirm,
       });
-
-      // 2) Envoyer le code OTP puis aller à l'écran de vérification
       const otp = await authApi.sendOtp(phoneDigits);
       router.push({
         pathname: '/(auth)/code',
@@ -99,130 +115,142 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header bleu nuit */}
+      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
+        <Pressable onPress={goBack} hitSlop={12} style={styles.back}>
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </Pressable>
         <Text style={styles.headerTitle}>Inscription</Text>
         <View style={{ width: 26 }} />
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-        >
+      {/* Barre de progression */}
+      <View style={styles.progress}>
+        <View style={[styles.progressBar, { flex: 1, backgroundColor: PRIMARY }]} />
+        <View style={[styles.progressBar, { flex: 1, backgroundColor: step === 2 ? PRIMARY : '#e2e6ec' }]} />
+      </View>
+
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={styles.card}>
-              <Image
-                source={require('../../assets/logo-teranga.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={styles.title}>Bienvenue sur Téranga</Text>
-              <Text style={styles.subtitle}>Créons votre compte</Text>
+            <View>
+              <Text style={styles.stepHint}>Étape {step} sur 2</Text>
 
               {error && <Alert message={error} />}
 
-              {/* Prénom */}
-              <View style={styles.field}>
-                <TextInput
-                  style={[styles.input, { outlineStyle: 'none' } as object]}
-                  placeholder="Prénom"
-                  placeholderTextColor="#9aa3b0"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                />
-              </View>
+              {step === 1 ? (
+                <>
+                  {/* Nom du commerce */}
+                  <Text style={styles.label}>Quel est le nom de votre commerce ?</Text>
+                  <View style={styles.field}>
+                    <TextInput
+                      style={[styles.input, { outlineStyle: 'none' } as object]}
+                      placeholder="Nom"
+                      placeholderTextColor="#9aa3b0"
+                      value={shopName}
+                      maxLength={SHOP_MAX}
+                      onChangeText={setShopName}
+                    />
+                  </View>
+                  <Text style={styles.counter}>{shopName.length}/{SHOP_MAX}</Text>
 
-              {/* Nom */}
-              <View style={styles.field}>
-                <TextInput
-                  style={[styles.input, { outlineStyle: 'none' } as object]}
-                  placeholder="Nom"
-                  placeholderTextColor="#9aa3b0"
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
-              </View>
+                  {/* Téléphone */}
+                  <Text style={[styles.label, { marginTop: 22 }]}>Votre numéro de téléphone</Text>
+                  <View style={styles.phoneField}>
+                    <View style={styles.countrySel}>
+                      <Text style={styles.flag}>🇸🇳</Text>
+                      <Text style={styles.snCode}>SN</Text>
+                      <Ionicons name="chevron-down" size={16} color={PRIMARY} />
+                    </View>
+                    <TextInput
+                      style={[styles.phoneInput, { outlineStyle: 'none' } as object]}
+                      placeholder="7X XXX XX XX"
+                      placeholderTextColor="#aab2c0"
+                      keyboardType="phone-pad"
+                      maxLength={12}
+                      value={phone}
+                      onChangeText={onPhoneChange}
+                    />
+                  </View>
 
-              {/* Téléphone */}
-              <View style={styles.phoneField}>
-                <View style={styles.phonePrefix}>
-                  <Text style={styles.flag}>🇸🇳</Text>
-                  <Text style={styles.code}>+221</Text>
-                </View>
-                <TextInput
-                  style={[styles.phoneInput, { outlineStyle: 'none' } as object]}
-                  placeholder="00 000 00 00"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="phone-pad"
-                  maxLength={12}
-                  value={phone}
-                  onChangeText={onPhoneChange}
-                />
-              </View>
+                  <Pressable onPress={next} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
+                    <Text style={styles.ctaText}>Continuer</Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  {/* Prénom / Nom */}
+                  <Text style={styles.label}>Votre prénom</Text>
+                  <View style={styles.field}>
+                    <TextInput
+                      style={[styles.input, { outlineStyle: 'none' } as object]}
+                      placeholder="Prénom"
+                      placeholderTextColor="#9aa3b0"
+                      value={firstName}
+                      onChangeText={setFirstName}
+                    />
+                  </View>
 
-              {/* Code secret */}
-              <View style={styles.field}>
-                <TextInput
-                  style={[styles.input, styles.inputPad, { outlineStyle: 'none' } as object]}
-                  placeholder="Code secret (4 chiffres)"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="number-pad"
-                  secureTextEntry={!showPass}
-                  maxLength={4}
-                  value={password}
-                  onChangeText={(v) => setPassword(v.replace(/\D/g, '').slice(0, 4))}
-                />
-                <Pressable style={styles.eye} hitSlop={8} onPress={() => setShowPass((s) => !s)}>
-                  <Ionicons name={showPass ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9aa3b0" />
-                </Pressable>
-              </View>
+                  <Text style={[styles.label, { marginTop: 18 }]}>Votre nom</Text>
+                  <View style={styles.field}>
+                    <TextInput
+                      style={[styles.input, { outlineStyle: 'none' } as object]}
+                      placeholder="Nom"
+                      placeholderTextColor="#9aa3b0"
+                      value={lastName}
+                      onChangeText={setLastName}
+                    />
+                  </View>
 
-              {/* Confirmation */}
-              <View style={styles.field}>
-                <TextInput
-                  style={[styles.input, styles.inputPad, { outlineStyle: 'none' } as object]}
-                  placeholder="Confirmer le code"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="number-pad"
-                  secureTextEntry={!showConfirm}
-                  maxLength={4}
-                  value={confirm}
-                  onChangeText={(v) => setConfirm(v.replace(/\D/g, '').slice(0, 4))}
-                />
-                <Pressable style={styles.eye} hitSlop={8} onPress={() => setShowConfirm((s) => !s)}>
-                  <Ionicons name={showConfirm ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9aa3b0" />
-                </Pressable>
-              </View>
+                  {/* Code secret */}
+                  <Text style={[styles.label, { marginTop: 18 }]}>Définissez un code secret</Text>
+                  <View style={styles.field}>
+                    <TextInput
+                      style={[styles.input, styles.inputPad, { outlineStyle: 'none' } as object]}
+                      placeholder="Code secret (4 chiffres)"
+                      placeholderTextColor="#9aa3b0"
+                      keyboardType="number-pad"
+                      secureTextEntry={!showPass}
+                      maxLength={4}
+                      value={password}
+                      onChangeText={(v) => setPassword(v.replace(/\D/g, '').slice(0, 4))}
+                    />
+                    <Pressable style={styles.eye} hitSlop={8} onPress={() => setShowPass((s) => !s)}>
+                      <Ionicons name={showPass ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9aa3b0" />
+                    </Pressable>
+                  </View>
 
-              {/* CGU */}
-              <View style={styles.cguRow}>
-                <Pressable
-                  style={[styles.checkbox, accepted && styles.checkboxOn]}
-                  onPress={() => setAccepted((v) => !v)}
-                >
-                  {accepted && <Text style={styles.check}>✓</Text>}
-                </Pressable>
-                <Text style={styles.cguText}>
-                  J&apos;accepte les <Text style={styles.link}>conditions générales d&apos;utilisation</Text>
-                </Text>
-              </View>
+                  <View style={[styles.field, { marginTop: 12 }]}>
+                    <TextInput
+                      style={[styles.input, styles.inputPad, { outlineStyle: 'none' } as object]}
+                      placeholder="Confirmer le code"
+                      placeholderTextColor="#9aa3b0"
+                      keyboardType="number-pad"
+                      secureTextEntry={!showConfirm}
+                      maxLength={4}
+                      value={confirm}
+                      onChangeText={(v) => setConfirm(v.replace(/\D/g, '').slice(0, 4))}
+                    />
+                    <Pressable style={styles.eye} hitSlop={8} onPress={() => setShowConfirm((s) => !s)}>
+                      <Ionicons name={showConfirm ? 'eye-outline' : 'eye-off-outline'} size={22} color="#9aa3b0" />
+                    </Pressable>
+                  </View>
 
-              {/* Créer */}
-              <Pressable
-                onPress={onSubmit}
-                disabled={loading}
-                style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}
-              >
-                <Text style={styles.ctaText}>{loading ? 'Envoi…' : 'Créer'}</Text>
-              </Pressable>
+                  {/* CGU */}
+                  <View style={styles.cguRow}>
+                    <Pressable style={[styles.checkbox, accepted && styles.checkboxOn]} onPress={() => setAccepted((v) => !v)}>
+                      {accepted && <Text style={styles.check}>✓</Text>}
+                    </Pressable>
+                    <Text style={styles.cguText}>
+                      J&apos;accepte les <Text style={styles.link}>conditions générales d&apos;utilisation</Text>
+                    </Text>
+                  </View>
+
+                  <Pressable onPress={onSubmit} disabled={loading} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
+                    <Text style={styles.ctaText}>{loading ? 'Envoi…' : 'Créer mon compte'}</Text>
+                  </Pressable>
+                </>
+              )}
 
               <Text style={styles.loginRow}>
                 Vous avez déjà un compte ?{' '}
@@ -239,7 +267,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#eef1f5' },
+  safe: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
   header: {
     backgroundColor: PRIMARY,
@@ -251,46 +279,34 @@ const styles = StyleSheet.create({
   },
   back: { width: 26, alignItems: 'flex-start' },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 26, paddingHorizontal: 20 },
-  logo: { width: 120, height: 46, alignSelf: 'center', marginBottom: 16 },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#7b8494', textAlign: 'center', marginTop: 4, marginBottom: 18 },
+  progress: { flexDirection: 'row', gap: 6, paddingHorizontal: 20, paddingTop: 16 },
+  progressBar: { height: 4, borderRadius: 2 },
+  scroll: { flexGrow: 1, padding: 22, paddingTop: 20 },
+  stepHint: { fontSize: 13, color: '#9aa3b0', fontWeight: '600', marginBottom: 18 },
+  label: { fontSize: 16, fontWeight: '600', color: LABEL, marginBottom: 10 },
   field: {
-    height: 54,
+    height: 58,
     borderWidth: 1,
     borderColor: '#e2e6ec',
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
-    marginBottom: 14,
   },
-  input: { fontSize: 16, color: '#1a1a1a', paddingHorizontal: 16 },
+  input: { fontSize: 17, color: '#1a1a1a', paddingHorizontal: 18 },
   inputPad: { paddingRight: 48 },
   eye: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
+  counter: { alignSelf: 'flex-end', fontSize: 13, color: '#9aa3b0', marginTop: 8 },
   phoneField: {
-    height: 54,
+    height: 58,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e6ec',
-    borderRadius: 12,
-    marginBottom: 14,
-    overflow: 'hidden',
+    backgroundColor: '#eef3f8',
+    borderRadius: 14,
   },
-  phonePrefix: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    height: '100%',
-    backgroundColor: '#f5f7fa',
-    borderRightWidth: 1,
-    borderRightColor: '#e2e6ec',
-  },
-  flag: { fontSize: 18 },
-  code: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
-  phoneInput: { flex: 1, fontSize: 16, color: '#1a1a1a', paddingHorizontal: 14 },
-  cguRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2, marginBottom: 20 },
+  countrySel: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16 },
+  flag: { fontSize: 20 },
+  snCode: { fontSize: 16, fontWeight: '700', color: LABEL },
+  phoneInput: { flex: 1, fontSize: 17, color: '#1a1a1a', letterSpacing: 1 },
+  cguRow: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 24 },
   checkbox: {
     width: 22,
     height: 22,
@@ -305,7 +321,7 @@ const styles = StyleSheet.create({
   check: { color: '#fff', fontSize: 14, fontWeight: '900' },
   cguText: { flex: 1, fontSize: 13, color: '#4b5563' },
   link: { color: PRIMARY, fontWeight: '700' },
-  cta: { backgroundColor: ACCENT, height: 54, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  cta: { backgroundColor: ACCENT, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 32 },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  loginRow: { textAlign: 'center', marginTop: 18, fontSize: 14, color: '#4b5563' },
+  loginRow: { textAlign: 'center', marginTop: 22, fontSize: 14, color: '#4b5563' },
 });

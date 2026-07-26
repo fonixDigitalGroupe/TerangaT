@@ -23,6 +23,7 @@ class AuthController extends Controller
             'last_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone',
             'country' => 'required|string|max:100',
+            'shop_name' => 'nullable|string|max:34',
             'password' => 'required|numeric|digits:4|confirmed',
         ]);
 
@@ -39,7 +40,7 @@ class AuthController extends Controller
 
             $agent = Agent::create([
                 'user_id' => $user->id,
-                'shop_name' => 'Ma Boutique',
+                'shop_name' => $data['shop_name'] ?? 'Ma Boutique',
             ]);
 
             Wallet::create([
