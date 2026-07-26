@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
-  ImageBackground,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -9,32 +9,33 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing } from '../../src/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, font, spacing } from '../../src/theme';
 
 const SLIDES = [
   {
     img: require('../../assets/hero-market.jpg'),
-    text: 'Transférez de l’argent en toute confiance.',
+    title: 'Bienvenue sur Téranga Transfert !',
+    text: 'Envoyez et recevez de l’argent en toute simplicité, partout au Sénégal, depuis votre téléphone.',
   },
   {
     img: require('../../assets/hero-agent.png'),
-    text: 'Wave & Orange Money, en un seul endroit.',
+    title: 'Wave & Orange Money réunis',
+    text: 'Gérez tous vos transferts Wave et Orange Money depuis une seule application, sans complications.',
   },
   {
     img: require('../../assets/hero-2.jpg'),
-    text: 'Dépôts et retraits rapides, partout au Sénégal.',
+    title: 'Rapide, sûr et fiable',
+    text: 'Dépôts, retraits et transferts en quelques secondes, avec un suivi de vos opérations en temps réel.',
   },
 ];
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList>(null);
   const [index, setIndex] = useState(0);
 
-  // Auto-advance the carousel every 4 seconds.
   useEffect(() => {
     const id = setInterval(() => {
       setIndex((prev) => {
@@ -42,12 +43,21 @@ export default function WelcomeScreen() {
         listRef.current?.scrollToOffset({ offset: next * width, animated: true });
         return next;
       });
-    }, 4000);
+    }, 4500);
     return () => clearInterval(id);
   }, [width]);
 
+  const circle = Math.min(width * 0.62, 250);
+
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      {/* Logo */}
+      <View style={styles.logoWrap}>
+        <Image source={require('../../assets/logo-teranga.png')} style={styles.logoImg} resizeMode="contain" />
+        <Text style={styles.logoWord}>Transfert</Text>
+      </View>
+
+      {/* Carrousel */}
       <FlatList
         ref={listRef}
         data={SLIDES}
@@ -55,112 +65,101 @@ export default function WelcomeScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, i) => String(i)}
-        onMomentumScrollEnd={(e) =>
-          setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
-        }
+        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
+        style={{ flexGrow: 0 }}
         renderItem={({ item }) => (
-          <ImageBackground source={item.img} resizeMode="cover" style={{ width, flex: 1 }}>
-            <View style={styles.overlay} />
-            <View style={styles.textWrap}>
-              <Text style={styles.slideText}>{item.text}</Text>
+          <View style={[styles.slide, { width }]}>
+            <View style={[styles.heroWrap, { width: circle + 60, height: circle + 50 }]}>
+              <View
+                style={[
+                  styles.accentCircle,
+                  { width: circle * 0.55, height: circle * 0.55, borderRadius: circle * 0.275 },
+                ]}
+              />
+              <Image
+                source={item.img}
+                style={{ width: circle, height: circle, borderRadius: circle / 2, marginTop: 40 }}
+              />
             </View>
-          </ImageBackground>
+
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.desc}>{item.text}</Text>
+          </View>
         )}
       />
 
-      {/* Logo (minimalist wordmark), fixed at the top */}
-      <View style={[styles.logoWrap, { top: insets.top + spacing.xl }]}>
-        <Text style={styles.logoWord}>Téranga</Text>
-        <Text style={styles.logoSub}>TRANSFERT</Text>
+      {/* Pagination */}
+      <View style={styles.dots}>
+        {SLIDES.map((_, i) => (
+          <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
+        ))}
       </View>
 
-      {/* Dots + action buttons, fixed at the bottom */}
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.xs }]}>
-        <View style={styles.dots}>
-          {SLIDES.map((_, i) => (
-            <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
-          ))}
-        </View>
+      {/* Boutons */}
+      <View style={styles.buttons}>
         <Pressable
-          style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressed]}
-          onPress={() => router.push('/(auth)/register')}
-        >
-          <Text style={styles.btnPrimaryText}>Inscription</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.btnSecondary, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.btn, styles.btnConnexion, pressed && styles.pressed]}
           onPress={() => router.push('/(auth)/login')}
         >
-          <Text style={styles.btnSecondaryText}>Connexion</Text>
+          <Text style={styles.btnText}>Connexion</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.btn, styles.btnInscription, pressed && styles.pressed]}
+          onPress={() => router.push('/(auth)/register')}
+        >
+          <Text style={styles.btnText}>Inscription</Text>
         </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.blue },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.68)' },
-  logoWrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  logoWord: {
-    color: colors.white,
-    fontSize: 60,
-    fontFamily: 'KaushanScript_400Regular',
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 12,
+  safe: { flex: 1, backgroundColor: colors.white },
+  logoWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
-  logoSub: {
-    color: '#d3d9e0',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 3,
-    marginTop: -10,
-    transform: [{ translateX: -24 }],
-  },
-  textWrap: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: 400,
-  },
-  slideText: {
-    color: colors.white,
-    fontSize: 21,
-    fontFamily: 'Quicksand_700Bold',
-    lineHeight: 29,
-  },
-  bottom: {
+  logoImg: { width: 46, height: 46 },
+  logoWord: { fontSize: 24, color: colors.textMuted, fontWeight: '600' },
+  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
+  heroWrap: { alignItems: 'center', justifyContent: 'flex-start', marginBottom: spacing.xl },
+  accentCircle: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 0,
+    right: 20,
+    backgroundColor: colors.orange,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.blue,
+    textAlign: 'center',
+    lineHeight: 32,
+    marginBottom: spacing.md,
+  },
+  desc: {
+    fontSize: font.md,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 23,
+  },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingVertical: spacing.lg },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d3d8e0' },
+  dotActive: { width: 22, backgroundColor: colors.blue },
+  buttons: {
+    flexDirection: 'row',
+    gap: spacing.md,
     paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
+    paddingBottom: spacing.md,
   },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: spacing.md },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  dotActive: { backgroundColor: colors.orange },
-  btnPrimary: {
-    height: 54,
-    borderRadius: 10,
-    backgroundColor: '#7d7d7d',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnPrimaryText: { color: colors.white, fontSize: 17, fontWeight: '700' },
-  btnSecondary: {
-    height: 54,
-    borderRadius: 10,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnSecondaryText: { color: colors.gray, fontSize: 17, fontWeight: '700' },
+  btn: { flex: 1, height: 58, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
+  btnConnexion: { backgroundColor: colors.orange },
+  btnInscription: { backgroundColor: colors.blue },
+  btnText: { color: colors.white, fontSize: 17, fontWeight: '700' },
   pressed: { opacity: 0.9 },
 });
