@@ -56,7 +56,6 @@ export default function WelcomeScreen() {
         <Text style={styles.logoBrand}>
           téran<Text style={{ color: colors.orange }}>g</Text>a
         </Text>
-        <View style={styles.logoBar} />
         <Text style={styles.logoDesc}>TRANSFERT</Text>
       </View>
 
@@ -125,15 +124,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0.4,
   },
-  logoBar: {
-    width: 34,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.orange,
-    marginTop: 6,
-    marginBottom: 5,
-  },
-  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 5, marginLeft: 5 },
+  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 5, marginLeft: 5, marginTop: 1 },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
   title: {
