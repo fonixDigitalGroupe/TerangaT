@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0.4,
   },
-  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 5, marginLeft: 5, marginTop: 1 },
+  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 5, marginLeft: -5, marginTop: 1 },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
   title: {
