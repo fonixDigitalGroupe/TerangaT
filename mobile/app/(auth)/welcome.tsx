@@ -47,14 +47,14 @@ export default function WelcomeScreen() {
     return () => clearInterval(id);
   }, [width]);
 
-  const circle = Math.min(width * 0.58, 230);
+  const circle = Math.min(width * 0.72, 290);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {/* Logo façon "ting business" : marque colorée + descriptif gris */}
       <View style={styles.logoWrap}>
         <Text style={styles.logoBrand}>
-          Téran<Text style={{ color: colors.orange }}>g</Text>a
+          T<Text style={{ color: colors.orange }}>é</Text>ran<Text style={{ color: colors.orange }}>g</Text>a
         </Text>
         <Text style={styles.logoDesc}>transfert</Text>
       </View>
