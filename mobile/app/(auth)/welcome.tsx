@@ -48,12 +48,11 @@ export default function WelcomeScreen() {
     return () => clearInterval(id);
   }, [width]);
 
-  const imgW = width;
-  const imgH = Math.min(imgW * 0.82, 320);
+  const imgSize = Math.min(width * 0.66, 280);
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header bleu + logo */}
+      {/* Header blanc + logo */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerBrand}>
           t<Text style={{ color: colors.orange }}>é</Text>ranga
@@ -76,7 +75,7 @@ export default function WelcomeScreen() {
             <Image
               source={item.img}
               resizeMode="cover"
-              style={{ width: imgW, height: imgH, marginBottom: spacing.xl }}
+              style={{ width: imgSize, height: imgSize, borderRadius: imgSize / 2, marginBottom: spacing.xl }}
             />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.text}</Text>
@@ -113,22 +112,22 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   header: {
-    backgroundColor: colors.blue,
+    backgroundColor: colors.white,
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'center',
     gap: 7,
-    paddingBottom: 14,
+    paddingBottom: 16,
   },
   headerBrand: {
     fontSize: 24,
-    color: colors.white,
+    color: colors.blue,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: -0.3,
   },
-  headerDesc: { fontSize: 15, color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
+  headerDesc: { fontSize: 15, color: '#9aa7b8', fontWeight: '600' },
   list: { flex: 1 },
-  slide: { flex: 1, alignItems: 'center', justifyContent: 'flex-start' },
+  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg },
   title: {
     fontSize: 21,
     fontWeight: '600',
