@@ -118,10 +118,10 @@ const styles = StyleSheet.create({
   },
   logoBrand: {
     fontSize: 37,
-    color: '#0E2A4E',
+    color: colors.blue,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: -0.5,
-    textShadowColor: '#0E2A4E',
+    textShadowColor: colors.blue,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 0.4,
   },
