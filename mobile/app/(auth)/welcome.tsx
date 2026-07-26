@@ -54,7 +54,7 @@ export default function WelcomeScreen() {
       {/* Logo façon "ting business" : marque colorée + descriptif gris */}
       <View style={styles.logoWrap}>
         <Text style={styles.logoBrand}>
-          T<Text style={{ color: colors.orange }}>é</Text>ran<Text style={{ color: colors.orange }}>g</Text>a
+          Téran<Text style={{ color: colors.orange }}>g</Text>a
         </Text>
         <Text style={styles.logoDesc}>transfert</Text>
       </View>
@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  logoBrand: { fontSize: 36, color: colors.blue, fontFamily: 'KaushanScript_400Regular' },
-  logoDesc: { fontSize: 22, color: '#9aa7b8', fontWeight: '600', letterSpacing: 0.5 },
+  logoBrand: { fontSize: 30, color: colors.blue, fontFamily: 'Quicksand_700Bold' },
+  logoDesc: { fontSize: 22, color: '#9aa7b8', fontFamily: 'Quicksand_600SemiBold' },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
   title: {
