@@ -117,7 +117,16 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  logoBrand: { fontSize: 30, color: colors.blue, fontFamily: 'Quicksand_700Bold' },
+  logoBrand: {
+    fontSize: 34,
+    color: colors.blue,
+    fontFamily: 'Quicksand_700Bold',
+    letterSpacing: 0.3,
+    // léger renforcement des traits (effet "plus gras")
+    textShadowColor: colors.blue,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 0.5,
+  },
   logoDesc: { fontSize: 22, color: '#9aa7b8', fontWeight: '500', letterSpacing: 0.3 },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
