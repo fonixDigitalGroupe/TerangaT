@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, font, spacing } from '../../src/theme';
 
 const SLIDES = [
@@ -32,6 +32,7 @@ const SLIDES = [
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList>(null);
   const [index, setIndex] = useState(0);
@@ -51,7 +52,15 @@ export default function WelcomeScreen() {
   const imgH = Math.min(imgW * 0.82, 320);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
+      {/* Header bleu + logo */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <Text style={styles.headerBrand}>
+          t<Text style={{ color: colors.orange }}>é</Text>ranga
+        </Text>
+        <Text style={styles.headerDesc}>transfert</Text>
+      </View>
+
       {/* Carrousel (remplit l'espace central) */}
       <FlatList
         ref={listRef}
@@ -103,21 +112,23 @@ export default function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
-  logoWrap: {
+  header: {
+    backgroundColor: colors.blue,
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'center',
     gap: 7,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: 14,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
-  logoBrand: {
-    fontSize: 25,
-    color: colors.blue,
+  headerBrand: {
+    fontSize: 24,
+    color: colors.white,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: -0.3,
   },
-  logoDesc: { fontSize: 16, color: '#9aa7b8', fontWeight: '600' },
+  headerDesc: { fontSize: 15, color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 24 },
   title: {
