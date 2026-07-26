@@ -135,8 +135,8 @@ export default function RegisterScreen() {
             <View>
               <Text style={styles.bigTitle}>
                 {step === 1
-                  ? 'Commençons 😉\nDites-nous en un peu sur votre commerce'
-                  : 'Presque fini !\nVos informations personnelles'}
+                  ? 'Dites-nous en un peu sur votre commerce'
+                  : 'Vos informations personnelles'}
               </Text>
 
               {error && <Alert message={error} />}
@@ -292,25 +292,25 @@ const styles = StyleSheet.create({
   logoBrand: { fontSize: 22, color: PRIMARY, fontFamily: 'Quicksand_700Bold', letterSpacing: -0.3 },
   logoDesc: { fontSize: 15, color: '#9aa7b8', fontWeight: '600' },
   scroll: { flexGrow: 1, padding: 22, paddingTop: 24 },
-  bigTitle: { fontSize: 27, fontWeight: '800', color: '#1b3b5c', lineHeight: 35, marginBottom: 26 },
-  label: { fontSize: 16, fontWeight: '600', color: LABEL, marginBottom: 10 },
+  bigTitle: { fontSize: 21, fontWeight: '700', color: '#1b3b5c', lineHeight: 28, marginBottom: 24 },
+  label: { fontSize: 15, fontWeight: '600', color: LABEL, marginBottom: 9 },
   field: {
-    height: 58,
+    height: 50,
     borderWidth: 1,
     borderColor: '#e2e6ec',
-    borderRadius: 14,
+    borderRadius: 12,
     justifyContent: 'center',
   },
-  input: { fontSize: 17, color: '#1a1a1a', paddingHorizontal: 18 },
+  input: { fontSize: 16, color: '#1a1a1a', paddingHorizontal: 16 },
   inputPad: { paddingRight: 48 },
   eye: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   counter: { alignSelf: 'flex-end', fontSize: 13, color: '#9aa3b0', marginTop: 8 },
   phoneField: {
-    height: 58,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#eef3f8',
-    borderRadius: 14,
+    borderRadius: 12,
   },
   countrySel: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16 },
   flag: { fontSize: 20 },
