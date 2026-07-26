@@ -19,19 +19,29 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone',
             'country' => 'required|string|max:100',
             'shop_name' => 'nullable|string|max:34',
             'password' => 'required|numeric|digits:4|confirmed',
         ]);
 
-        $user = DB::transaction(function () use ($data) {
+        // Le numéro doit avoir été vérifié par OTP (voir checkOtp).
+        if (! Cache::pull('otp_ok:' . $data['phone'])) {
+            throw ValidationException::withMessages([
+                'phone' => ['Numéro non vérifié. Reprenez l\'inscription.'],
+            ]);
+        }
+
+        $shop = $data['shop_name'] ?? 'Ma Boutique';
+        $displayName = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')) ?: $shop;
+
+        $user = DB::transaction(function () use ($data, $shop, $displayName) {
             $user = User::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'name' => $data['first_name'] . ' ' . $data['last_name'],
+                'first_name' => $data['first_name'] ?? null,
+                'last_name' => $data['last_name'] ?? null,
+                'name' => $displayName,
                 'phone' => $data['phone'],
                 'country' => $data['country'],
                 'password' => Hash::make($data['password']),
@@ -40,7 +50,7 @@ class AuthController extends Controller
 
             $agent = Agent::create([
                 'user_id' => $user->id,
-                'shop_name' => $data['shop_name'] ?? 'Ma Boutique',
+                'shop_name' => $shop,
             ]);
 
             Wallet::create([
@@ -91,13 +101,15 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'phone' => 'required|string',
+            'mode'  => 'nullable|in:register,login',
         ]);
 
         $user = User::where('phone', $data['phone'])->first();
 
-        if (! $user) {
+        // Inscription : le numéro ne doit pas déjà avoir un compte.
+        if (($data['mode'] ?? null) === 'register' && $user) {
             throw ValidationException::withMessages([
-                'phone' => ['Aucun compte n\'est associé à ce numéro.'],
+                'phone' => ['Ce numéro a déjà un compte. Connectez-vous.'],
             ]);
         }
 
@@ -124,6 +136,31 @@ class AuthController extends Controller
     /**
      * Verify the one-time code and, on success, sign the agent in (issue a token).
      */
+    /**
+     * Vérifie le code OTP SANS connecter (inscription : le compte n'existe pas encore).
+     * Marque le numéro comme vérifié pendant 20 min pour autoriser l'inscription.
+     */
+    public function checkOtp(Request $request)
+    {
+        $data = $request->validate([
+            'phone' => 'required|string',
+            'code'  => 'required|string',
+        ]);
+
+        $cached = Cache::get('otp:' . $data['phone']);
+
+        if (! $cached || ! hash_equals($cached, $data['code'])) {
+            throw ValidationException::withMessages([
+                'code' => ['Code incorrect ou expiré.'],
+            ]);
+        }
+
+        Cache::forget('otp:' . $data['phone']);
+        Cache::put('otp_ok:' . $data['phone'], true, now()->addMinutes(20));
+
+        return response()->json(['ok' => true, 'message' => 'Numéro vérifié.']);
+    }
+
     public function verifyOtp(Request $request)
     {
         $data = $request->validate([

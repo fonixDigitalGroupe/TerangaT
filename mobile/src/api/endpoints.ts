@@ -14,8 +14,8 @@ interface AuthResponse {
 }
 
 export interface RegisterPayload {
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
   phone: string;
   country: string;
   shop_name?: string;
@@ -39,8 +39,15 @@ export const authApi = {
     const { data } = await api.post<AuthResponse>('/register', payload);
     return data;
   },
-  async sendOtp(phone: string): Promise<{ message: string; expires_in: number; dev_code?: string }> {
-    const { data } = await api.post('/otp/send', { phone });
+  async sendOtp(
+    phone: string,
+    mode?: 'register' | 'login'
+  ): Promise<{ message: string; expires_in: number; dev_code?: string }> {
+    const { data } = await api.post('/otp/send', { phone, mode });
+    return data;
+  },
+  async checkOtp(phone: string, code: string): Promise<{ ok: boolean; message: string }> {
+    const { data } = await api.post('/otp/check', { phone, code });
     return data;
   },
   async verifyOtp(phone: string, code: string): Promise<AuthResponse> {

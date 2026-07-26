@@ -13,6 +13,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/otp/send', [AuthController::class, 'sendOtp']);
 Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
+Route::post('/otp/check', [AuthController::class, 'checkOtp']);
 
 // IPN PayDunya (public — appelé par les serveurs PayDunya).
 // GET autorisé : PayDunya sonde l'URL en GET avant un déboursement (doit répondre 200).

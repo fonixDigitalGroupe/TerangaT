@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { authApi } from '../../src/api/endpoints';
+import { useAuth } from '../../src/auth/AuthContext';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { colors } from '../../src/theme';
@@ -14,78 +14,77 @@ const NAVY = '#1b3b5c';
 const SLOTS = [0, 1, 2, 3];
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
-function formatPhone(p?: string): string {
-  const d = (p ?? '').replace(/\D/g, '');
-  return [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' ');
-}
-
-export default function CodeScreen() {
+export default function CreatePinScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { phone, shop_name, dev_code } = useLocalSearchParams<{
-    phone?: string;
-    shop_name?: string;
-    dev_code?: string;
-  }>();
+  const { register } = useAuth();
+  const { phone, shop_name } = useLocalSearchParams<{ phone?: string; shop_name?: string }>();
 
+  const [phase, setPhase] = useState<'create' | 'confirm'>('create');
+  const [pin, setPin] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [resent, setResent] = useState<string | null>(null);
 
-  const submit = async (value: string) => {
+  const finish = async (finalCode: string) => {
     if (!phone) {
-      setError('Numéro manquant, revenez à l’étape précédente.');
+      setError('Numéro manquant, reprenez l’inscription.');
       return;
     }
-    setError(null);
     setLoading(true);
+    setError(null);
     try {
-      await authApi.checkOtp(phone, value);
-      // Numéro vérifié -> définir le code secret
-      router.push({
-        pathname: '/(auth)/create-pin',
-        params: { phone, shop_name: shop_name ?? '' },
+      await register({
+        phone,
+        country: 'Sénégal',
+        shop_name: shop_name || undefined,
+        password: finalCode,
+        password_confirmation: finalCode,
       });
+      // Connecté automatiquement -> le layout redirige vers l'app
     } catch (e) {
-      setError(apiErrorMessage(e, 'Code incorrect. Réessayez.'));
+      setError(apiErrorMessage(e, 'Création du compte impossible.'));
+      setPhase('create');
+      setPin('');
       setCode('');
-    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (code.length === 4 && !loading) void submit(code);
+    if (code.length !== 4) return;
+    if (phase === 'create') {
+      setPin(code);
+      setCode('');
+      setPhase('confirm');
+    } else {
+      if (code === pin) {
+        void finish(code);
+      } else {
+        setError('Les deux codes ne correspondent pas.');
+        setPin('');
+        setCode('');
+        setPhase('create');
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
   const onKey = (k: string) => {
     if (loading) return;
     setError(null);
-    if (k === '⌫') {
-      setCode((c) => c.slice(0, -1));
-    } else if (k !== '') {
-      setCode((c) => (c.length < 4 ? c + k : c));
-    }
-  };
-
-  const resend = async () => {
-    if (!phone) return;
-    setError(null);
-    try {
-      await authApi.sendOtp(phone);
-      setResent('Un nouveau code a été envoyé.');
-    } catch (e) {
-      setError(apiErrorMessage(e, 'Impossible de renvoyer le code.'));
-    }
+    if (k === '⌫') setCode((c) => c.slice(0, -1));
+    else if (k !== '') setCode((c) => (c.length < 4 ? c + k : c));
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header */}
       <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backCircle}>
+        <Pressable
+          onPress={() => (phase === 'confirm' ? (setPhase('create'), setCode(''), setPin('')) : router.back())}
+          hitSlop={10}
+          style={styles.backCircle}
+        >
           <Ionicons name="arrow-back" size={22} color={ACCENT} />
         </Pressable>
         <View style={styles.logoRow}>
@@ -99,36 +98,22 @@ export default function CodeScreen() {
 
       <View style={styles.content}>
         <Text style={styles.title}>
-          Saisissez le code de validation envoyé par <Text style={styles.channel}>SMS</Text> au{'\n'}
-          <Text style={styles.phone}>+221 {formatPhone(phone)}</Text>
+          {phase === 'create' ? 'Définissez votre code secret' : 'Confirmez votre code secret'}
         </Text>
+        <Text style={styles.subtitle}>Ce code à 4 chiffres vous servira à vous connecter.</Text>
 
-        {dev_code ? <Text style={styles.devHint}>🔧 Mode test — code : {dev_code}</Text> : null}
         {error && <Alert message={error} />}
-        {resent && !error ? <Alert message={resent} tone="success" /> : null}
 
-        {/* Cases OTP */}
         <View style={styles.otpRow}>
           {SLOTS.map((i) => (
-            <View key={i} style={[styles.otpBox, i === code.length && !loading && styles.otpBoxActive]}>
-              <Text style={styles.otpDigit}>{code[i] ?? ''}</Text>
+            <View key={i} style={[styles.otpBox, i < code.length && styles.otpBoxFilled]}>
+              {i < code.length ? <View style={styles.pinDot} /> : null}
             </View>
           ))}
         </View>
 
-        {/* Renvoyer */}
-        {loading ? (
-          <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} />
-        ) : (
-          <Text style={styles.resendRow}>
-            Vous n&apos;avez pas reçu de code ?{' '}
-            <Text style={styles.resendLink} onPress={resend}>
-              Renvoyer
-            </Text>
-          </Text>
-        )}
+        {loading ? <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} /> : <View style={{ height: 36 }} />}
 
-        {/* Clavier numérique */}
         <View style={styles.keypad}>
           {KEYS.map((k, i) => (
             <Pressable
@@ -145,6 +130,10 @@ export default function CodeScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Text style={styles.cgu}>
+          En créant votre compte, vous acceptez les conditions générales d&apos;utilisation.
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -171,15 +160,13 @@ const styles = StyleSheet.create({
   logoRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
   logoBrand: { fontSize: 22, color: PRIMARY, fontFamily: 'Quicksand_700Bold', letterSpacing: -0.3 },
   logoDesc: { fontSize: 15, color: '#9aa7b8', fontWeight: '600' },
-  content: { flex: 1, paddingHorizontal: 24, paddingTop: 24 },
-  title: { fontSize: 23, fontWeight: '600', color: '#9aa3b0', lineHeight: 31 },
-  channel: { color: '#25b16a', fontWeight: '800' },
-  phone: { color: NAVY, fontWeight: '800' },
-  devHint: { fontSize: 14, color: PRIMARY, fontWeight: '700', marginTop: 14 },
-  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginTop: 30 },
+  content: { flex: 1, paddingHorizontal: 24, paddingTop: 26 },
+  title: { fontSize: 23, fontWeight: '700', color: NAVY },
+  subtitle: { fontSize: 15, color: '#9aa3b0', marginTop: 8, lineHeight: 21 },
+  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 34 },
   otpBox: {
-    width: 62,
-    height: 62,
+    width: 60,
+    height: 60,
     borderRadius: 14,
     backgroundColor: '#f5f7fa',
     borderWidth: 1.5,
@@ -187,22 +174,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  otpBoxActive: { borderColor: PRIMARY, backgroundColor: '#fff' },
-  otpDigit: { fontSize: 26, fontWeight: '800', color: NAVY },
-  resendRow: { textAlign: 'center', marginTop: 18, fontSize: 14, color: '#6b7280' },
-  resendLink: { color: ACCENT, fontWeight: '700' },
-  keypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 'auto',
-    paddingBottom: 8,
-  },
-  key: {
-    width: '33.33%',
-    height: 76,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  otpBoxFilled: { borderColor: PRIMARY, backgroundColor: '#fff' },
+  pinDot: { width: 16, height: 16, borderRadius: 8, backgroundColor: NAVY },
+  keypad: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 'auto' },
+  key: { width: '33.33%', height: 74, alignItems: 'center', justifyContent: 'center' },
   keyPressed: { opacity: 0.4 },
   keyText: { fontSize: 28, fontWeight: '600', color: NAVY },
+  cgu: { textAlign: 'center', fontSize: 12, color: '#9aa3b0', paddingBottom: 10, paddingTop: 6, lineHeight: 17 },
 });
