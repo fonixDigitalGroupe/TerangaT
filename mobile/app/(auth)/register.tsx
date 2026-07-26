@@ -176,7 +176,7 @@ export default function RegisterScreen() {
                     />
                   </View>
 
-                  <Pressable onPress={next} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
+                  <Pressable onPress={next} style={({ pressed }) => [styles.cta, { backgroundColor: PRIMARY }, pressed && { opacity: 0.9 }]}>
                     <Text style={styles.ctaText}>Continuer</Text>
                   </Pressable>
                 </>
