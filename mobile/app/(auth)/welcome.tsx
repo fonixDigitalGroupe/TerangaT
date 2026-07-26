@@ -53,7 +53,9 @@ export default function WelcomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {/* Logo façon "ting business" : marque colorée + descriptif gris */}
       <View style={styles.logoWrap}>
-        <Text style={styles.logoBrand}>Téranga</Text>
+        <Text style={styles.logoBrand}>
+          Téran<Text style={{ color: colors.orange }}>g</Text>a
+        </Text>
         <Text style={styles.logoDesc}>transfert</Text>
       </View>
 
