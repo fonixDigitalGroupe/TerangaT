@@ -15,18 +15,18 @@ import { colors, font, spacing } from '../../src/theme';
 const SLIDES = [
   {
     img: require('../../assets/hero-market.jpg'),
-    title: 'Bienvenue sur Téranga Transfert !',
-    text: 'Envoyez et recevez de l’argent en toute simplicité, partout au Sénégal.',
+    title: 'Bienvenue sur téranga transfert !',
+    text: 'Envoyez et recevez de l’argent en toute simplicité, partout au Sénégal, directement depuis votre téléphone.',
   },
   {
     img: require('../../assets/hero-agent.png'),
     title: 'Wave & Orange Money réunis',
-    text: 'Gérez tous vos transferts Wave et Orange Money depuis une seule application.',
+    text: 'Gérez tous vos transferts Wave et Orange Money au même endroit, sans jongler entre plusieurs applications.',
   },
   {
     img: require('../../assets/hero-2.jpg'),
     title: 'Rapide, sûr et fiable',
-    text: 'Dépôts, retraits et transferts en quelques secondes, suivis en temps réel.',
+    text: 'Dépôts, retraits et transferts en quelques secondes, avec un suivi de vos opérations en temps réel.',
   },
 ];
 
@@ -47,7 +47,7 @@ export default function WelcomeScreen() {
     return () => clearInterval(id);
   }, [width]);
 
-  const circle = Math.min(width * 0.72, 290);
+  const circle = Math.min(width * 0.66, 270);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -127,14 +127,14 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 56 },
   title: {
-    fontSize: 24,
-    fontFamily: 'Quicksand_700Bold',
+    fontSize: 25,
+    fontWeight: '700',
     color: colors.blue,
     textAlign: 'center',
-    lineHeight: 32,
+    lineHeight: 33,
     marginBottom: spacing.md,
   },
-  desc: { fontSize: font.md, color: '#8e99a8', textAlign: 'center', lineHeight: 24, fontWeight: '400' },
+  desc: { fontSize: 15.5, color: '#8e99a8', textAlign: 'center', lineHeight: 24, fontWeight: '400' },
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, paddingVertical: spacing.lg },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d3d8e0' },
   dotActive: { width: 22, backgroundColor: colors.blue },
