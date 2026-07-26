@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 25,
     fontWeight: '800',
-    color: colors.blue,
+    color: '#0E2A4E',
     textAlign: 'center',
     lineHeight: 33,
     marginBottom: spacing.sm,
