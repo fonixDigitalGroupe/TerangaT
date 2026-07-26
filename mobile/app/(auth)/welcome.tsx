@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 5, marginLeft: -5, marginTop: 1 },
   list: { flex: 1 },
-  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
+  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 56 },
   title: {
     fontSize: 24,
     fontFamily: 'Quicksand_700Bold',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, paddingVertical: spacing.lg },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d3d8e0' },
   dotActive: { width: 22, backgroundColor: colors.blue },
-  buttons: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  buttons: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: 38, paddingBottom: spacing.md },
   btn: {
     flex: 1,
     height: 58,
