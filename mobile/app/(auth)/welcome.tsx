@@ -79,7 +79,7 @@ export default function WelcomeScreen() {
               <View
                 style={[
                   styles.accentCircle,
-                  { width: circle * 0.5, height: circle * 0.5, borderRadius: circle * 0.25 },
+                  { width: circle * 0.4, height: circle * 0.4, borderRadius: circle * 0.2 },
                 ]}
               />
             </View>
