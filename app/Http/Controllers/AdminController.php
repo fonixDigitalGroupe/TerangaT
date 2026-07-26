@@ -164,44 +164,6 @@ class AdminController extends Controller
         ]);
     }
 
-    public function notifications()
-    {
-        $notifications = \App\Models\AdminNotification::latest()->paginate(10);
-        $counts = [
-            'tous'       => Agent::count(),
-            'verifie'    => Agent::where('status', 'vérifié')->count(),
-            'en_attente' => Agent::where('status', 'en attente')->count(),
-        ];
-
-        return view('admin.notifications', compact('notifications', 'counts'));
-    }
-
-    public function storeNotification(Request $request)
-    {
-        $data = $request->validate([
-            'title'    => 'required|string|max:255',
-            'message'  => 'required|string',
-            'audience' => 'required|in:tous,verifie,en_attente',
-        ]);
-
-        $recipients = match ($data['audience']) {
-            'verifie'    => Agent::where('status', 'vérifié')->count(),
-            'en_attente' => Agent::where('status', 'en attente')->count(),
-            default      => Agent::count(),
-        };
-
-        \App\Models\AdminNotification::create($data + ['recipients' => $recipients]);
-
-        return redirect()->route('admin.notifications')->with('success', "Notification envoyée à {$recipients} agent(s).");
-    }
-
-    public function destroyNotification(\App\Models\AdminNotification $notification)
-    {
-        $notification->delete();
-
-        return redirect()->route('admin.notifications')->with('success', 'Notification supprimée.');
-    }
-
     public function litiges(Request $request)
     {
         $status = $request->input('status');

@@ -41,9 +41,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/operateurs/{operator}', [AdminController::class, 'destroyOperator'])->name('operateurs.destroy');
     Route::get('/cartographie', [AdminController::class, 'cartographie'])->name('cartographie');
     Route::get('/statistiques', [AdminController::class, 'statistiques'])->name('statistiques');
-    Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
-    Route::post('/notifications', [AdminController::class, 'storeNotification'])->name('notifications.store');
-    Route::delete('/notifications/{notification}', [AdminController::class, 'destroyNotification'])->name('notifications.destroy');
     Route::get('/litiges', [AdminController::class, 'litiges'])->name('litiges');
     Route::get('/litiges/nouveau', [AdminController::class, 'createLitige'])->name('litiges.create');
     Route::post('/litiges', [AdminController::class, 'storeLitige'])->name('litiges.store');
