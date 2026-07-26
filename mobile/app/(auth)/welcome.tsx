@@ -47,7 +47,8 @@ export default function WelcomeScreen() {
     return () => clearInterval(id);
   }, [width]);
 
-  const circle = Math.min(width * 0.8, 320);
+  const imgW = width - spacing.md * 2;
+  const imgH = Math.min(imgW, 300);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -65,7 +66,8 @@ export default function WelcomeScreen() {
           <View style={[styles.slide, { width }]}>
             <Image
               source={item.img}
-              style={{ width: circle, height: circle, borderRadius: 24, marginBottom: spacing.xl }}
+              resizeMode="cover"
+              style={{ width: imgW, height: imgH, borderRadius: 24, marginBottom: spacing.xl }}
             />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.text}</Text>
@@ -117,7 +119,7 @@ const styles = StyleSheet.create({
   },
   logoDesc: { fontSize: 16, color: '#9aa7b8', fontWeight: '600' },
   list: { flex: 1 },
-  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 24 },
+  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.md, paddingBottom: 24 },
   title: {
     fontSize: 21,
     fontWeight: '600',
@@ -125,8 +127,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 29,
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
   },
-  desc: { fontSize: 15.5, color: '#8e99a8', textAlign: 'center', lineHeight: 24, fontWeight: '400' },
+  desc: { fontSize: 15.5, color: '#8e99a8', textAlign: 'center', lineHeight: 24, fontWeight: '400', paddingHorizontal: spacing.md },
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, paddingVertical: spacing.lg },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d3d8e0' },
   dotActive: { width: 22, backgroundColor: colors.blue },
