@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/auth/AuthContext';
+import { avatarStorage } from '../../src/auth/storage';
 import { colors, font, radius, spacing } from '../../src/theme';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -15,8 +17,35 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const agent = user?.agent;
   const [pushOn, setPushOn] = useState(true);
+  const [photo, setPhoto] = useState<string | null>(null);
 
   const initials = (user?.first_name?.[0] ?? '') + (user?.last_name?.[0] ?? '');
+
+  // Charge la photo enregistrée localement
+  useEffect(() => {
+    if (user?.id != null) {
+      avatarStorage.get(user.id).then(setPhoto);
+    }
+  }, [user?.id]);
+
+  const changePhoto = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Autorisation requise', 'Autorisez l’accès aux photos pour changer votre photo de profil.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+    });
+    if (!result.canceled && result.assets[0]?.uri && user?.id != null) {
+      const uri = result.assets[0].uri;
+      setPhoto(uri);
+      await avatarStorage.set(user.id, uri);
+    }
+  };
 
   const confirmLogout = () =>
     Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
@@ -31,9 +60,18 @@ export default function ProfileScreen() {
         <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
           <Text style={styles.headerTitle}>Paramètres</Text>
           <View style={styles.profileRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials.toUpperCase() || '👤'}</Text>
-            </View>
+            <Pressable onPress={changePhoto} style={styles.avatarWrap}>
+              {photo ? (
+                <Image source={{ uri: photo }} style={styles.avatarImg} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initials.toUpperCase() || '👤'}</Text>
+                </View>
+              )}
+              <View style={styles.cameraBadge}>
+                <Ionicons name="camera" size={13} color={colors.blue} />
+              </View>
+            </Pressable>
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{user?.name ?? 'Agent'}</Text>
               <Text style={styles.phone}>+221 {user?.phone}</Text>
@@ -52,13 +90,7 @@ export default function ProfileScreen() {
           <View style={styles.card}>
             <InfoRow icon="storefront-outline" label="Boutique" value={agent?.shop_name ?? '—'} />
             <Sep />
-            <InfoRow icon="flag-outline" label="Pays" value={user?.country ?? 'Sénégal'} />
-            <Sep />
-            <InfoRow icon="id-card-outline" label="NINEA" value={agent?.ninea ?? 'Non renseigné'} />
-            <Sep />
             <InfoRow icon="phone-portrait-outline" label="Numéro Wave" value={agent?.wave_number ?? 'Non renseigné'} />
-            <Sep />
-            <InfoRow icon="phone-portrait-outline" label="Numéro Orange Money" value={agent?.om_number ?? 'Non renseigné'} />
           </View>
 
           {/* PRÉFÉRENCES */}
@@ -181,6 +213,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: colors.white, fontSize: font.xl, fontWeight: '800', marginBottom: spacing.lg },
   profileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  avatarWrap: { width: 60, height: 60 },
   avatar: {
     width: 60,
     height: 60,
@@ -191,7 +224,27 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.5)',
   },
+  avatarImg: {
+    width: 60,
+    height: 60,
+    borderRadius: radius.full,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
   avatarText: { color: colors.white, fontSize: font.lg, fontWeight: '800' },
+  cameraBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.blue,
+  },
   name: { color: colors.white, fontSize: font.lg, fontWeight: '800' },
   phone: { color: 'rgba(255,255,255,0.85)', fontSize: font.sm, marginTop: 2 },
   codeBadge: {

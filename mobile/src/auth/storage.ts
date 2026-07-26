@@ -29,3 +29,24 @@ export const tokenStorage = {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
   },
 };
+
+const AVATAR_PREFIX = 'teranga_avatar_';
+
+/** Persistance locale de la photo de profil (URI), par utilisateur. */
+export const avatarStorage = {
+  async get(userId: number | string): Promise<string | null> {
+    const key = AVATAR_PREFIX + userId;
+    if (Platform.OS === 'web') {
+      return globalThis.localStorage?.getItem(key) ?? null;
+    }
+    return SecureStore.getItemAsync(key);
+  },
+  async set(userId: number | string, uri: string): Promise<void> {
+    const key = AVATAR_PREFIX + userId;
+    if (Platform.OS === 'web') {
+      globalThis.localStorage?.setItem(key, uri);
+      return;
+    }
+    await SecureStore.setItemAsync(key, uri);
+  },
+};
