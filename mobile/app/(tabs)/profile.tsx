@@ -6,6 +6,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Switch,
   Text,
@@ -16,12 +17,12 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../src/auth/AuthContext';
-import { avatarStorage, profileStore } from '../../src/auth/storage';
+import { profileStore } from '../../src/auth/storage';
 import { agentApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { colors, font, radius, spacing } from '../../src/theme';
 
-type IoniconName = keyof typeof Ionicons.glyphMap;
+type Tab = 'general' | 'numeros' | 'profil';
 
 const bientot = () =>
   Alert.alert('Bientôt disponible', 'Cette fonctionnalité arrive prochainement.');
@@ -30,9 +31,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout, refresh } = useAuth();
   const agent = user?.agent;
-  const [pushOn, setPushOn] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [photo, setPhoto] = useState<string | null>(null);
+
+  const [tab, setTab] = useState<Tab>('general');
+  const [biometric, setBiometric] = useState(false);
 
   // KYC / boutique
   const [shopNumber, setShopNumber] = useState('');
@@ -41,48 +42,30 @@ export default function ProfileScreen() {
   const [selfie, setSelfie] = useState<string | null>(null);
   const [shopModal, setShopModal] = useState(false);
   const [shopInput, setShopInput] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const initials = (user?.first_name?.[0] ?? '') + (user?.last_name?.[0] ?? '');
-
-  // Charge la photo + les champs enregistrés localement
   useEffect(() => {
     if (user?.id == null) return;
     const id = user.id;
-    avatarStorage.get(id).then(setPhoto);
     profileStore.get(id, 'shop_number').then((v) => setShopNumber(v ?? ''));
     profileStore.get(id, 'cni_recto').then(setCniRecto);
     profileStore.get(id, 'cni_verso').then(setCniVerso);
     profileStore.get(id, 'selfie').then(setSelfie);
   }, [user?.id]);
 
-  // Sélecteur d'image générique (retourne l'URI ou null)
-  const pickImage = async (square: boolean): Promise<string | null> => {
+  const pickDoc = async (field: string, setter: (u: string) => void) => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
       Alert.alert('Autorisation requise', 'Autorisez l’accès aux photos pour continuer.');
-      return null;
+      return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: square ? [1, 1] : undefined,
       quality: 0.6,
     });
-    return !result.canceled && result.assets[0]?.uri ? result.assets[0].uri : null;
-  };
-
-  const changePhoto = async () => {
-    const uri = await pickImage(true);
-    if (uri && user?.id != null) {
-      setPhoto(uri);
-      await avatarStorage.set(user.id, uri);
-    }
-  };
-
-  // Ajout/mise à jour d'une pièce KYC
-  const pickDoc = async (field: string, setter: (u: string) => void) => {
-    const uri = await pickImage(false);
-    if (uri && user?.id != null) {
+    if (!result.canceled && result.assets[0]?.uri && user?.id != null) {
+      const uri = result.assets[0].uri;
       setter(uri);
       await profileStore.set(user.id, field, uri);
     }
@@ -100,7 +83,6 @@ export default function ProfileScreen() {
     if (user?.id != null) await profileStore.set(user.id, 'shop_number', v);
   };
 
-  // Envoi des pièces au serveur pour vérification par l'admin
   const submitKyc = async () => {
     if (!cniRecto || !cniVerso || !selfie) {
       Alert.alert('Documents incomplets', 'Ajoutez la CNI recto, la CNI verso et le selfie avant d’envoyer.');
@@ -111,14 +93,13 @@ export default function ProfileScreen() {
       const form = new FormData();
       if (shopNumber) form.append('shop_number', shopNumber);
       const appendImg = (field: string, uri: string) => {
-        if (uri.startsWith('http')) return; // déjà sur le serveur
+        if (uri.startsWith('http')) return;
         const name = uri.split('/').pop() || `${field}.jpg`;
         form.append(field, { uri, name, type: 'image/jpeg' } as unknown as Blob);
       };
       appendImg('cni_recto', cniRecto);
       appendImg('cni_verso', cniVerso);
       appendImg('selfie', selfie);
-
       const res = await agentApi.uploadKyc(form);
       await refresh();
       Alert.alert('Envoyé ✓', res.message ?? 'Vos documents ont été envoyés pour vérification.');
@@ -135,140 +116,123 @@ export default function ProfileScreen() {
       { text: 'Se déconnecter', style: 'destructive', onPress: logout },
     ]);
 
+  const invite = () =>
+    Share.share({
+      message: 'Rejoignez Téranga Transfert, l’application des agents de transfert d’argent au Sénégal.',
+    });
+
+  const kycStatus = (() => {
+    const st = (agent?.status ?? '').toLowerCase();
+    if (st.includes('vérif') || st.includes('verif')) return { label: 'Vérifié', color: colors.success, bg: colors.successBg };
+    if (st.includes('rejet')) return { label: 'Rejeté', color: colors.danger, bg: colors.dangerBg };
+    return { label: 'En attente', color: colors.orangeDark, bg: '#fdecd8' };
+  })();
+
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* En-tête de marque */}
-        <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
-          <Text style={styles.headerTitle}>Paramètres</Text>
-          <View style={styles.profileRow}>
-            <Pressable onPress={changePhoto} style={styles.avatarWrap}>
-              {photo ? (
-                <Image source={{ uri: photo }} style={styles.avatarImg} />
-              ) : (
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initials.toUpperCase() || '👤'}</Text>
-                </View>
-              )}
-              <View style={styles.cameraBadge}>
-                <Ionicons name="camera" size={13} color={colors.blue} />
-              </View>
-            </Pressable>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{user?.name ?? 'Agent'}</Text>
-              <Text style={styles.phone}>+221 {user?.phone}</Text>
-            </View>
-            {agent?.code ? (
-              <View style={styles.codeBadge}>
-                <Text style={styles.codeText}>{agent.code}</Text>
-              </View>
-            ) : null}
-          </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <Text style={[styles.pageTitle, { marginTop: insets.top ? 0 : spacing.sm }]}>Paramètres</Text>
+
+      <View style={styles.card}>
+        {/* Onglets */}
+        <View style={styles.tabs}>
+          <TabBtn label="Général" active={tab === 'general'} onPress={() => setTab('general')} />
+          <TabBtn label="Numéros" active={tab === 'numeros'} onPress={() => setTab('numeros')} />
+          <TabBtn label="Profil" active={tab === 'profil'} onPress={() => setTab('profil')} />
         </View>
 
-        <View style={styles.body}>
-          {/* MON COMPTE */}
-          <Text style={styles.sectionTitle}>Mon compte</Text>
-          <View style={styles.card}>
-            <InfoRow icon="storefront-outline" label="Boutique" value={agent?.shop_name ?? '—'} />
-            <Sep />
-            <InfoRow icon="phone-portrait-outline" label="Numéro Wave" value={agent?.wave_number ?? 'Non renseigné'} />
-          </View>
+        <ScrollView contentContainerStyle={styles.tabContent} showsVerticalScrollIndicator={false}>
+          {tab === 'general' && (
+            <>
+              <Row
+                title="Authentification biométrique"
+                subtitle="Protégez l'accès à votre application"
+                right={
+                  <Switch
+                    value={biometric}
+                    onValueChange={setBiometric}
+                    trackColor={{ true: colors.blue, false: '#d3d8e0' }}
+                    thumbColor="#fff"
+                  />
+                }
+              />
+              <Divider />
+              <Row
+                title="Contacter le service client"
+                subtitle="Disponible du Lundi au Vendredi de 8h30 à 17h30"
+                onPress={() => Linking.openURL('tel:+221338000000')}
+              />
+              <Divider />
+              <Row
+                title="Changer le code secret"
+                subtitle="Modifier le code secret du compte."
+                onPress={bientot}
+              />
+              <Divider />
+              <Row
+                title="Inviter un ami"
+                subtitle="Partager le lien de l'application avec vos proches"
+                onPress={invite}
+              />
+              <Divider />
+              <Row
+                title="Conditions générales d'utilisation"
+                subtitle="Lire les conditions générales d'utilisation de l'application"
+                onPress={bientot}
+              />
+              <Divider />
+              <Row title="Se déconnecter" subtitle="Quitter l'application" danger onPress={confirmLogout} />
+            </>
+          )}
 
-          {/* VÉRIFICATION (KYC) */}
-          <View style={styles.kycHead}>
-            <Text style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>Vérification d'identité</Text>
-            {(() => {
-              const st = (agent?.status ?? '').toLowerCase();
-              const map = st.includes('vérif') || st.includes('verif')
-                ? { label: 'Vérifié', color: colors.success, bg: colors.successBg }
-                : st.includes('rejet')
-                  ? { label: 'Rejeté', color: colors.danger, bg: colors.dangerBg }
-                  : { label: 'En attente', color: colors.orangeDark, bg: '#fdecd8' };
-              return (
-                <View style={[styles.kycBadge, { backgroundColor: map.bg }]}>
-                  <Text style={[styles.kycBadgeText, { color: map.color }]}>{map.label}</Text>
+          {tab === 'numeros' && (
+            <>
+              <Row title="Numéro Wave" subtitle="Compte de débit par défaut" value={agent?.wave_number ?? 'Non renseigné'} />
+              <Divider />
+              <Row
+                title="Numéro de la boutique"
+                subtitle="Ligne fixe ou mobile de la boutique"
+                value={shopNumber || 'Renseigner'}
+                onPress={openShopModal}
+              />
+            </>
+          )}
+
+          {tab === 'profil' && (
+            <>
+              <Row title="Nom complet" value={user?.name ?? '—'} />
+              <Divider />
+              <Row title="Téléphone" value={`+221 ${user?.phone ?? ''}`} />
+              <Divider />
+              <Row title="Code agent" value={agent?.code ?? '—'} />
+              <Divider />
+              <Row title="Boutique" value={agent?.shop_name ?? '—'} />
+              <Divider />
+
+              <View style={styles.kycHead}>
+                <Text style={styles.kycTitle}>Vérification d'identité</Text>
+                <View style={[styles.badge, { backgroundColor: kycStatus.bg }]}>
+                  <Text style={[styles.badgeText, { color: kycStatus.color }]}>{kycStatus.label}</Text>
                 </View>
-              );
-            })()}
-          </View>
-          <View style={styles.card}>
-            <ActionRow
-              icon="business-outline"
-              label="Numéro de la boutique"
-              value={shopNumber || 'Renseigner'}
-              onPress={openShopModal}
-            />
-            <Sep />
-            <DocRow icon="card-outline" label="CNI recto" uri={cniRecto} onPress={() => pickDoc('cni_recto', setCniRecto)} />
-            <Sep />
-            <DocRow icon="card-outline" label="CNI verso" uri={cniVerso} onPress={() => pickDoc('cni_verso', setCniVerso)} />
-            <Sep />
-            <DocRow icon="camera-outline" label="Selfie avec CNI" uri={selfie} onPress={() => pickDoc('selfie', setSelfie)} />
-          </View>
+              </View>
 
-          <Pressable
-            onPress={submitKyc}
-            disabled={submitting}
-            style={({ pressed }) => [styles.kycSubmit, submitting && { opacity: 0.6 }, pressed && !submitting && { opacity: 0.9 }]}
-          >
-            <Ionicons name="cloud-upload-outline" size={18} color={colors.white} />
-            <Text style={styles.kycSubmitText}>{submitting ? 'Envoi…' : 'Soumettre pour vérification'}</Text>
-          </Pressable>
+              <DocRow label="CNI recto" uri={cniRecto} onPress={() => pickDoc('cni_recto', setCniRecto)} />
+              <Divider />
+              <DocRow label="CNI verso" uri={cniVerso} onPress={() => pickDoc('cni_verso', setCniVerso)} />
+              <Divider />
+              <DocRow label="Selfie avec CNI" uri={selfie} onPress={() => pickDoc('selfie', setSelfie)} />
 
-          {/* PRÉFÉRENCES */}
-          <Text style={styles.sectionTitle}>Préférences</Text>
-          <View style={styles.card}>
-            <ActionRow
-              icon="notifications-outline"
-              label="Notifications push"
-              right={
-                <Switch
-                  value={pushOn}
-                  onValueChange={setPushOn}
-                  trackColor={{ true: colors.blue, false: '#c7cdd6' }}
-                  thumbColor="#fff"
-                />
-              }
-            />
-            <Sep />
-            <ActionRow icon="language-outline" label="Langue" value="Français" onPress={bientot} />
-          </View>
-
-          {/* SÉCURITÉ */}
-          <Text style={styles.sectionTitle}>Sécurité</Text>
-          <View style={styles.card}>
-            <ActionRow icon="lock-closed-outline" label="Changer le code secret" onPress={bientot} />
-            <Sep />
-            <ActionRow icon="shield-checkmark-outline" label="Confidentialité" onPress={bientot} />
-          </View>
-
-          {/* ASSISTANCE */}
-          <Text style={styles.sectionTitle}>Assistance</Text>
-          <View style={styles.card}>
-            <ActionRow icon="help-circle-outline" label="Centre d'aide" onPress={bientot} />
-            <Sep />
-            <ActionRow
-              icon="chatbubble-ellipses-outline"
-              label="Nous contacter"
-              onPress={() => Linking.openURL('tel:+221338000000')}
-            />
-            <Sep />
-            <ActionRow icon="document-text-outline" label="Conditions d'utilisation" onPress={bientot} />
-          </View>
-
-          {/* DÉCONNEXION */}
-          <Pressable
-            onPress={confirmLogout}
-            style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.85 }]}
-          >
-            <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-            <Text style={styles.logoutText}>Se déconnecter</Text>
-          </Pressable>
-
-          <Text style={styles.version}>Téranga Transfert · v1.0.0</Text>
-        </View>
-      </ScrollView>
+              <Pressable
+                onPress={submitKyc}
+                disabled={submitting}
+                style={({ pressed }) => [styles.submit, submitting && { opacity: 0.6 }, pressed && !submitting && { opacity: 0.9 }]}
+              >
+                <Ionicons name="cloud-upload-outline" size={18} color={colors.white} />
+                <Text style={styles.submitText}>{submitting ? 'Envoi…' : 'Soumettre pour vérification'}</Text>
+              </Pressable>
+            </>
+          )}
+        </ScrollView>
+      </View>
 
       {/* Modal — numéro de la boutique */}
       <Modal visible={shopModal} transparent animationType="fade" onRequestClose={() => setShopModal(false)}>
@@ -299,197 +263,87 @@ export default function ProfileScreen() {
   );
 }
 
-function DocRow({
-  icon,
-  label,
-  uri,
-  onPress,
-}: {
-  icon: IoniconName;
-  label: string;
-  uri: string | null;
-  onPress: () => void;
-}) {
+function TabBtn({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { backgroundColor: '#f5f7fa' }]}>
-      <IconCircle name={icon} />
-      <Text style={[styles.rowLabel, { flex: 1 }]}>{label}</Text>
-      {uri ? (
-        <Image source={{ uri }} style={styles.docThumb} />
-      ) : (
-        <Text style={styles.docAdd}>Ajouter</Text>
-      )}
-      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+    <Pressable onPress={onPress} style={styles.tabBtn}>
+      <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
+      {active && <View style={styles.tabUnderline} />}
     </Pressable>
   );
 }
 
-function IconCircle({ name }: { name: IoniconName }) {
-  return (
-    <View style={styles.iconCircle}>
-      <Ionicons name={name} size={19} color={colors.blue} />
-    </View>
-  );
-}
-
-function InfoRow({ icon, label, value }: { icon: IoniconName; label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <IconCircle name={icon} />
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue} numberOfLines={1}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-function ActionRow({
-  icon,
-  label,
+function Row({
+  title,
+  subtitle,
   value,
   right,
   onPress,
+  danger,
 }: {
-  icon: IoniconName;
-  label: string;
+  title: string;
+  subtitle?: string;
   value?: string;
   right?: React.ReactNode;
   onPress?: () => void;
+  danger?: boolean;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      style={({ pressed }) => [styles.row, pressed && onPress && { backgroundColor: '#f5f7fa' }]}
-    >
-      <IconCircle name={icon} />
-      <Text style={[styles.rowLabel, { flex: 1 }]}>{label}</Text>
-      {value ? <Text style={styles.rowValueMuted}>{value}</Text> : null}
-      {right ?? (onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} /> : null)}
+    <Pressable onPress={onPress} disabled={!onPress} style={styles.row}>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.rowTitle, danger && { color: colors.danger }]}>{title}</Text>
+        {subtitle ? <Text style={[styles.rowSub, danger && { color: colors.danger }]}>{subtitle}</Text> : null}
+      </View>
+      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
+      {right ?? (onPress ? <Ionicons name="chevron-forward" size={20} color="#c3c9d4" /> : null)}
     </Pressable>
   );
 }
 
-function Sep() {
-  return <View style={styles.sep} />;
+function DocRow({ label, uri, onPress }: { label: string; uri: string | null; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={styles.row}>
+      <Text style={[styles.rowTitle, { flex: 1 }]}>{label}</Text>
+      {uri ? <Image source={{ uri }} style={styles.docThumb} /> : <Text style={styles.docAdd}>Ajouter</Text>}
+      <Ionicons name="chevron-forward" size={20} color="#c3c9d4" />
+    </Pressable>
+  );
+}
+
+function Divider() {
+  return <View style={styles.divider} />;
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingBottom: spacing.xl },
-  header: {
-    backgroundColor: colors.blue,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTitle: { color: colors.white, fontSize: font.xl, fontWeight: '800', marginBottom: spacing.lg },
-  profileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  avatarWrap: { width: 60, height: 60 },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.5)',
-  },
-  avatarImg: {
-    width: 60,
-    height: 60,
-    borderRadius: radius.full,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.6)',
-  },
-  avatarText: { color: colors.white, fontSize: font.lg, fontWeight: '800' },
-  cameraBadge: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.blue,
-  },
-  name: { color: colors.white, fontSize: font.lg, fontWeight: '800' },
-  phone: { color: 'rgba(255,255,255,0.85)', fontSize: font.sm, marginTop: 2 },
-  codeBadge: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.full,
-  },
-  codeText: { color: colors.white, fontSize: font.xs, fontWeight: '700' },
-  body: { paddingHorizontal: spacing.md, marginTop: spacing.lg },
-  sectionTitle: {
-    fontSize: font.xs,
-    fontWeight: '700',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: spacing.sm,
-    marginTop: spacing.lg,
-    marginLeft: 4,
-  },
+  safe: { flex: 1, backgroundColor: '#eef1f5' },
+  pageTitle: { fontSize: font.xl, fontWeight: '800', color: colors.text, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   card: {
+    flex: 1,
     backgroundColor: colors.card,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 13,
-  },
-  iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.full,
-    backgroundColor: colors.blueLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowLabel: { fontSize: font.md, color: colors.text, fontWeight: '500' },
-  rowValue: { flex: 1, textAlign: 'right', fontSize: font.sm, color: colors.text, fontWeight: '600' },
-  rowValueMuted: { fontSize: font.sm, color: colors.textMuted, marginRight: 4 },
-  sep: { height: 1, backgroundColor: colors.border, marginLeft: 60 },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.dangerBg,
-    borderRadius: 14,
-    height: 52,
-    marginTop: spacing.xl,
-  },
-  logoutText: { color: colors.danger, fontSize: font.md, fontWeight: '700' },
-  version: { textAlign: 'center', color: colors.textMuted, fontSize: font.xs, marginTop: spacing.lg },
-  docThumb: { width: 40, height: 28, borderRadius: 6, marginRight: 4, backgroundColor: colors.grayLight },
-  docAdd: { fontSize: font.sm, color: colors.blue, fontWeight: '700', marginRight: 4 },
-  kycHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-    marginHorizontal: 4,
-  },
-  kycBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.full },
-  kycBadgeText: { fontSize: font.xs, fontWeight: '700' },
-  kycSubmit: {
+  tabs: { flexDirection: 'row', paddingHorizontal: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  tabBtn: { paddingVertical: spacing.md, marginRight: spacing.lg, alignItems: 'center' },
+  tabText: { fontSize: font.md, color: colors.textMuted, fontWeight: '600' },
+  tabTextActive: { color: colors.blue, fontWeight: '800' },
+  tabUnderline: { position: 'absolute', bottom: -1, left: 0, right: 0, height: 2.5, borderRadius: 2, backgroundColor: colors.blue },
+  tabContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 16 },
+  rowTitle: { fontSize: font.md, fontWeight: '700', color: colors.text },
+  rowSub: { fontSize: font.sm, color: colors.textMuted, marginTop: 3, lineHeight: 18 },
+  rowValue: { fontSize: font.sm, color: colors.textMuted, fontWeight: '600', maxWidth: '45%', textAlign: 'right' },
+  divider: { height: 1, backgroundColor: colors.border },
+  kycHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.lg, marginBottom: spacing.xs },
+  kycTitle: { fontSize: font.xs, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.6 },
+  badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.full },
+  badgeText: { fontSize: font.xs, fontWeight: '700' },
+  docThumb: { width: 44, height: 30, borderRadius: 6, backgroundColor: colors.grayLight },
+  docAdd: { fontSize: font.sm, color: colors.blue, fontWeight: '700' },
+  submit: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -497,16 +351,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blue,
     borderRadius: 12,
     height: 50,
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
   },
-  kycSubmitText: { color: colors.white, fontSize: font.md, fontWeight: '700' },
-  // Modal boutique
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
+  submitText: { color: colors.white, fontSize: font.md, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', paddingHorizontal: spacing.lg },
   modalCard: { backgroundColor: colors.card, borderRadius: 16, padding: spacing.lg },
   modalTitle: { fontSize: font.md, fontWeight: '800', color: colors.text, marginBottom: spacing.md },
   modalInput: {
@@ -521,12 +369,6 @@ const styles = StyleSheet.create({
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.lg },
   modalCancel: { paddingHorizontal: spacing.md, height: 44, justifyContent: 'center' },
   modalCancelText: { color: colors.textMuted, fontSize: font.md, fontWeight: '600' },
-  modalSave: {
-    backgroundColor: colors.blue,
-    borderRadius: 10,
-    paddingHorizontal: spacing.lg,
-    height: 44,
-    justifyContent: 'center',
-  },
+  modalSave: { backgroundColor: colors.blue, borderRadius: 10, paddingHorizontal: spacing.lg, height: 44, justifyContent: 'center' },
   modalSaveText: { color: colors.white, fontSize: font.md, fontWeight: '700' },
 });
