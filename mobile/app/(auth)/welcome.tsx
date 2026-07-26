@@ -69,19 +69,10 @@ export default function WelcomeScreen() {
         style={styles.list}
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
-            <View style={[styles.heroWrap, { width: circle + 50, height: circle + 46 }]}>
-              <View
-                style={[
-                  styles.accentCircle,
-                  { width: circle * 0.5, height: circle * 0.5, borderRadius: circle * 0.25 },
-                ]}
-              />
-              <Image
-                source={item.img}
-                style={{ width: circle, height: circle, borderRadius: circle / 2, marginTop: 36 }}
-              />
-            </View>
-
+            <Image
+              source={item.img}
+              style={{ width: circle, height: circle, borderRadius: circle / 2, marginBottom: spacing.xl }}
+            />
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.desc}>{item.text}</Text>
           </View>
@@ -124,12 +115,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  logoBrand: { fontSize: 34, color: colors.blue, fontFamily: 'KaushanScript_400Regular' },
+  logoBrand: { fontSize: 36, color: colors.orange, fontFamily: 'KaushanScript_400Regular' },
   logoDesc: { fontSize: 22, color: '#9aa7b8', fontWeight: '600', letterSpacing: 0.5 },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
-  heroWrap: { alignItems: 'center', justifyContent: 'flex-start', marginBottom: spacing.xl },
-  accentCircle: { position: 'absolute', top: 0, right: 14, backgroundColor: colors.orange },
   title: {
     fontSize: 25,
     fontWeight: '800',
