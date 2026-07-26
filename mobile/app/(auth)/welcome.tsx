@@ -118,14 +118,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   logoBrand: {
-    fontSize: 28,
+    fontSize: 25,
     color: colors.blue,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: -0.3,
   },
-  logoDesc: { fontSize: 18, color: '#9aa7b8', fontWeight: '600' },
+  logoDesc: { fontSize: 16, color: '#9aa7b8', fontWeight: '600' },
   list: { flex: 1 },
-  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 56 },
+  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 24 },
   title: {
     fontSize: 21,
     fontWeight: '600',
