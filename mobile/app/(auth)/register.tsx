@@ -115,26 +115,29 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Pressable onPress={goBack} hitSlop={12} style={styles.back}>
-          <Ionicons name="chevron-back" size={26} color="#fff" />
+      {/* Barre claire : retour + logo */}
+      <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
+        <Pressable onPress={goBack} hitSlop={10} style={styles.backCircle}>
+          <Ionicons name="arrow-back" size={22} color={ACCENT} />
         </Pressable>
-        <Text style={styles.headerTitle}>Inscription</Text>
-        <View style={{ width: 26 }} />
-      </View>
-
-      {/* Barre de progression */}
-      <View style={styles.progress}>
-        <View style={[styles.progressBar, { flex: 1, backgroundColor: PRIMARY }]} />
-        <View style={[styles.progressBar, { flex: 1, backgroundColor: step === 2 ? PRIMARY : '#e2e6ec' }]} />
+        <View style={styles.logoRow}>
+          <Text style={styles.logoBrand}>
+            téran<Text style={{ color: ACCENT }}>g</Text>a
+          </Text>
+          <Text style={styles.logoDesc}>transfert</Text>
+        </View>
+        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View>
-              <Text style={styles.stepHint}>Étape {step} sur 2</Text>
+              <Text style={styles.bigTitle}>
+                {step === 1
+                  ? 'Commençons 😉\nDites-nous en un peu sur votre commerce'
+                  : 'Presque fini !\nVos informations personnelles'}
+              </Text>
 
               {error && <Alert message={error} />}
 
@@ -269,20 +272,27 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  header: {
-    backgroundColor: PRIMARY,
-    paddingHorizontal: 12,
-    paddingBottom: 14,
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#f6f8fb',
   },
-  back: { width: 26, alignItems: 'flex-start' },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  progress: { flexDirection: 'row', gap: 6, paddingHorizontal: 20, paddingTop: 16 },
-  progressBar: { height: 4, borderRadius: 2 },
-  scroll: { flexGrow: 1, padding: 22, paddingTop: 20 },
-  stepHint: { fontSize: 13, color: '#9aa3b0', fontWeight: '600', marginBottom: 18 },
+  backCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: '#fdecd8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  logoBrand: { fontSize: 22, color: PRIMARY, fontFamily: 'Quicksand_700Bold', letterSpacing: -0.3 },
+  logoDesc: { fontSize: 15, color: '#9aa7b8', fontWeight: '600' },
+  scroll: { flexGrow: 1, padding: 22, paddingTop: 24 },
+  bigTitle: { fontSize: 27, fontWeight: '800', color: '#1b3b5c', lineHeight: 35, marginBottom: 26 },
   label: { fontSize: 16, fontWeight: '600', color: LABEL, marginBottom: 10 },
   field: {
     height: 58,
