@@ -115,18 +115,11 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Barre claire : retour + logo */}
+      {/* Barre claire : retour */}
       <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={goBack} hitSlop={10} style={styles.backCircle}>
           <Ionicons name="arrow-back" size={22} color={ACCENT} />
         </Pressable>
-        <View style={styles.logoRow}>
-          <Text style={styles.logoBrand}>
-            t<Text style={{ color: ACCENT }}>é</Text>ranga
-          </Text>
-          <Text style={styles.logoDesc}>transfert</Text>
-        </View>
-        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
