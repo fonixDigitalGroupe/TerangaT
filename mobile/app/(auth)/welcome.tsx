@@ -72,15 +72,15 @@ export default function WelcomeScreen() {
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
             <View style={[styles.heroWrap, { width: circle + 44, height: circle + 40 }]}>
+              <Image
+                source={item.img}
+                style={{ width: circle, height: circle, borderRadius: circle / 2, marginTop: 34 }}
+              />
               <View
                 style={[
                   styles.accentCircle,
                   { width: circle * 0.5, height: circle * 0.5, borderRadius: circle * 0.25 },
                 ]}
-              />
-              <Image
-                source={item.img}
-                style={{ width: circle, height: circle, borderRadius: circle / 2, marginTop: 34 }}
               />
             </View>
             <Text style={styles.title}>{item.title}</Text>
