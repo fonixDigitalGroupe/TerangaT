@@ -41,8 +41,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/operateurs/{operator}', [AdminController::class, 'destroyOperator'])->name('operateurs.destroy');
     Route::get('/cartographie', [AdminController::class, 'cartographie'])->name('cartographie');
     Route::get('/statistiques', [AdminController::class, 'statistiques'])->name('statistiques');
-    Route::get('/rapports', [AdminController::class, 'rapports'])->name('rapports');
-    Route::get('/rapports/export', [AdminController::class, 'exportRapport'])->name('rapports.export');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
     Route::post('/notifications', [AdminController::class, 'storeNotification'])->name('notifications.store');
     Route::delete('/notifications/{notification}', [AdminController::class, 'destroyNotification'])->name('notifications.destroy');

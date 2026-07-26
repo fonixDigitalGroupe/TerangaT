@@ -164,11 +164,6 @@ class AdminController extends Controller
         ]);
     }
 
-    public function rapports()
-    {
-        return view('admin.rapports');
-    }
-
     public function notifications()
     {
         $notifications = \App\Models\AdminNotification::latest()->paginate(10);
@@ -205,95 +200,6 @@ class AdminController extends Controller
         $notification->delete();
 
         return redirect()->route('admin.notifications')->with('success', 'Notification supprimée.');
-    }
-
-    public function exportRapport(Request $request)
-    {
-        $data = $request->validate([
-            'type' => 'required|in:transactions,agents,commissions',
-            'from' => 'nullable|date',
-            'to'   => 'nullable|date',
-        ]);
-
-        $type = $data['type'];
-        $from = $data['from'] ?? null;
-        $to   = $data['to'] ?? null;
-        $stamp = now()->format('Ymd_His');
-        $filename = "rapport_{$type}_{$stamp}.csv";
-
-        [$headers, $rows] = match ($type) {
-            'transactions' => $this->reportTransactions($from, $to),
-            'agents'       => $this->reportAgents($from, $to),
-            'commissions'  => $this->reportCommissions($from, $to),
-        };
-
-        return response()->streamDownload(function () use ($headers, $rows) {
-            $out = fopen('php://output', 'w');
-            fprintf($out, "\xEF\xBB\xBF"); // BOM UTF-8 pour Excel
-            fputcsv($out, $headers, ';');
-            foreach ($rows as $row) {
-                fputcsv($out, $row, ';');
-            }
-            fclose($out);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
-    }
-
-    private function reportTransactions($from, $to): array
-    {
-        $items = \App\Models\Transaction::with('agent.user')
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
-            ->latest()->get();
-
-        $rows = $items->map(fn ($t) => [
-            $t->reference,
-            $t->agent->user->name ?? '',
-            $t->type,
-            $t->amount,
-            $t->commission,
-            $t->status,
-            $t->created_at?->format('d/m/Y H:i'),
-        ])->all();
-
-        return [['Référence', 'Agent', 'Type', 'Montant', 'Commission', 'Statut', 'Date'], $rows];
-    }
-
-    private function reportAgents($from, $to): array
-    {
-        $items = Agent::with('user')->withCount('transactions')
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
-            ->latest()->get();
-
-        $rows = $items->map(fn ($a) => [
-            $a->code,
-            $a->user->name ?? '',
-            $a->user->phone ?? '',
-            $a->shop_name,
-            $a->user->country ?? '',
-            $a->status,
-            $a->transactions_count,
-        ])->all();
-
-        return [['Code', 'Agent', 'Téléphone', 'Boutique', 'Région', 'Statut', 'Transactions'], $rows];
-    }
-
-    private function reportCommissions($from, $to): array
-    {
-        $items = \App\Models\Commission::with('transaction.agent.user')
-            ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
-            ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
-            ->latest()->get();
-
-        $rows = $items->map(fn ($c) => [
-            $c->transaction->reference ?? '',
-            $c->transaction->agent->user->name ?? '',
-            $c->agent_amount,
-            $c->platform_amount,
-            $c->created_at?->format('d/m/Y H:i'),
-        ])->all();
-
-        return [['Référence', 'Agent', 'Part agent', 'Part plateforme', 'Date'], $rows];
     }
 
     public function litiges(Request $request)
