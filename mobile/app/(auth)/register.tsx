@@ -155,8 +155,7 @@ export default function RegisterScreen() {
                   <View style={styles.phoneField}>
                     <View style={styles.countrySel}>
                       <Text style={styles.flag}>🇸🇳</Text>
-                      <Text style={styles.snCode}>SN</Text>
-                      <Ionicons name="chevron-down" size={16} color={PRIMARY} />
+                      <Text style={styles.snCode}>+221</Text>
                     </View>
                     <TextInput
                       style={[styles.phoneInput, { outlineStyle: 'none' } as object]}
