@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, paddingVertical: spacing.lg },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#d3d8e0' },
   dotActive: { width: 22, backgroundColor: colors.blue },
-  buttons: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: 38, paddingBottom: spacing.md },
+  buttons: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: 38, paddingBottom: 30 },
   btn: {
     flex: 1,
     height: 58,
