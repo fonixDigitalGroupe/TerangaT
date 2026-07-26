@@ -56,7 +56,7 @@ export default function WelcomeScreen() {
         <Text style={styles.logoBrand}>
           téran<Text style={{ color: colors.orange }}>g</Text>a
         </Text>
-        <Text style={styles.logoDesc}>TRANSFERT</Text>
+        <Text style={styles.logoDesc}>transfert</Text>
       </View>
 
       {/* Carrousel (remplit l'espace central) */}
@@ -110,18 +110,20 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   logoWrap: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'baseline',
     justifyContent: 'center',
+    gap: 7,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
   logoBrand: {
-    fontSize: 34,
+    fontSize: 28,
     color: colors.blue,
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: -0.3,
   },
-  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 6, marginLeft: 6, marginTop: 1 },
+  logoDesc: { fontSize: 18, color: '#9aa7b8', fontWeight: '600' },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 56 },
   title: {
