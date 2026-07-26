@@ -42,9 +42,9 @@ export default function CodeScreen() {
     setLoading(true);
     try {
       await authApi.checkOtp(phone, value);
-      // Numéro vérifié -> définir le code secret
+      // Numéro vérifié -> vérification d'identité (KYC)
       router.push({
-        pathname: '/(auth)/create-pin',
+        pathname: '/(auth)/identity',
         params: { phone, shop_name: shop_name ?? '' },
       });
     } catch (e) {

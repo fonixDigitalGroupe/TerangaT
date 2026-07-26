@@ -14,6 +14,7 @@ class Agent extends Model
         'code',
         'shop_name',
         'shop_number',
+        'cni_number',
         'status',
         'ninea',
         'address',

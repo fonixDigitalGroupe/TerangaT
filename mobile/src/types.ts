@@ -13,6 +13,7 @@ export interface Agent {
   code?: string | null;
   shop_name: string;
   shop_number?: string | null;
+  cni_number?: string | null;
   ninea: string | null;
   address: string | null;
   wave_number: string | null;

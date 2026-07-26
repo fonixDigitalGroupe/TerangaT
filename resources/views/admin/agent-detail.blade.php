@@ -104,6 +104,10 @@
                     <span class="text-slate-500 text-sm">Numéro de la boutique</span>
                     <span class="text-slate-800 text-sm font-medium">{{ $agent->shop_number ?? 'Non renseigné' }}</span>
                 </div>
+                <div class="flex justify-between px-1 py-2 border-b border-slate-100">
+                    <span class="text-slate-500 text-sm">Numéro CNI</span>
+                    <span class="text-slate-800 text-sm font-medium">{{ $agent->cni_number ?? 'Non renseigné' }}</span>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">

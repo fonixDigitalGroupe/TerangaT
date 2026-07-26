@@ -17,6 +17,7 @@ class AgentResource extends JsonResource
             'code' => $this->code,
             'shop_name' => $this->shop_name,
             'shop_number' => $this->shop_number,
+            'cni_number' => $this->cni_number,
             'ninea' => $this->ninea,
             'address' => $this->address,
             'wave_number' => $this->wave_number,

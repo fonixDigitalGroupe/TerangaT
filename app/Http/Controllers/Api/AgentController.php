@@ -22,6 +22,7 @@ class AgentController extends Controller
 
         $request->validate([
             'shop_number' => 'nullable|string|max:30',
+            'cni_number'  => 'nullable|string|max:30',
             'cni_recto'   => 'nullable|image|max:8192',
             'cni_verso'   => 'nullable|image|max:8192',
             'selfie'      => 'nullable|image|max:8192',
@@ -31,6 +32,9 @@ class AgentController extends Controller
 
         if ($request->filled('shop_number')) {
             $update['shop_number'] = $request->input('shop_number');
+        }
+        if ($request->filled('cni_number')) {
+            $update['cni_number'] = $request->input('cni_number');
         }
 
         // Champ formulaire => colonne
