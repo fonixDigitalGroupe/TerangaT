@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand_700Bold',
     letterSpacing: -0.3,
   },
-  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 5, marginLeft: -5, marginTop: 1 },
+  logoDesc: { fontSize: 11, color: '#94a3b8', fontWeight: '700', letterSpacing: 8.5, marginLeft: 8, marginTop: 1 },
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 56 },
   title: {
