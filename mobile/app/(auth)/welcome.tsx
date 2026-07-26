@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingBottom: 24 },
   heroWrap: { alignItems: 'center', justifyContent: 'flex-start', marginBottom: spacing.xl },
-  accentCircle: { position: 'absolute', top: 0, right: 12, backgroundColor: colors.orange },
+  accentCircle: { position: 'absolute', top: 0, right: 12, backgroundColor: colors.orange, opacity: 0.82 },
   title: {
     fontSize: 21,
     fontWeight: '600',
