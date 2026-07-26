@@ -51,14 +51,6 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* Logo façon "ting business" : marque colorée + descriptif gris */}
-      <View style={styles.logoWrap}>
-        <Text style={styles.logoBrand}>
-          t<Text style={{ color: colors.orange }}>é</Text>ranga
-        </Text>
-        <Text style={styles.logoDesc}>transfert</Text>
-      </View>
-
       {/* Carrousel (remplit l'espace central) */}
       <FlatList
         ref={listRef}
