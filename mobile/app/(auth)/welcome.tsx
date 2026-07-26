@@ -54,7 +54,7 @@ export default function WelcomeScreen() {
       {/* Logo façon "ting business" : marque colorée + descriptif gris */}
       <View style={styles.logoWrap}>
         <Text style={styles.logoBrand}>
-          téran<Text style={{ color: colors.orange }}>g</Text>a
+          t<Text style={{ color: colors.orange }}>é</Text>ranga
         </Text>
         <Text style={styles.logoDesc}>transfert</Text>
       </View>

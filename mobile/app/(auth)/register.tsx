@@ -122,7 +122,7 @@ export default function RegisterScreen() {
         </Pressable>
         <View style={styles.logoRow}>
           <Text style={styles.logoBrand}>
-            téran<Text style={{ color: ACCENT }}>g</Text>a
+            t<Text style={{ color: ACCENT }}>é</Text>ranga
           </Text>
           <Text style={styles.logoDesc}>transfert</Text>
         </View>
