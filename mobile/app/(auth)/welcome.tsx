@@ -119,8 +119,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 7,
     paddingBottom: 14,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   headerBrand: {
     fontSize: 24,
@@ -130,7 +128,7 @@ const styles = StyleSheet.create({
   },
   headerDesc: { fontSize: 15, color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
   list: { flex: 1 },
-  slide: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 24 },
+  slide: { flex: 1, alignItems: 'center', justifyContent: 'flex-start' },
   title: {
     fontSize: 21,
     fontWeight: '600',
