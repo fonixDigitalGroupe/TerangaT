@@ -10,10 +10,17 @@ use Illuminate\Support\Facades\Route;
 
 // Public auth endpoints
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
 Route::post('/otp/send', [AuthController::class, 'sendOtp']);
 Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
 Route::post('/otp/check', [AuthController::class, 'checkOtp']);
+
+// Connexion en deux étapes : numéro puis code secret.
+// Limitées en débit : le code secret ne fait que 4 chiffres (10 000 combinaisons)
+// et /phone/check permettrait sinon d'énumérer les numéros inscrits.
+Route::middleware('throttle:6,1')->group(function () {
+    Route::post('/phone/check', [AuthController::class, 'checkPhone']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
 // IPN PayDunya (public — appelé par les serveurs PayDunya).
 // GET autorisé : PayDunya sonde l'URL en GET avant un déboursement (doit répondre 200).

@@ -69,6 +69,26 @@ class AuthController extends Controller
         ], 201);
     }
 
+    /**
+     * Connexion étape 1 : ce numéro a-t-il un compte ?
+     * Si oui, l'app enchaîne sur la saisie du code secret (étape 2 = login()).
+     * Ne renvoie aucune donnée du compte : le numéro seul ne doit rien divulguer.
+     */
+    public function checkPhone(Request $request)
+    {
+        $data = $request->validate([
+            'phone' => 'required|string|max:20',
+        ]);
+
+        if (! User::where('phone', $data['phone'])->exists()) {
+            throw ValidationException::withMessages([
+                'phone' => ['Aucun compte n\'est associé à ce numéro.'],
+            ]);
+        }
+
+        return response()->json(['exists' => true]);
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([

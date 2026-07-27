@@ -31,6 +31,12 @@ export interface CreateTransactionPayload {
 }
 
 export const authApi = {
+  // Connexion étape 1 : le numéro a-t-il un compte ? (422 sinon)
+  async checkPhone(phone: string): Promise<{ exists: boolean }> {
+    const { data } = await api.post<{ exists: boolean }>('/phone/check', { phone });
+    return data;
+  },
+  // Connexion étape 2 : le code secret à 4 chiffres sert de mot de passe
   async login(phone: string, password: string): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>('/login', { phone, password });
     return data;
