@@ -44,7 +44,7 @@ const montantBrut = (montantSouhaite: number): number =>
 // Grille tarifaire des frais facturés au client (jamais une formule).
 // Modifiable à tout moment sans changer la logique métier.
 const FEE_GRID: { min: number; max: number; fee: number }[] = [
-  { min: 1000, max: 2000, fee: 150 },
+  { min: 100, max: 2000, fee: 150 },
   { min: 2001, max: 5000, fee: 250 },
   { min: 5001, max: 10000, fee: 400 },
   { min: 10001, max: 15000, fee: 600 },
@@ -161,7 +161,7 @@ export default function TransfertScreen() {
     setError(null);
     setSuccess(null);
     if (calc.outOfRange) {
-      setError('Montant hors grille : le transfert doit être compris entre 1 000 et 50 000 FCFA.');
+      setError('Montant hors grille : le transfert doit être compris entre 100 et 50 000 FCFA.');
       return;
     }
     if (!canSend) {
