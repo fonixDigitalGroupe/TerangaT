@@ -118,7 +118,7 @@ class PaymentController extends Controller
         $data = $request->validate([
             'operator'     => 'required|in:wave,orange-money',   // wallet du marchand (débité)
             'to_operator'  => 'required|in:wave,orange-money',   // wallet du client (crédité)
-            'amount'       => 'required|integer|min:100',
+            'amount'       => 'required|integer|min:100|max:50000', // montant reçu par le client
             'from_number'  => 'required|string|max:20',
             'to_number'    => 'required|string|max:20',
         ]);
@@ -129,13 +129,15 @@ class PaymentController extends Controller
         }
 
         // `amount` = montant que le CLIENT doit recevoir (net).
-        // Montant brut débité au marchand = (net + commission Téranga) majoré pour
-        // compenser les frais PayDunya, afin que la commission Téranga reste dans
-        // le compte PayDunya après prélèvement des frais.
+        // Espèces échangées = net + frais (grille). Le marchand y garde sa commission,
+        // son wallet est donc débité de : brut = net + frais − commission_marchand.
         $net          = (int) $data['amount'];
-        $rate         = (float) config('paydunya.fee_percent', 3) / 100;
-        $terangaComm  = (int) config('paydunya.teranga_commission', 50);
-        $brut         = (int) ceil(($net + $terangaComm) / (1 - $rate));
+        $frais        = $this->gridFee($net);
+        if ($frais === null) {
+            return response()->json(['message' => 'Montant hors grille (100 – 50 000 FCFA).'], 422);
+        }
+        $merchantComm = (int) config('paydunya.merchant_commission', 50);
+        $brut         = $net + $frais - $merchantComm;
 
         try {
             $tx = $this->createTransaction($agent->id, 'dépôt', [
@@ -144,12 +146,12 @@ class PaymentController extends Controller
                 'amount'       => $net,                 // ce que le client reçoit
             ]);
             // Le marchand est débité sur `operator`, le client crédité sur `recipient_operator`.
-            // total = montant brut réellement débité au marchand ; commission = marge Téranga.
+            // total = montant brut réellement débité au marchand ; commission = commission marchand.
             $tx->update([
                 'sender_phone'       => $data['from_number'],
                 'recipient_operator' => $data['to_operator'],
                 'total'              => $brut,
-                'commission'         => $terangaComm,
+                'commission'         => $merchantComm,
             ]);
 
             // 1) Facture PayDunya sur le montant BRUT (c'est lui qui est débité au marchand).
@@ -267,6 +269,21 @@ class PaymentController extends Controller
         }
 
         return response()->json(['message' => 'IPN traité.']);
+    }
+
+    /**
+     * Frais facturés au client selon la grille tarifaire (config paydunya.fee_grid).
+     * Renvoie null si le montant est hors des bornes.
+     */
+    private function gridFee(int $amount): ?int
+    {
+        foreach ((array) config('paydunya.fee_grid', []) as $tier) {
+            if ($amount >= $tier['min'] && $amount <= $tier['max']) {
+                return (int) $tier['fee'];
+            }
+        }
+
+        return null;
     }
 
     /**

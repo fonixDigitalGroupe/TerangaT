@@ -29,11 +29,31 @@ return [
     'fee_percent' => (float) env('PAYDUNYA_FEE_PERCENT', 3),
 
     /*
-    | Commission Téranga encaissée via PayDunya, en FCFA. Ajoutée au montant brut
-    | débité au marchand afin qu'après prélèvement des frais PayDunya, elle reste
-    | dans le compte PayDunya de Téranga. À ajuster selon les frais réels mesurés.
+    |--------------------------------------------------------------------------
+    | Logique métier des frais Téranga
+    |--------------------------------------------------------------------------
+    | Espèces échangées (dépôt/retrait) = montant + frais (grille).
+    | Le marchand garde sa commission ; son wallet bouge de :
+    |     brut = montant + frais − commission_marchand
+    | La différence brut/net couvre les frais PayDunya + la marge Téranga.
     */
-    'teranga_commission' => (int) env('PAYDUNYA_TERANGA_COMMISSION', 50),
+    'merchant_commission' => (int) env('PAYDUNYA_MERCHANT_COMMISSION', 50),
+
+    // Grille tarifaire des frais facturés au client (jamais une formule).
+    // Bornes sur le MONTANT REÇU par le client. Modifiable sans toucher au code.
+    'fee_grid' => [
+        ['min' => 100,    'max' => 2000,  'fee' => 150],
+        ['min' => 2001,   'max' => 5000,  'fee' => 250],
+        ['min' => 5001,   'max' => 10000, 'fee' => 400],
+        ['min' => 10001,  'max' => 15000, 'fee' => 600],
+        ['min' => 15001,  'max' => 20000, 'fee' => 800],
+        ['min' => 20001,  'max' => 25000, 'fee' => 950],
+        ['min' => 25001,  'max' => 30000, 'fee' => 1100],
+        ['min' => 30001,  'max' => 35000, 'fee' => 1300],
+        ['min' => 35001,  'max' => 40000, 'fee' => 1500],
+        ['min' => 40001,  'max' => 45000, 'fee' => 1650],
+        ['min' => 45001,  'max' => 50000, 'fee' => 1850],
+    ],
 
     /*
     |--------------------------------------------------------------------------

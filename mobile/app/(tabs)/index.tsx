@@ -28,18 +28,12 @@ import { useAuth } from '../../src/auth/AuthContext';
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
 // ===== Logique métier des frais =====
-// PayDunya prélève 3% sur le montant transféré. Le montant brut débité/crédité sur
-// le wallet marchand doit couvrir : le montant reçu par le client + la commission
-// Téranga, le tout majoré pour compenser les 3% PayDunya — ainsi, après prélèvement
-// de PayDunya, la commission Téranga reste dans le compte PayDunya de Téranga.
-const PAYDUNYA_RATE = 0.03;
-const MERCHANT_COMMISSION = 50; // commission marchand fixe, en espèces (FCFA)
-const TERANGA_COMMISSION = 50;  // commission Téranga, encaissée via PayDunya (FCFA)
-
-const montantBrut = (montantSouhaite: number): number =>
-  montantSouhaite > 0
-    ? Math.ceil((montantSouhaite + TERANGA_COMMISSION) / (1 - PAYDUNYA_RATE))
-    : 0;
+// Espèces encaissées (dépôt) = montant reçu par le client + frais (grille).
+// Le marchand y gagne sa commission (50). Son wallet est donc débité de :
+//   débit = montant + frais − commission_marchand
+// Cette différence brut/net couvre les frais PayDunya (collecte + déboursement)
+// et la commission Téranga, encaissée via PayDunya.
+const MERCHANT_COMMISSION = 50; // commission marchand, en espèces (FCFA)
 
 // Grille tarifaire des frais facturés au client (jamais une formule).
 // Modifiable à tout moment sans changer la logique métier.
@@ -103,18 +97,21 @@ export default function TransfertScreen() {
   const calc = useMemo(() => {
     // Montant saisi = montant que le client reçoit (dépôt) ou retire (retrait).
     const souhaite = numericAmount > 0 ? numericAmount : 0;
-    const brut = montantBrut(souhaite);                 // débité/crédité sur le wallet marchand
     const gridResult = souhaite > 0 ? gridFee(souhaite) : 0;
-    const outOfRange = souhaite > 0 && gridResult === null; // hors grille (1 000 – 50 000)
+    const outOfRange = souhaite > 0 && gridResult === null; // hors grille (100 – 50 000)
     const frais = gridResult ?? 0;                      // frais facturés au client (grille)
     const commission = souhaite > 0 ? MERCHANT_COMMISSION : 0;
+    // Espèces échangées = montant + frais ; le marchand y garde sa commission,
+    // donc son wallet bouge de (montant + frais − commission).
+    const especesTotal = souhaite > 0 ? souhaite + frais : 0;
+    const brut = souhaite > 0 ? especesTotal - commission : 0;
 
     if (operationType === 'depot') {
-      // Dépôt : le client remet des espèces.
-      return { brut, frais, commission, outOfRange, debitWallet: brut, especes: brut + frais };
+      // Dépôt : le client remet des espèces (montant + frais).
+      return { brut, frais, commission, outOfRange, debitWallet: brut, especes: especesTotal };
     }
-    // Retrait : le client souhaite retirer des espèces.
-    return { brut, frais, commission, outOfRange, creditWallet: brut, paiementClient: brut + frais };
+    // Retrait : le client paie (montant + frais), le marchand est crédité.
+    return { brut, frais, commission, outOfRange, creditWallet: brut, paiementClient: especesTotal };
   }, [numericAmount, operationType]);
 
   const canSend =
