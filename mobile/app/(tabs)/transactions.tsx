@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { transactionsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
@@ -10,6 +10,7 @@ import { colors, font, spacing } from '../../src/theme';
 import type { Transaction } from '../../src/types';
 
 export default function TransactionsScreen() {
+  const insets = useSafeAreaInsets();
   const [items, setItems] = useState<Transaction[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -54,14 +55,18 @@ export default function TransactionsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <Text style={styles.header}>Historique</Text>
-      {error && <View style={{ paddingHorizontal: spacing.md }}><Alert message={error} /></View>}
+    <View style={styles.container}>
+      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 20) }]}>
+        <Text style={styles.header}>Historique</Text>
+      </View>
+      
+      <View style={styles.contentContainer}>
+        {error && <View style={{ padding: spacing.lg }}><Alert message={error} /></View>}
 
-      {loading ? (
-        <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.xl }} />
-      ) : (
-        <FlatList
+        {loading ? (
+          <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.xl }} />
+        ) : (
+          <FlatList
           data={items}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
@@ -77,14 +82,27 @@ export default function TransactionsScreen() {
           }
         />
       )}
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: { fontSize: font.xl, fontWeight: '800', color: colors.text, padding: spacing.md },
-  list: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
+  container: { flex: 1, backgroundColor: colors.blue },
+  headerContainer: {
+    backgroundColor: colors.blue,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  header: { fontSize: font.xl, fontWeight: '800', color: colors.white },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    overflow: 'hidden',
+  },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl },
   divider: { height: 1, backgroundColor: colors.border },
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
 });
