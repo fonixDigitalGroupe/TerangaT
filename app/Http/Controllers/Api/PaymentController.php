@@ -162,7 +162,10 @@ class PaymentController extends Controller
             );
             if (! $invoice['ok'] || ! $invoice['token']) {
                 $tx->update(['status' => 'échoué']);
-                return response()->json(['message' => 'Échec de création du paiement PayDunya.', 'details' => $invoice['raw']], 422);
+                // Remonte le motif exact de PayDunya (ex. « plafond de transaction atteint,
+                // KYC à valider ») plutôt qu'un message générique.
+                $reason = data_get($invoice['raw'], 'response_text') ?: 'Échec de création du paiement PayDunya.';
+                return response()->json(['message' => $reason, 'details' => $invoice['raw']], 422);
             }
             $tx->update(['paydunya_token' => $invoice['token']]);
 
