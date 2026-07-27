@@ -27,6 +27,35 @@ import { useAuth } from '../../src/auth/AuthContext';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
+// ===== Logique métier des frais =====
+// PayDunya prélève 3% sur le montant transféré : le montant brut à débiter/créditer
+// sur le wallet marchand se déduit du montant souhaité par le client.
+const PAYDUNYA_RATE = 0.03;
+const MERCHANT_COMMISSION = 50; // commission marchand fixe (FCFA)
+
+const montantBrut = (montantSouhaite: number): number =>
+  montantSouhaite > 0 ? Math.ceil(montantSouhaite / (1 - PAYDUNYA_RATE)) : 0;
+
+// Grille tarifaire des frais facturés au client (jamais une formule).
+// Modifiable à tout moment sans changer la logique métier.
+const FEE_GRID: { min: number; max: number; fee: number }[] = [
+  { min: 1000, max: 2000, fee: 150 },
+  { min: 2001, max: 5000, fee: 250 },
+  { min: 5001, max: 10000, fee: 400 },
+  { min: 10001, max: 15000, fee: 600 },
+  { min: 15001, max: 20000, fee: 800 },
+  { min: 20001, max: 25000, fee: 950 },
+  { min: 25001, max: 30000, fee: 1100 },
+  { min: 30001, max: 35000, fee: 1300 },
+  { min: 35001, max: 40000, fee: 1500 },
+  { min: 40001, max: 45000, fee: 1650 },
+  { min: 45001, max: 50000, fee: 1850 },
+];
+
+// Frais selon la grille ; null si le montant est hors des bornes (1 000 – 50 000).
+const gridFee = (montantSouhaite: number): number | null =>
+  FEE_GRID.find((r) => montantSouhaite >= r.min && montantSouhaite <= r.max)?.fee ?? null;
+
 type Operator = 'wave' | 'om';
 const OP_LOGOS: Record<Operator, ReturnType<typeof require>> = {
   wave: require('../../assets/logo-wave.png'),
@@ -67,26 +96,24 @@ export default function TransfertScreen() {
   }, [amount]);
 
   const calc = useMemo(() => {
-    const amountToCalc = numericAmount > 0 ? numericAmount : 0;
-
-    // TEST : aucune commission ni frais pour l'instant. On envoie le montant brut
-    // afin de mesurer ce que le client reçoit réellement (frais PayDunya seuls).
-    const frais = 0;
-    const commission = 0;
+    // Montant saisi = montant que le client reçoit (dépôt) ou retire (retrait).
+    const souhaite = numericAmount > 0 ? numericAmount : 0;
+    const brut = montantBrut(souhaite);                 // débité/crédité sur le wallet marchand
+    const gridResult = souhaite > 0 ? gridFee(souhaite) : 0;
+    const outOfRange = souhaite > 0 && gridResult === null; // hors grille (1 000 – 50 000)
+    const frais = gridResult ?? 0;                      // frais facturés au client (grille)
+    const commission = souhaite > 0 ? MERCHANT_COMMISSION : 0;
 
     if (operationType === 'depot') {
-      const debitWallet = amountToCalc > 0 ? amountToCalc + frais : 0;
-      const especes = amountToCalc > 0 ? debitWallet + commission : 0;
-      return { frais, debitWallet, especes, commission };
-    } else {
-      const creditWallet = amountToCalc > 0 ? amountToCalc + frais : 0;
-      const paiementClient = amountToCalc > 0 ? creditWallet + commission : 0;
-      return { frais, creditWallet, paiementClient, commission };
+      // Dépôt : le client remet des espèces.
+      return { brut, frais, commission, outOfRange, debitWallet: brut, especes: brut + frais };
     }
+    // Retrait : le client souhaite retirer des espèces.
+    return { brut, frais, commission, outOfRange, creditWallet: brut, paiementClient: brut + frais };
   }, [numericAmount, operationType]);
 
   const canSend =
-    numericAmount > 0 && toNumber.trim().length > 0;
+    numericAmount > 0 && !calc.outOfRange && toNumber.trim().length > 0;
 
   // Contacts picker
   const [contactsVisible, setContactsVisible] = useState(false);
@@ -128,6 +155,10 @@ export default function TransfertScreen() {
   const onSend = () => {
     setError(null);
     setSuccess(null);
+    if (calc.outOfRange) {
+      setError('Montant hors grille : le transfert doit être compris entre 1 000 et 50 000 FCFA.');
+      return;
+    }
     if (!canSend) {
       setError('Renseignez le montant et le numéro du client.');
       return;
@@ -147,7 +178,7 @@ export default function TransfertScreen() {
       const res = await paiementsApi.transfert({
         operator: 'wave', // le marchand est toujours débité sur son Wave (nécessite des URLs d'action joignables côté API)
         to_operator: toOp === 'om' ? 'orange-money' : 'wave', // le client est crédité sur l'opérateur choisi
-        amount: numericAmount,
+        amount: calc.brut, // montant brut : après les 3% PayDunya, le client reçoit le montant souhaité
         from_number: agentPhone,
         to_number: toNumber.trim(),
       });
@@ -255,7 +286,12 @@ export default function TransfertScreen() {
             {/* Résumé Dynamique */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Résumé de l'opération</Text>
-              
+
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Frais :</Text>
+                <Text style={styles.summaryValue}>{formatXof(calc.frais)}</Text>
+              </View>
+
               {operationType === 'depot' ? (
                 <>
                   <View style={styles.summaryRow}>
@@ -279,7 +315,7 @@ export default function TransfertScreen() {
                   </View>
                 </>
               )}
-              
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Votre commission :</Text>
                 <Text style={styles.summaryValueGreen}>+{formatXof(calc.commission)}</Text>
@@ -393,6 +429,11 @@ export default function TransfertScreen() {
             </View>
 
             <View style={[styles.dashed, { marginVertical: spacing.md }]} />
+
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Frais :</Text>
+              <Text style={styles.summaryValue}>{formatXof(calc.frais)}</Text>
+            </View>
 
             {operationType === 'depot' ? (
               <>
