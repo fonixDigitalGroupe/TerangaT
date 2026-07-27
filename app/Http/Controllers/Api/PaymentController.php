@@ -116,10 +116,11 @@ class PaymentController extends Controller
     public function transfert(Request $request)
     {
         $data = $request->validate([
-            'operator'    => 'required|in:wave,orange-money',
-            'amount'      => 'required|integer|min:100',
-            'from_number' => 'required|string|max:20',
-            'to_number'   => 'required|string|max:20',
+            'operator'     => 'required|in:wave,orange-money',   // wallet du marchand (débité)
+            'to_operator'  => 'required|in:wave,orange-money',   // wallet du client (crédité)
+            'amount'       => 'required|integer|min:100',
+            'from_number'  => 'required|string|max:20',
+            'to_number'    => 'required|string|max:20',
         ]);
 
         $agent = $request->user()->agent;
@@ -133,7 +134,11 @@ class PaymentController extends Controller
                 'client_phone' => $data['to_number'],   // Vers
                 'amount'       => $data['amount'],
             ]);
-            $tx->update(['sender_phone' => $data['from_number']]);
+            // Le marchand est débité sur `operator`, le client crédité sur `recipient_operator`.
+            $tx->update([
+                'sender_phone'       => $data['from_number'],
+                'recipient_operator' => $data['to_operator'],
+            ]);
 
             // 1) Facture PayDunya
             $invoice = $this->paydunya->createInvoice(
@@ -147,31 +152,35 @@ class PaymentController extends Controller
             }
             $tx->update(['paydunya_token' => $invoice['token']]);
 
-            // 2) Débit du numéro « De » via SOFTPAY (Wave -> pay.wave.com, OM -> Max it).
-            //    Si SOFTPAY échoue, on bascule sur la page de paiement hébergée PayDunya.
+            // 2) Débit du numéro « De » (wallet du marchand) via SOFTPAY uniquement.
+            //    Wave renvoie une URL pay.wave.com et OM une URL Max it : toutes deux
+            //    ouvrent l'application du marchand pour qu'il valide le débit.
+            //    Aucun repli sur la page de paiement hébergée PayDunya — le dépôt doit
+            //    toujours passer par l'app du marchand, jamais par un formulaire web.
             $name = $agent->user->name ?? 'Agent';
 
             $pay = $data['operator'] === 'wave'
                 ? $this->paydunya->softpayWave($invoice['token'], $name, $data['from_number'])
                 : $this->paydunya->softpayOrangeMoney($invoice['token'], $name, $data['from_number']);
 
-            $payUrl = ($pay['ok'] && $pay['url']) ? $pay['url'] : ($invoice['url'] ?? null);
-
             // Frais réels renvoyés par PayDunya dès l'initiation (option B).
             if (! empty($pay['fees'])) {
                 $tx->update(['commission' => (int) $pay['fees']]);
             }
 
-            // Échec SOFTPAY ET pas de page hébergée : on abandonne (transaction échouée).
-            if (! $pay['ok'] && ! $payUrl) {
+            // SOFTPAY indisponible : on abandonne au lieu d'ouvrir une page de paiement.
+            if (! $pay['ok'] || empty($pay['url'])) {
                 $tx->update(['status' => 'échoué']);
-                return response()->json(['message' => $pay['message'] ?? 'Paiement indisponible.', 'details' => $pay['raw']], 422);
+                return response()->json([
+                    'message' => $pay['message'] ?? 'Opérateur momentanément indisponible, réessayez.',
+                    'details' => $pay['raw'],
+                ], 422);
             }
 
             return response()->json([
-                'message'   => 'Ouvrez le paiement pour valider le débit et finaliser le transfert.',
+                'message'   => 'Validez le débit dans votre application ' . self::OPERATORS[$data['operator']]['name'] . '.',
                 'reference' => $tx->reference,
-                'pay_url'   => $payUrl,   // pay.wave.com / Max it / page hébergée
+                'pay_url'   => $pay['url'],   // pay.wave.com ou Max it -> ouvre l'app du marchand
                 'status'    => 'en attente',
             ]);
         } catch (\Throwable $e) {
@@ -232,7 +241,10 @@ class PaymentController extends Controller
 
         // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement API PUSH v2).
         if ($tx->sender_phone) {
-            $mode = self::OPERATORS[$tx->operator]['mode'] ?? 'wave-senegal';
+            // Le crédit part sur l'opérateur du CLIENT, pas sur celui du marchand :
+            // marchand débité sur Wave, client crédité sur Orange Money si c'est son choix.
+            $recipientOperator = $tx->recipient_operator ?? $tx->operator;
+            $mode = self::OPERATORS[$recipientOperator]['mode'] ?? 'wave-senegal';
             $disb = $this->paydunya->disburse($tx->client_phone, max(0, $tx->amount - $fee), $mode, $tx->reference);
 
             // success -> completed ; pending -> en attente (statut final via API) ; sinon échoué

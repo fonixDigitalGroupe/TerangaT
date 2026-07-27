@@ -87,7 +87,8 @@ export interface PaiementResponse {
 }
 
 export interface TransfertPayload {
-  operator: Operator;
+  operator: Operator; // wallet du marchand, débité via SOFTPAY
+  to_operator: Operator; // wallet du client, crédité par déboursement
   amount: number;
   from_number: string; // « De » (numéro de l'agent, débité)
   to_number: string; // « Vers » (destinataire)

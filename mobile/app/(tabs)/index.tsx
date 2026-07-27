@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   FlatList,
   Image,
@@ -13,14 +14,16 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   View,
+  ScrollView,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { colors, font, formatXof, spacing } from '../../src/theme';
+import { useAuth } from '../../src/auth/AuthContext';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
@@ -40,11 +43,12 @@ function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
 
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const router = useRouter();
   const [amount, setAmount] = useState('');
-  const [fromNumber, setFromNumber] = useState('');
   const [toNumber, setToNumber] = useState('');
-  const [fromOp, setFromOp] = useState<Operator>('wave');
   const [toOp, setToOp] = useState<Operator>('wave');
+  const [operationType, setOperationType] = useState<'depot' | 'retrait'>('depot');
   const [supportFees, setSupportFees] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -54,13 +58,34 @@ export default function TransfertScreen() {
   const [sending, setSending] = useState(false);
   const transferDate = new Date().toLocaleDateString('fr-FR');
 
+  // Le wallet débité est toujours celui de l'agent : son numéro d'inscription, sur Wave.
+  const agentPhone = (user?.phone ?? '').replace(/\D/g, '').replace(/^221/, '');
+
   const numericAmount = useMemo(() => {
     const n = parseFloat(amount.replace(/[^0-9.]/g, ''));
     return Number.isFinite(n) ? n : 0;
   }, [amount]);
 
+  const calc = useMemo(() => {
+    const amountToCalc = numericAmount > 0 ? numericAmount : 0;
+    
+    // Frais = (Montant * 3%) + 50 FCFA
+    const frais = amountToCalc > 0 ? (amountToCalc * 0.03) + 50 : 0;
+    const commission = amountToCalc > 0 ? 50 : 0;
+
+    if (operationType === 'depot') {
+      const debitWallet = amountToCalc > 0 ? amountToCalc + frais : 0;
+      const especes = amountToCalc > 0 ? debitWallet + commission : 0;
+      return { frais, debitWallet, especes, commission };
+    } else {
+      const creditWallet = amountToCalc > 0 ? amountToCalc + frais : 0;
+      const paiementClient = amountToCalc > 0 ? creditWallet + commission : 0;
+      return { frais, creditWallet, paiementClient, commission };
+    }
+  }, [numericAmount, operationType]);
+
   const canSend =
-    numericAmount > 0 && fromNumber.trim().length > 0 && toNumber.trim().length > 0;
+    numericAmount > 0 && toNumber.trim().length > 0;
 
   // Contacts picker
   const [contactsVisible, setContactsVisible] = useState(false);
@@ -103,25 +128,30 @@ export default function TransfertScreen() {
     setError(null);
     setSuccess(null);
     if (!canSend) {
-      setError('Renseignez le montant et les deux numéros.');
+      setError('Renseignez le montant et le numéro du client.');
       return;
     }
     setConfirmVisible(true);
   };
 
-  // « Valider » dans le popup : lance le transfert réel puis redirige (Wave / Max it).
+  // « Confirmer » dans le popup : lance le transfert réel puis redirige (Wave).
   const onConfirm = async () => {
     setError(null);
+    if (!agentPhone) {
+      setError("Numéro d'inscription introuvable sur votre compte.");
+      return;
+    }
     setSending(true);
     try {
       const res = await paiementsApi.transfert({
-        operator: fromOp === 'om' ? 'orange-money' : 'wave',
+        operator: 'wave', // le marchand est toujours débité sur son Wave
+        to_operator: toOp === 'om' ? 'orange-money' : 'wave', // le client est crédité sur l'opérateur choisi
         amount: numericAmount,
-        from_number: fromNumber.trim(),
+        from_number: agentPhone,
         to_number: toNumber.trim(),
       });
 
-      // Redirige vers Wave (pay.wave.com) ou Max it / Orange Money pour valider le débit
+      // Redirige vers Wave (pay.wave.com) pour valider le débit du wallet agent
       if (res.pay_url) {
         await Linking.openURL(res.pay_url);
       }
@@ -138,81 +168,57 @@ export default function TransfertScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View>
-          <Text style={styles.brandScript}>Téranga</Text>
-          <Text style={styles.brandSub}>TRANSFERT</Text>
+    <View style={styles.container}>
+      {/* Header Minimaliste - Style CBAO */}
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
+        <View style={styles.headerLeft}>
+          <View style={styles.headerLogoContainer}>
+            <Text style={styles.brandScript}>Téranga</Text>
+            <Text style={styles.brandSub}>TRANSFERT</Text>
+          </View>
         </View>
         <View style={styles.headerRight}>
-          <Pressable style={styles.iconBtn} hitSlop={6}>
-            <Ionicons name="notifications-outline" size={24} color={colors.white} />
-          </Pressable>
-          <Pressable style={styles.iconBtn} hitSlop={6}>
-            <Ionicons name="settings-outline" size={24} color={colors.white} />
+          <Pressable style={styles.iconBtnCircle} hitSlop={6}>
+            <Ionicons name="notifications-outline" size={22} color={colors.white} />
           </Pressable>
         </View>
       </View>
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.content}>
-          {error && !confirmVisible && <Alert message={error} />}
-          {success && <Alert message={success} tone="success" />}
+      <View style={styles.contentContainer}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+            {error && !confirmVisible && <Alert message={error} />}
+            {success && <Alert message={success} tone="success" />}
 
-          <View style={styles.card}>
-            {/* ===== DE ===== */}
-            <Text style={styles.section}>De</Text>
 
-            <View style={styles.amountRow}>
-              <TextInput
-                style={[styles.amountInput, { outlineStyle: 'none' } as object]}
-                placeholder="Montant"
-                placeholderTextColor="#9aa3b0"
-                keyboardType="number-pad"
-                value={amount}
-                onChangeText={setAmount}
-                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-              />
-              <Text style={styles.currency}>FCFA</Text>
+
+            <View style={styles.formContainer}>
+            
+            {/* Radio Retrait / Dépôt */}
+            <View style={styles.radioGroup}>
+              <Pressable style={styles.radioOption} onPress={() => setOperationType('retrait')}>
+                <View style={[styles.radioOuter, operationType === 'retrait' && styles.radioOuterActive]}>
+                  {operationType === 'retrait' && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.radioText}>Retrait</Text>
+              </Pressable>
+              
+              <Pressable style={styles.radioOption} onPress={() => setOperationType('depot')}>
+                <View style={[styles.radioOuter, operationType === 'depot' && styles.radioOuterActive]}>
+                  {operationType === 'depot' && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.radioText}>Dépôt</Text>
+              </Pressable>
             </View>
 
-            <View style={styles.opRow}>
-              <OperatorBadge op={fromOp} onPress={() => setFromOp((o) => (o === 'wave' ? 'om' : 'wave'))} />
-              <View style={styles.numberBox}>
-                <Text style={styles.codeMuted}>+221</Text>
-                <TextInput
-                  style={[styles.numberInput, { outlineStyle: 'none' } as object]}
-                  placeholder="Numéro"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="phone-pad"
-                  maxLength={9}
-                  value={fromNumber}
-                  onChangeText={(t) => setFromNumber(t.replace(/\D/g, '').slice(0, 9))}
-                  inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                />
-                <Text style={styles.flag}>🇸🇳</Text>
-              </View>
-            </View>
-
-            <Pressable style={styles.checkRow} onPress={() => setSupportFees((v) => !v)}>
-              <View style={[styles.checkbox, supportFees && styles.checkboxOn]}>
-                {supportFees && <Text style={styles.check}>✓</Text>}
-              </View>
-              <Text style={styles.checkLabel}>Je supporte les frais</Text>
-            </Pressable>
-
-            <View style={styles.hr} />
-
-            {/* ===== VERS ===== */}
-            <Text style={styles.section}>Vers</Text>
-            <View style={styles.opRow}>
+            {/* Input Mobile avec Opérateur */}
+            <View style={styles.mobileRow}>
               <OperatorBadge op={toOp} onPress={() => setToOp((o) => (o === 'wave' ? 'om' : 'wave'))} />
-              <View style={styles.numberBoxLight}>
-                <Text style={styles.codeMuted}>+221</Text>
+              <View style={[styles.cleanInputWrapper, { flex: 1, marginBottom: 0, marginLeft: spacing.sm, backgroundColor: '#f0f2f5', flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
+                <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 16, marginRight: 4 }}>+221</Text>
                 <TextInput
-                  style={[styles.numberInput, { outlineStyle: 'none' } as object]}
-                  placeholder="Numéro"
+                  style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
+                  placeholder="Mobile"
                   placeholderTextColor="#9aa3b0"
                   keyboardType="phone-pad"
                   maxLength={9}
@@ -220,29 +226,88 @@ export default function TransfertScreen() {
                   onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
                   inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
                 />
-                <Text style={styles.flag}>🇸🇳</Text>
+                <Text style={{ fontSize: 18 }}>🇸🇳</Text>
               </View>
-              <Pressable style={styles.contactBtn} hitSlop={8} onPress={openContacts}>
+              <Pressable style={styles.contactBtnOut} hitSlop={8} onPress={openContacts}>
                 <MaterialIcons name="contacts" size={26} color={colors.gray} />
               </Pressable>
             </View>
 
-            <Text style={styles.fees}>Frais : calculés par PayDunya</Text>
+            {/* Montant */}
+            <View style={{ marginBottom: spacing.md }}>
+               <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
+                 {operationType === 'depot' ? 'Montant à transférer :' : 'Espèces à remettre au client :'}
+               </Text>
+               <View style={styles.cleanInputWrapper}>
+                 <TextInput
+                   style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
+                   placeholder="0"
+                   placeholderTextColor="#9aa3b0"
+                   keyboardType="number-pad"
+                   value={amount}
+                   onChangeText={setAmount}
+                   inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+                 />
+               </View>
+            </View>
+
+            {/* Résumé Dynamique */}
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryTitle}>Résumé de l'opération</Text>
+              
+              {operationType === 'depot' ? (
+                <>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Débit de votre wallet :</Text>
+                    <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Espèces à encaisser :</Text>
+                    <Text style={styles.summaryValueGreen}>+{formatXof(calc.especes)}</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Votre wallet sera crédité :</Text>
+                    <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Le client paiera :</Text>
+                    <Text style={styles.summaryValueRed}>-{formatXof(calc.paiementClient)}</Text>
+                  </View>
+                </>
+              )}
+              
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Votre commission :</Text>
+                <Text style={styles.summaryValueGreen}>+{formatXof(calc.commission)}</Text>
+              </View>
+            </View>
 
             <Pressable
               onPress={onSend}
               disabled={!canSend}
               style={({ pressed }) => [
-                styles.sendBtn,
-                !canSend && styles.sendBtnDisabled,
+                styles.proceedBtn,
+                !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
+                { width: '100%', marginTop: spacing.md }
               ]}
             >
-              <Text style={styles.sendText}>Envoyer</Text>
+              <Text style={styles.proceedBtnText}>
+                {operationType === 'retrait' ? 'Demander le paiement' : 'Valider le Dépôt'}
+              </Text>
             </Pressable>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+            </View>
+
+
+
+
+
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </View>
 
       {Platform.OS === 'ios' && (
         <InputAccessoryView nativeID={KEYBOARD_ACCESSORY_ID}>
@@ -310,87 +375,77 @@ export default function TransfertScreen() {
         onRequestClose={() => !sending && setConfirmVisible(false)}
       >
         <View style={styles.confirmOverlay}>
-          <View style={styles.confirmCard}>
-            {/* En-tête du reçu */}
-            <View style={styles.receiptHeader}>
-              <Image source={require('../../assets/logo-teranga.png')} style={styles.receiptLogoBrand} resizeMode="contain" />
-              <View>
-                <Text style={styles.receiptBrand}>TÉRANGA TRANSFERT</Text>
-                <Text style={styles.receiptSubtitle}>Reçu de transfert</Text>
-              </View>
+          <View style={[styles.summaryCard, { width: '100%', marginBottom: 0, padding: spacing.lg }]}>
+            <Text style={styles.summaryTitle}>Confirmer l'opération</Text>
+            
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Client :</Text>
+              <Text style={styles.summaryValue}>+221 {toNumber}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Opérateur :</Text>
+              <Text style={styles.summaryValue}>{toOp === 'wave' ? 'Wave' : 'Orange Money'}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Type :</Text>
+              <Text style={styles.summaryValue}>{operationType === 'depot' ? 'Dépôt' : 'Retrait'}</Text>
             </View>
 
-            <View style={styles.receiptBody}>
-              {/* Méta */}
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptKey}>Date</Text>
-                <Text style={styles.receiptVal}>{transferDate}</Text>
-              </View>
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptKey}>Type</Text>
-                <Text style={styles.receiptVal}>Transfert inter-wallet</Text>
-              </View>
+            <View style={[styles.dashed, { marginVertical: spacing.md }]} />
 
-              <View style={styles.dashed} />
-
-              {/* Envoyeur / Receveur */}
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptKey}>Envoyeur (De)</Text>
-                <View style={styles.receiptValWrap}>
-                  <Image source={OP_LOGOS[fromOp]} style={styles.receiptOpLogo} />
-                  <Text style={styles.receiptVal}>+221 {fromNumber}</Text>
+            {operationType === 'depot' ? (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Débit de votre wallet :</Text>
+                  <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
                 </View>
-              </View>
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptKey}>Receveur (Vers)</Text>
-                <View style={styles.receiptValWrap}>
-                  <Image source={OP_LOGOS[toOp]} style={styles.receiptOpLogo} />
-                  <Text style={styles.receiptVal}>+221 {toNumber}</Text>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Espèces à encaisser :</Text>
+                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.especes)}</Text>
                 </View>
-              </View>
-
-              <View style={styles.dashed} />
-
-              {/* Montants */}
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptKey}>Montant</Text>
-                <Text style={styles.receiptVal}>{formatXof(numericAmount)}</Text>
-              </View>
-              <View style={styles.receiptRow}>
-                <Text style={styles.receiptKey}>Frais</Text>
-                <Text style={styles.receiptVal}>Calculés par PayDunya</Text>
-              </View>
-
-              <View style={styles.solidDivider} />
-
-              {/* Total */}
-              <View style={styles.receiptTotalRow}>
-                <Text style={styles.receiptTotalKey}>Montant à débiter</Text>
-                <Text style={styles.receiptTotalVal}>{formatXof(numericAmount)}</Text>
-              </View>
-
-              {error && confirmVisible ? (
-                <View style={{ marginTop: spacing.sm }}>
-                  <Alert message={error} />
+              </>
+            ) : (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Votre wallet sera crédité :</Text>
+                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
                 </View>
-              ) : null}
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Le client paiera :</Text>
+                  <Text style={styles.summaryValueRed}>-{formatXof(calc.paiementClient)}</Text>
+                </View>
+              </>
+            )}
+            
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Votre commission :</Text>
+              <Text style={styles.summaryValueGreen}>+{formatXof(calc.commission)}</Text>
+            </View>
 
+            {error && confirmVisible ? (
+              <View style={{ marginTop: spacing.sm }}>
+                <Alert message={error} />
+              </View>
+            ) : null}
+
+            <View style={styles.confirmActions}>
               <Pressable
                 onPress={onConfirm}
                 disabled={sending}
                 style={({ pressed }) => [
-                  styles.confirmValidate,
-                  sending && styles.sendBtnDisabled,
+                  styles.proceedBtn,
+                  styles.confirmActionBtn,
+                  sending && styles.proceedBtnDisabled,
                   pressed && !sending && { opacity: 0.9 },
                 ]}
               >
-                <Text style={styles.sendText}>{sending ? 'Traitement…' : 'Valider le transfert'}</Text>
+                <Text style={styles.proceedBtnText}>{sending ? 'Traitement…' : 'Confirmer'}</Text>
               </Pressable>
 
               <Pressable
                 onPress={() => setConfirmVisible(false)}
                 disabled={sending}
-                style={styles.confirmCancel}
+                style={[styles.confirmCancel, styles.confirmActionBtn]}
               >
                 <Text style={styles.confirmCancelText}>Modifier</Text>
               </Pressable>
@@ -398,123 +453,293 @@ export default function TransfertScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#eef1f5' },
+  container: { flex: 1, backgroundColor: colors.white },
   header: {
-    backgroundColor: colors.blue,
+    backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  brandScript: { color: colors.white, fontSize: 30, fontFamily: 'KaushanScript_400Regular' },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  headerLogoContainer: {
+    justifyContent: 'center',
+  },
+  brandScript: { 
+    color: colors.white, 
+    fontSize: 28, 
+    fontFamily: 'KaushanScript_400Regular',
+    lineHeight: 34,
+  },
   brandSub: {
     color: 'rgba(255,255,255,0.9)',
     fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginTop: -3,
-    transform: [{ translateX: -4 }],
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginTop: -4,
+    transform: [{ translateX: 2 }],
   },
   headerRight: { flexDirection: 'row', gap: spacing.sm },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1, paddingHorizontal: spacing.sm, paddingVertical: spacing.md },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+  iconBtnCircle: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)', // Translucent white for blue background
+    alignItems: 'center', 
+    justifyContent: 'center' 
   },
-  section: { fontSize: 18, fontWeight: '800', color: colors.text, marginBottom: spacing.md },
-  amountRow: {
+  contentContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  topCardsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    height: 52,
-    marginBottom: spacing.md,
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  amountInput: { flex: 1, fontSize: font.lg, color: colors.text },
-  currency: { fontSize: font.md, color: colors.textMuted, fontWeight: '700' },
-  opRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md, gap: spacing.sm },
-  opBadgeBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 10,
+  welcomeCard: {
+    flex: 1,
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#e2e6ec',
+    borderRadius: 8,
+    padding: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 130,
+  },
+  welcomeText: {
+    fontSize: 12,
+    color: colors.text,
+    alignSelf: 'flex-start',
+  },
+  welcomeName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.text,
+    marginTop: spacing.xs,
+  },
+  agentMeta: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary,
+    marginTop: 2,
+  },
+  scannerCard: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    borderRadius: 8,
+    padding: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 130,
   },
-  opLogo: { width: 34, height: 34, borderRadius: 17 },
-  numberBox: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    height: 52,
-    backgroundColor: colors.grayLight,
+  scannerText: {
+    fontSize: 14,
+    color: colors.text,
+    marginTop: spacing.xs,
   },
-  numberBoxLight: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    height: 52,
+  formContainer: {
     backgroundColor: colors.white,
+    paddingTop: spacing.md,
   },
-  codeMuted: { color: colors.textMuted, fontSize: font.md, marginRight: 8, fontWeight: '600' },
-  numberInput: { flex: 1, color: colors.text, fontSize: font.md },
-  flag: { fontSize: 20 },
-  contactBtn: { width: 40, height: 52, alignItems: 'center', justifyContent: 'center' },
-  checkRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 5,
-    borderWidth: 1.5,
+  radioGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.sm,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: spacing.lg,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
     borderColor: '#c3c9d4',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 8,
   },
-  checkboxOn: { backgroundColor: colors.orange, borderColor: colors.orange },
-  check: { color: '#fff', fontSize: 14, fontWeight: '900' },
-  checkLabel: { fontSize: font.md, color: colors.text },
-  hr: { height: 1, backgroundColor: colors.border, marginBottom: spacing.md, marginHorizontal: -spacing.md },
-  fees: { textAlign: 'right', fontSize: 15, fontWeight: '600', color: colors.text, marginBottom: spacing.md },
-  sendBtn: {
+  radioOuterActive: {
+    borderColor: colors.orange,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: colors.orange,
-    borderRadius: 10,
-    height: 52,
+  },
+  radioText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  cleanInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    borderRadius: 8,
+    height: 48,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  mobileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  opBadgeBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendBtnDisabled: { backgroundColor: '#8b8b8b' },
-  sendText: { color: colors.white, fontSize: font.md, fontWeight: '700' },
+  opLogo: { width: 30, height: 30, borderRadius: 15 },
+  cleanInput: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.text,
+  },
+  contactIconBtn: {
+    padding: spacing.xs,
+  },
+  contactBtnOut: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.sm,
+  },
+  proceedBtn: {
+    backgroundColor: colors.orange,
+    borderRadius: 8,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  proceedBtnDisabled: {
+    backgroundColor: '#ffd7af',
+  },
+  proceedBtnText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  summaryCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 13,
+    color: colors.textMuted,
+    fontWeight: '500',
+  },
+  summaryValue: {
+    fontSize: 13,
+    color: colors.text,
+    fontWeight: '700',
+  },
+  summaryValueRed: {
+    fontSize: 13,
+    color: '#e74c3c',
+    fontWeight: '700',
+  },
+  summaryValueGreen: {
+    fontSize: 13,
+    color: colors.success,
+    fontWeight: '700',
+  },
+  recentSection: {
+    marginTop: spacing.md,
+    backgroundColor: '#F5F7FA',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+    marginHorizontal: -spacing.lg,
+    marginBottom: -spacing.sm,
+    flex: 1,
+  },
+  recentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  recentTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#5b6675',
+  },
+  recentLink: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.primary,
+  },
+  recentEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xl,
+  },
+  recentEmptyIcon: {
+    marginBottom: spacing.xs,
+  },
+  recentEmptyText: {
+    fontSize: 14,
+    color: '#8A99AC',
+    fontWeight: '400',
+  },
   accessory: {
-    backgroundColor: '#f1f3f6',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    alignItems: 'flex-end',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: '#ebecf0',
+    paddingHorizontal: 16,
+    height: 44,
   },
   accessoryBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   accessoryText: { color: colors.blue, fontSize: font.md, fontWeight: '700' },
@@ -582,42 +807,44 @@ const styles = StyleSheet.create({
   },
   // En-tête du reçu
   receiptHeader: {
-    backgroundColor: colors.blue,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: '#f0f2f5',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e6ec',
   },
-  receiptLogoBrand: { width: 40, height: 40 },
-  receiptBrand: { color: colors.white, fontSize: font.md, fontWeight: '800', letterSpacing: 0.5 },
-  receiptSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: font.xs, marginTop: 2 },
-  receiptBody: { padding: spacing.lg },
+  receiptLogoBrand: { width: 32, height: 32 },
+  receiptBrand: { color: colors.text, fontSize: font.md, fontWeight: '800', letterSpacing: 0.5 },
+  receiptSubtitle: { color: colors.textMuted, fontSize: font.xs, marginTop: 1 },
+  receiptBody: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   receiptRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 7,
+    paddingVertical: 4,
   },
   receiptKey: { fontSize: font.sm, color: colors.textMuted },
   receiptValWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  receiptOpLogo: { width: 18, height: 18, borderRadius: 9 },
+  receiptOpLogo: { width: 16, height: 16, borderRadius: 8 },
   receiptVal: { fontSize: font.sm, fontWeight: '700', color: colors.text },
   dashed: {
     borderBottomWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#cdd3dc',
-    marginVertical: spacing.sm,
+    borderColor: '#e2e6ec',
+    marginVertical: spacing.xs,
   },
-  solidDivider: { height: 2, backgroundColor: colors.text, marginTop: spacing.sm, marginBottom: 2 },
+  solidDivider: { height: 1, backgroundColor: '#cdd3dc', marginTop: spacing.xs, marginBottom: 2 },
   receiptTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   receiptTotalKey: { fontSize: font.md, fontWeight: '800', color: colors.text },
-  receiptTotalVal: { fontSize: font.lg, fontWeight: '900', color: colors.blue },
+  receiptTotalVal: { fontSize: font.lg, fontWeight: '900', color: colors.text },
   confirmValidate: {
     backgroundColor: colors.orange,
     borderRadius: 12,
@@ -626,6 +853,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: spacing.md,
   },
-  confirmCancel: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.xs },
+  confirmActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  confirmActionBtn: { flex: 1 },
+  confirmCancel: { alignItems: 'center', justifyContent: 'center', height: 48 },
   confirmCancelText: { color: colors.textMuted, fontSize: font.md, fontWeight: '600' },
 });
