@@ -28,14 +28,19 @@ class RetryPaydunyaDisburse extends Command
 
     public function handle(PaydunyaService $paydunya): int
     {
-        $query = Transaction::where('status', 'à reverser');
         if ($ref = $this->argument('reference')) {
-            $query->where('reference', $ref);
+            // Référence explicite : on la relance quel que soit son statut (utile pour
+            // les transactions marquées « échoué » avant l'introduction de « à reverser »),
+            // sauf si elle est déjà reversée avec succès.
+            $txs = Transaction::where('reference', $ref)
+                ->where('status', '!=', 'completed')
+                ->get();
+        } else {
+            $txs = Transaction::where('status', 'à reverser')->get();
         }
-        $txs = $query->get();
 
         if ($txs->isEmpty()) {
-            $this->info('Aucune transaction à reverser.');
+            $this->info('Aucune transaction à reverser (ou déjà reversée).');
             return self::SUCCESS;
         }
 
