@@ -68,10 +68,11 @@ export default function TransfertScreen() {
 
   const calc = useMemo(() => {
     const amountToCalc = numericAmount > 0 ? numericAmount : 0;
-    
-    // Frais = (Montant * 3%) + 50 FCFA
-    const frais = amountToCalc > 0 ? (amountToCalc * 0.03) + 50 : 0;
-    const commission = amountToCalc > 0 ? 50 : 0;
+
+    // TEST : aucune commission ni frais pour l'instant. On envoie le montant brut
+    // afin de mesurer ce que le client reçoit réellement (frais PayDunya seuls).
+    const frais = 0;
+    const commission = 0;
 
     if (operationType === 'depot') {
       const debitWallet = amountToCalc > 0 ? amountToCalc + frais : 0;
