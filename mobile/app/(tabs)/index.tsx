@@ -58,7 +58,7 @@ export default function TransfertScreen() {
   const [sending, setSending] = useState(false);
   const transferDate = new Date().toLocaleDateString('fr-FR');
 
-  // Le wallet débité est toujours celui de l'agent : son numéro d'inscription, sur Wave.
+  // Le wallet débité est toujours celui de l'agent : son numéro d'inscription, sur Orange Money.
   const agentPhone = (user?.phone ?? '').replace(/\D/g, '').replace(/^221/, '');
 
   const numericAmount = useMemo(() => {
@@ -144,7 +144,7 @@ export default function TransfertScreen() {
     setSending(true);
     try {
       const res = await paiementsApi.transfert({
-        operator: 'wave', // le marchand est toujours débité sur son Wave
+        operator: 'orange-money', // le marchand est toujours débité sur son Orange Money (validé dans Max it)
         to_operator: toOp === 'om' ? 'orange-money' : 'wave', // le client est crédité sur l'opérateur choisi
         amount: numericAmount,
         from_number: agentPhone,
