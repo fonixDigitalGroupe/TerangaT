@@ -36,7 +36,7 @@ class PaydunyaService
     /**
      * 1) Crée une facture de paiement et renvoie son token (nécessaire pour SOFTPAY).
      */
-    public function createInvoice(int $amount, string $description, array $customData = []): array
+    public function createInvoice(int $amount, string $description, array $customData = [], array $actionsOverride = []): array
     {
         $payload = [
             'invoice' => [
@@ -48,9 +48,9 @@ class PaydunyaService
                 'phone' => config('paydunya.store.phone'),
             ],
             'actions' => [
-                'cancel_url'   => config('paydunya.cancel_url'),
-                'return_url'   => config('paydunya.return_url'),
-                'callback_url' => config('paydunya.callback_url'),
+                'cancel_url'   => $actionsOverride['cancel_url']   ?? config('paydunya.cancel_url'),
+                'return_url'   => $actionsOverride['return_url']   ?? config('paydunya.return_url'),
+                'callback_url' => $actionsOverride['callback_url'] ?? config('paydunya.callback_url'),
             ],
             'custom_data' => $customData,
         ];

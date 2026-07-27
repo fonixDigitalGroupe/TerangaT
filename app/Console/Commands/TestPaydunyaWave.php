@@ -16,23 +16,37 @@ use Illuminate\Console\Command;
  */
 class TestPaydunyaWave extends Command
 {
-    protected $signature = 'paydunya:test-wave {phone : Numéro Wave (9 chiffres, sans +221)} {--amount=200} {--name=Test Teranga}';
+    protected $signature = 'paydunya:test-wave {phone : Numéro Wave (9 chiffres, sans +221)} {--amount=200} {--name=Test Teranga} {--webhook= : URL joignable qui remplace callback/return/cancel_url pour ce test}';
 
     protected $description = 'Teste PayDunya Wave SoftPay et affiche la réponse brute.';
 
     public function handle(PaydunyaService $paydunya): int
     {
-        $phone  = preg_replace('/\D/', '', (string) $this->argument('phone'));
-        $amount = (int) $this->option('amount');
-        $name   = (string) $this->option('name');
+        $phone   = preg_replace('/\D/', '', (string) $this->argument('phone'));
+        $amount  = (int) $this->option('amount');
+        $name    = (string) $this->option('name');
+        $webhook = trim((string) $this->option('webhook'));
 
         $this->line('Mode PayDunya : ' . config('paydunya.mode'));
         $this->line('Clés chargées : ' . (config('paydunya.master_key') ? 'oui' : 'NON — .env incomplet'));
         $this->line("Test Wave -> phone={$phone}, montant={$amount}");
         $this->newLine();
 
+        // URLs d'action réellement envoyées (config .env, ou webhook si fourni).
+        $actions = [];
+        if ($webhook !== '') {
+            $actions = ['cancel_url' => $webhook, 'return_url' => $webhook, 'callback_url' => $webhook];
+            $this->comment("URLs d'action forcées sur : {$webhook}");
+        } else {
+            $this->comment("URLs d'action (config .env) :");
+            $this->line('  callback_url = ' . (config('paydunya.callback_url') ?: 'VIDE'));
+            $this->line('  return_url   = ' . (config('paydunya.return_url') ?: 'VIDE'));
+            $this->line('  cancel_url   = ' . (config('paydunya.cancel_url') ?: 'VIDE'));
+        }
+        $this->newLine();
+
         $this->info('1) Création de la facture…');
-        $invoice = $paydunya->createInvoice($amount, "Diagnostic Wave {$phone}", ['diagnostic' => true]);
+        $invoice = $paydunya->createInvoice($amount, "Diagnostic Wave {$phone}", ['diagnostic' => true], $actions);
         $this->line('  ok=' . var_export($invoice['ok'], true) . ' token=' . ($invoice['token'] ?? 'AUCUN'));
         if (! $invoice['ok'] || ! $invoice['token']) {
             $this->error('Échec createInvoice — réponse brute :');
