@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\PaydunyaService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 
 /**
  * Diagnostic Wave SoftPay : crée une facture puis appelle softpay/wave-senegal
@@ -42,6 +43,28 @@ class TestPaydunyaWave extends Command
             $this->line('  callback_url = ' . (config('paydunya.callback_url') ?: 'VIDE'));
             $this->line('  return_url   = ' . (config('paydunya.return_url') ?: 'VIDE'));
             $this->line('  cancel_url   = ' . (config('paydunya.cancel_url') ?: 'VIDE'));
+        }
+        $this->newLine();
+
+        // Test d'accessibilité : Wave exige que ces URLs répondent (idéalement 200).
+        $this->comment("Accessibilité des URLs (ce que voit un serveur externe) :");
+        $toCheck = $actions ?: [
+            'callback_url' => config('paydunya.callback_url'),
+            'return_url'   => config('paydunya.return_url'),
+            'cancel_url'   => config('paydunya.cancel_url'),
+        ];
+        foreach ($toCheck as $key => $url) {
+            if (! $url) {
+                $this->line("  {$key} : VIDE");
+                continue;
+            }
+            try {
+                $status = Http::timeout(10)->get($url)->status();
+                $flag = ($status >= 200 && $status < 400) ? 'OK' : 'PROBLEME';
+                $this->line("  {$key} : HTTP {$status} [{$flag}] {$url}");
+            } catch (\Throwable $e) {
+                $this->line("  {$key} : INJOIGNABLE [{$url}] -> " . $e->getMessage());
+            }
         }
         $this->newLine();
 
