@@ -1,24 +1,25 @@
-import { Alert, ScrollView, StyleSheet, Text, View, Pressable, SafeAreaView } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/auth/AuthContext';
+import { colors } from '../../src/theme';
 
 // Define the theme colors specific to this screen to match the mockup
 const theme = {
-  primary: '#047970', // The green color from the image
+  primary: colors.primary, // Blue primary brand color
+  accent: colors.orange, // Orange secondary brand color
   background: '#ffffff',
-  textMain: '#2E3E5C', // Dark text color
-  textSub: '#707070', // Subtle text color for version
-  iconColor: '#047970', // Green icons for list items
+  textMain: '#2E3E5C',
+  textSub: '#707070',
+  iconColor: colors.primary,
   border: '#F4F5F7',
 };
-
-const bientot = () =>
-  Alert.alert('Bientôt disponible', 'Cette fonctionnalité arrive prochainement.');
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
+  const router = useRouter();
   
   // Use agent shop name if available, otherwise user name, otherwise fallback
   const displayName = user?.agent?.shop_name || user?.name || 'Fonix';
@@ -36,7 +37,7 @@ export default function ProfileScreen() {
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <Ionicons name="storefront-outline" size={32} color={theme.primary} />
+            <Ionicons name="storefront-outline" size={32} color={theme.accent} />
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{displayName}</Text>
@@ -56,42 +57,32 @@ export default function ProfileScreen() {
             <MenuItem 
               icon="qr-code-outline" 
               title="QR Codes" 
-              onPress={bientot} 
-            />
-            <MenuItem 
-              icon="wallet-outline" 
-              title="Déplafonner mon compte" 
-              onPress={bientot} 
+              onPress={() => router.push('/settings/qr-codes')} 
             />
             <MenuItem 
               icon="storefront-outline" 
               title="Commerce" 
-              onPress={bientot} 
+              onPress={() => router.push('/settings/commerce')} 
             />
             <MenuItem 
               icon="lock-closed-outline" 
               title="Changer mon code secret" 
-              onPress={bientot} 
-            />
-            <MenuItem 
-              icon="globe-outline" 
-              title="Langue" 
-              onPress={bientot} 
+              onPress={() => router.push('/settings/change-pin')} 
             />
             <MenuItem 
               icon="settings-outline" 
               title="Configuration" 
-              onPress={bientot} 
+              onPress={() => router.push('/settings/configuration')} 
             />
             <MenuItem 
               icon="chatbubble-ellipses-outline" 
               title="Support & Feedbacks" 
-              onPress={bientot} 
+              onPress={() => router.push('/settings/support')} 
             />
             <MenuItem 
               icon="document-text-outline" 
               title="Termes & Conditions" 
-              onPress={bientot} 
+              onPress={() => router.push('/settings/terms')} 
             />
             <MenuItem 
               icon="log-out-outline" 
@@ -102,10 +93,6 @@ export default function ProfileScreen() {
 
           {/* Footer Area */}
           <View style={styles.footer}>
-            <Text style={styles.brandText}>
-              <Text style={styles.brandTing}>t!ng </Text>
-              <Text style={styles.brandBusiness}>business</Text>
-            </Text>
             <Text style={styles.versionText}>Version : 1.2.12</Text>
           </View>
         </ScrollView>
@@ -156,11 +143,10 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   profileName: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '600',
     color: '#ffffff',
     marginBottom: 4,
-    letterSpacing: 0.5,
   },
   profilePhone: {
     fontSize: 15,
@@ -200,33 +186,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuItemTitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: theme.textMain,
-    fontWeight: '600',
+    fontWeight: '500',
     marginLeft: 16,
-    letterSpacing: 0.3,
   },
   footer: {
     alignItems: 'center',
     marginTop: 'auto',
     paddingTop: 20,
   },
-  brandText: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 8,
-  },
-  brandTing: {
-    color: theme.primary,
-    fontWeight: '900',
-    fontSize: 20,
-    letterSpacing: -0.5,
-  },
-  brandBusiness: {
-    color: '#B0B5C1',
-    fontWeight: '600',
-    fontSize: 16,
-  },
+
   versionText: {
     color: theme.textSub,
     fontSize: 14,

@@ -3,7 +3,7 @@
  * Brand colours mirror the web app (tailwind.config.js).
  */
 export const colors = {
-  // Marque Téranga — inspirée ExpressPay : bleu primaire + orange secondaire
+  // Marque Téranga : bleu primaire + orange secondaire
   primary: '#0577DE',
   primaryDark: '#0563BC',
   primaryLight: '#E4F0FC',
