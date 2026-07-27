@@ -75,16 +75,18 @@ class PaydunyaService
      */
     public function softpayWave(string $invoiceToken, string $fullName, string $phone, ?string $email = null): array
     {
+        $payload = [
+            'wave_senegal_fullName'      => $fullName,
+            'wave_senegal_email'         => $email ?? 'client@terangatrans.sn',
+            'wave_senegal_phone'         => $phone,
+            'wave_senegal_payment_token' => $invoiceToken,
+        ];
+
         $res = Http::withHeaders($this->headers())
-            ->post($this->baseUrl() . '/softpay/wave-senegal', [
-                'wave_senegal_fullName'      => $fullName,
-                'wave_senegal_email'         => $email ?? 'client@terangatrans.sn',
-                'wave_senegal_phone'         => $phone,
-                'wave_senegal_payment_token' => $invoiceToken,
-            ]);
+            ->post($this->baseUrl() . '/softpay/wave-senegal', $payload);
 
         $data = $res->json() ?? [];
-        Log::info('[PayDunya] softpayWave', ['status' => $res->status(), 'response' => $data]);
+        Log::info('[PayDunya] softpayWave', ['request' => $payload, 'status' => $res->status(), 'response' => $data]);
 
         return [
             'ok'      => (bool) ($data['success'] ?? false),
