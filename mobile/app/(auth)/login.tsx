@@ -42,10 +42,11 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const res = await authApi.sendOtp(digits);
-      router.push({ pathname: '/(auth)/code', params: { phone: digits, dev_code: res.dev_code ?? '' } });
+      // Le numéro doit déjà avoir un compte ; sinon l'API répond 422.
+      await authApi.checkPhone(digits);
+      router.push({ pathname: '/(auth)/pin', params: { phone: digits } });
     } catch (e) {
-      setError(apiErrorMessage(e, 'Impossible d’envoyer le code.'));
+      setError(apiErrorMessage(e, 'Numéro introuvable.'));
     } finally {
       setLoading(false);
     }
