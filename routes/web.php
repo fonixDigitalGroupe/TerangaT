@@ -16,6 +16,18 @@ Route::get('/', function () {
         : redirect()->route('dashboard');
 });
 
+// Pages de retour/annulation PayDunya (return_url / cancel_url).
+// Publiques et répondant 200 : Wave exige des URLs d'action réellement joignables,
+// sinon le SOFTPAY échoue avec « Une erreur est survenue au niveau du serveur ».
+Route::get('/paiement/retour', fn () => response(
+    'Paiement traité. Vous pouvez retourner dans l\'application Téranga Transfert.',
+    200
+))->name('paiement.retour');
+Route::get('/paiement/annuler', fn () => response(
+    'Paiement annulé. Vous pouvez retourner dans l\'application Téranga Transfert.',
+    200
+))->name('paiement.annuler');
+
 // Auth Routes
 Route::get('/register', [AgentAuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AgentAuthController::class, 'register']);
