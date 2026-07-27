@@ -251,10 +251,19 @@ class PaymentController extends Controller
             $mode = self::OPERATORS[$recipientOperator]['mode'] ?? 'wave-senegal';
             $disb = $this->paydunya->disburse($tx->client_phone, (int) $tx->amount, $mode, $tx->reference);
 
-            // success -> completed ; pending -> en attente (statut final via API) ; sinon échoué
-            $status = ($disb['status'] ?? null) === 'pending'
-                ? 'en attente'
-                : ($disb['ok'] ? 'completed' : 'échoué');
+            if ($disb['ok']) {
+                // success -> completed ; pending -> en attente (statut final via API).
+                $status = ($disb['status'] ?? null) === 'pending' ? 'en attente' : 'completed';
+            } else {
+                // La collecte a RÉUSSI (marchand débité) mais le reversement au client a
+                // échoué (ex. solde PayDunya insuffisant). L'argent est chez Téranga :
+                // statut « à reverser » (à relancer via paydunya:retry-disburse), pas « échoué ».
+                $status = 'à reverser';
+                \Illuminate\Support\Facades\Log::warning('[PayDunya] reversement échoué, à reverser', [
+                    'ref'    => $tx->reference,
+                    'raw'    => $disb['raw'] ?? null,
+                ]);
+            }
 
             // Référence réelle du déboursement (versement au client) — pour les litiges.
             $disburseRef = data_get($disb, 'raw.provider_ref') ?? data_get($disb, 'raw.transaction_id');
