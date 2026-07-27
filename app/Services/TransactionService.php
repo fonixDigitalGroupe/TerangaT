@@ -2,85 +2,128 @@
 
 namespace App\Services;
 
-use App\Models\Agent;
-use App\Models\Commission;
+use App\DTOs\TransactionData;
+use App\DTOs\TransactionCalculationResult;
+use App\Events\TransactionCompleted;
+use App\Events\TransactionFailed;
+use App\Exceptions\TransactionException;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Exception;
 
 class TransactionService
 {
+    public function __construct(
+        private FeeCalculatorService $feeCalculator,
+        private PayDunyaService $payDunyaService
+    ) {}
+
     /**
-     * Create a transaction, its commission breakdown and update the agent wallet
-     * atomically inside a single database transaction.
-     *
-     * @param  array{type:string, fee_strategy:string, amount:float|int, client_phone:string}  $data
-     *
-     * @throws RuntimeException when the wallet balance is insufficient.
+     * Preview transaction impacts before confirmation.
      */
-    public function create(Agent $agent, array $data): Transaction
+    public function previewTransaction(TransactionData $data): TransactionCalculationResult
     {
-        $amount = (float) $data['amount'];
-        $type = $data['type'];
-        $feeStrategy = $data['fee_strategy'];
+        return $this->feeCalculator->calculate($data->amount, $data->type);
+    }
 
-        // Commission calculation (5% total, split 60% agent / 40% platform)
-        $totalFee = $amount * 0.05;
-        $agentCommission = $totalFee * 0.60;
-        $platformCommission = $totalFee * 0.40;
+    /**
+     * Execute a Deposit transaction.
+     */
+    public function executeDeposit(TransactionData $data): Transaction
+    {
+        return DB::transaction(function () use ($data) {
+            $calculation = $this->feeCalculator->calculate($data->amount, $data->type);
+            $reference = 'TRG-DEP-' . strtoupper(Str::random(8));
 
-        $impactAmount = 0;      // signed change applied to the wallet balance
-        $finalAmount = $amount; // amount reaching the phone or paid in cash
+            $transaction = $this->createTransactionRecord($data, $calculation, $reference);
 
-        if ($type === 'dépôt') {
-            if ($feeStrategy === 'client_pays') {
-                // Client pays amount + fee in cash; agent wallet loses exactly 'amount'.
-                $finalAmount = $amount;
-                $impactAmount = -$amount;
-            } else {
-                // 'deducted' or 'agent_receives': fee is taken from the amount.
-                // Client gets amount - totalFee; agent wallet loses (amount - totalFee).
-                $finalAmount = $amount - $totalFee;
-                $impactAmount = -$finalAmount;
+            try {
+                // Call PayDunya to debit merchant and credit client
+                $response = $this->payDunyaService->triggerPayout(
+                    $data->clientNumber,
+                    $data->amount,
+                    $reference
+                );
+
+                $transaction->update([
+                    'status' => 'success',
+                    'paydunya_transaction_id' => $response['transaction_id'] ?? null,
+                ]);
+
+                event(new TransactionCompleted($transaction));
+
+                return $transaction;
+            } catch (Exception $e) {
+                $this->handleTransactionFailure($transaction, $e);
+                throw $e;
             }
-        } else {
-            // Retrait: agent pays 'amount' cash to client and receives amount + commission.
-            $finalAmount = $amount;
-            $impactAmount = $amount + $agentCommission;
-        }
-
-        return DB::transaction(function () use (
-            $agent, $type, $feeStrategy, $finalAmount, $agentCommission, $platformCommission, $impactAmount, $data
-        ) {
-            // Lock the wallet row to avoid race conditions on concurrent requests.
-            $wallet = $agent->wallet()->lockForUpdate()->first();
-
-            if ($impactAmount < 0 && $wallet->balance < abs($impactAmount)) {
-                throw new RuntimeException('Solde insuffisant dans le wallet.');
-            }
-
-            $transaction = Transaction::create([
-                'agent_id' => $agent->id,
-                'type' => $type,
-                'fee_strategy' => $feeStrategy,
-                'amount' => $finalAmount,
-                'commission' => $agentCommission,
-                'total' => $finalAmount + $agentCommission,
-                'client_phone' => $data['client_phone'],
-                'status' => 'completed',
-                'reference' => 'TRX-' . strtoupper(uniqid()),
-            ]);
-
-            Commission::create([
-                'transaction_id' => $transaction->id,
-                'agent_amount' => $agentCommission,
-                'platform_amount' => $platformCommission,
-            ]);
-
-            $wallet->balance += $impactAmount;
-            $wallet->save();
-
-            return $transaction;
         });
+    }
+
+    /**
+     * Execute a Withdrawal transaction.
+     */
+    public function executeWithdrawal(TransactionData $data): Transaction
+    {
+        return DB::transaction(function () use ($data) {
+            $calculation = $this->feeCalculator->calculate($data->amount, $data->type);
+            $reference = 'TRG-WIT-' . strtoupper(Str::random(8));
+
+            $transaction = $this->createTransactionRecord($data, $calculation, $reference);
+
+            try {
+                // Call PayDunya for Request To Pay
+                $response = $this->payDunyaService->requestToPay(
+                    $data->clientNumber,
+                    $calculation->clientTotal, // Client pays the total amount calculated
+                    $reference
+                );
+
+                $transaction->update([
+                    'status' => 'pending', // Waiting for client to validate PIN
+                    'paydunya_transaction_id' => $response['transaction_id'] ?? null,
+                ]);
+
+                // We assume successful confirmation in this synchronous flow for demonstration,
+                // but in reality, a webhook from PayDunya will update this to 'success'.
+                $transaction->update(['status' => 'success']);
+                
+                event(new TransactionCompleted($transaction));
+
+                return $transaction;
+            } catch (Exception $e) {
+                $this->handleTransactionFailure($transaction, $e);
+                throw $e;
+            }
+        });
+    }
+
+    private function createTransactionRecord(TransactionData $data, TransactionCalculationResult $calc, string $reference): Transaction
+    {
+        return Transaction::create([
+            'reference' => $reference,
+            'agent_id' => $data->merchantId, // Using agent_id for backwards compatibility
+            'client_phone' => $data->clientNumber,
+            'operator' => $data->operator,
+            'type' => $data->type,
+            'amount' => $calc->amount,
+            'fee' => $calc->fee,
+            'merchant_commission' => $calc->merchantCommission,
+            'total_client' => $calc->clientTotal,
+            'merchant_wallet_impact' => $calc->merchantWalletImpact,
+            'status' => 'pending',
+        ]);
+    }
+
+    private function handleTransactionFailure(Transaction $transaction, Exception $e): void
+    {
+        $transaction->update([
+            'status' => 'failed',
+        ]);
+
+        Log::error("Transaction failed: {$transaction->reference}. Error: {$e->getMessage()}");
+        event(new TransactionFailed($transaction, $e->getMessage()));
     }
 }
