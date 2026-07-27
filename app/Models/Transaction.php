@@ -12,10 +12,15 @@ class Transaction extends Model
         'agent_id',
         'type',
         'operator',
+        'recipient_operator',
         'fee_strategy',
         'amount',
+        'fee',
         'commission',
+        'merchant_commission',
         'total',
+        'total_client',
+        'merchant_wallet_impact',
         'client_phone',
         'sender_phone',
         'status',
@@ -23,6 +28,7 @@ class Transaction extends Model
         'paydunya_token',
         'paydunya_ref',
         'disburse_ref',
+        'paydunya_transaction_id',
     ];
 
     public function agent()
