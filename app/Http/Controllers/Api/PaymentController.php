@@ -128,21 +128,33 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Compte agent introuvable.'], 422);
         }
 
+        // `amount` = montant que le CLIENT doit recevoir (net).
+        // Montant brut débité au marchand = (net + commission Téranga) majoré pour
+        // compenser les frais PayDunya, afin que la commission Téranga reste dans
+        // le compte PayDunya après prélèvement des frais.
+        $net          = (int) $data['amount'];
+        $rate         = (float) config('paydunya.fee_percent', 3) / 100;
+        $terangaComm  = (int) config('paydunya.teranga_commission', 50);
+        $brut         = (int) ceil(($net + $terangaComm) / (1 - $rate));
+
         try {
             $tx = $this->createTransaction($agent->id, 'dépôt', [
                 'operator'     => $data['operator'],
                 'client_phone' => $data['to_number'],   // Vers
-                'amount'       => $data['amount'],
+                'amount'       => $net,                 // ce que le client reçoit
             ]);
             // Le marchand est débité sur `operator`, le client crédité sur `recipient_operator`.
+            // total = montant brut réellement débité au marchand ; commission = marge Téranga.
             $tx->update([
                 'sender_phone'       => $data['from_number'],
                 'recipient_operator' => $data['to_operator'],
+                'total'              => $brut,
+                'commission'         => $terangaComm,
             ]);
 
-            // 1) Facture PayDunya
+            // 1) Facture PayDunya sur le montant BRUT (c'est lui qui est débité au marchand).
             $invoice = $this->paydunya->createInvoice(
-                $data['amount'],
+                $brut,
                 "Transfert {$data['from_number']} -> {$data['to_number']}",
                 ['transaction_id' => $tx->id, 'transfert' => true]
             );
@@ -163,10 +175,9 @@ class PaymentController extends Controller
                 ? $this->paydunya->softpayWave($invoice['token'], $name, $data['from_number'])
                 : $this->paydunya->softpayOrangeMoney($invoice['token'], $name, $data['from_number']);
 
-            // Frais réels renvoyés par PayDunya dès l'initiation (option B).
-            if (! empty($pay['fees'])) {
-                $tx->update(['commission' => (int) $pay['fees']]);
-            }
+            // Les frais PayDunya réels sont déjà tracés dans les logs par le service.
+            // On ne les stocke pas ici : la colonne `commission` porte désormais la
+            // marge Téranga et ne doit pas être écrasée.
 
             // SOFTPAY indisponible : on abandonne au lieu d'ouvrir une page de paiement.
             if (! $pay['ok'] || empty($pay['url'])) {
@@ -223,29 +234,20 @@ class PaymentController extends Controller
             return response()->json(['message' => 'IPN traité (non finalisé).']);
         }
 
-        // Frais PayDunya : réels si renvoyés par l'API, sinon estimés via le taux configuré.
-        $raw = $check['raw'] ?? [];
-        $rawFee = (int) round(
-            data_get($raw, 'invoice.fees')
-            ?? data_get($raw, 'invoice.fee_amount')
-            ?? data_get($raw, 'fees')
-            ?? 0
-        );
-        $fee = $rawFee > 0
-            ? $rawFee
-            : (int) ceil($tx->amount * config('paydunya.fee_percent', 3) / 100);
-
         // Référence réelle de la collecte (traçable chez PayDunya/opérateur) — pour les litiges.
+        $raw = $check['raw'] ?? [];
         $collectRef = data_get($raw, 'provider_reference') ?? data_get($raw, 'receipt_identifier');
         $tx->update(['paydunya_ref' => $collectRef]);
 
-        // Le « De » a été débité. Si c'est un transfert, on crédite le « Vers » (déboursement API PUSH v2).
+        // Le « De » a été débité du montant BRUT. Si c'est un transfert, on crédite le
+        // « Vers » du montant NET (= $tx->amount, ce que le client doit recevoir). La
+        // différence brut/net, après frais PayDunya, reste la marge Téranga.
         if ($tx->sender_phone) {
             // Le crédit part sur l'opérateur du CLIENT, pas sur celui du marchand :
             // marchand débité sur Wave, client crédité sur Orange Money si c'est son choix.
             $recipientOperator = $tx->recipient_operator ?? $tx->operator;
             $mode = self::OPERATORS[$recipientOperator]['mode'] ?? 'wave-senegal';
-            $disb = $this->paydunya->disburse($tx->client_phone, max(0, $tx->amount - $fee), $mode, $tx->reference);
+            $disb = $this->paydunya->disburse($tx->client_phone, (int) $tx->amount, $mode, $tx->reference);
 
             // success -> completed ; pending -> en attente (statut final via API) ; sinon échoué
             $status = ($disb['status'] ?? null) === 'pending'
@@ -255,13 +257,13 @@ class PaymentController extends Controller
             // Référence réelle du déboursement (versement au client) — pour les litiges.
             $disburseRef = data_get($disb, 'raw.provider_ref') ?? data_get($disb, 'raw.transaction_id');
 
+            // La commission (marge Téranga) a été fixée à la création : on ne l'écrase pas.
             $tx->update([
                 'status'       => $status,
-                'commission'   => $fee ?: $tx->commission,
                 'disburse_ref' => $disburseRef,
             ]);
         } else {
-            $tx->update(['status' => 'completed', 'commission' => $fee ?: $tx->commission]);
+            $tx->update(['status' => 'completed']);
         }
 
         return response()->json(['message' => 'IPN traité.']);

@@ -29,6 +29,13 @@ return [
     'fee_percent' => (float) env('PAYDUNYA_FEE_PERCENT', 3),
 
     /*
+    | Commission Téranga encaissée via PayDunya, en FCFA. Ajoutée au montant brut
+    | débité au marchand afin qu'après prélèvement des frais PayDunya, elle reste
+    | dans le compte PayDunya de Téranga. À ajuster selon les frais réels mesurés.
+    */
+    'teranga_commission' => (int) env('PAYDUNYA_TERANGA_COMMISSION', 50),
+
+    /*
     |--------------------------------------------------------------------------
     | URLs de base de l'API PayDunya
     |--------------------------------------------------------------------------

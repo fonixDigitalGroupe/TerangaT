@@ -28,13 +28,18 @@ import { useAuth } from '../../src/auth/AuthContext';
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
 // ===== Logique métier des frais =====
-// PayDunya prélève 3% sur le montant transféré : le montant brut à débiter/créditer
-// sur le wallet marchand se déduit du montant souhaité par le client.
+// PayDunya prélève 3% sur le montant transféré. Le montant brut débité/crédité sur
+// le wallet marchand doit couvrir : le montant reçu par le client + la commission
+// Téranga, le tout majoré pour compenser les 3% PayDunya — ainsi, après prélèvement
+// de PayDunya, la commission Téranga reste dans le compte PayDunya de Téranga.
 const PAYDUNYA_RATE = 0.03;
-const MERCHANT_COMMISSION = 50; // commission marchand fixe (FCFA)
+const MERCHANT_COMMISSION = 50; // commission marchand fixe, en espèces (FCFA)
+const TERANGA_COMMISSION = 50;  // commission Téranga, encaissée via PayDunya (FCFA)
 
 const montantBrut = (montantSouhaite: number): number =>
-  montantSouhaite > 0 ? Math.ceil(montantSouhaite / (1 - PAYDUNYA_RATE)) : 0;
+  montantSouhaite > 0
+    ? Math.ceil((montantSouhaite + TERANGA_COMMISSION) / (1 - PAYDUNYA_RATE))
+    : 0;
 
 // Grille tarifaire des frais facturés au client (jamais une formule).
 // Modifiable à tout moment sans changer la logique métier.
@@ -178,7 +183,7 @@ export default function TransfertScreen() {
       const res = await paiementsApi.transfert({
         operator: 'wave', // le marchand est toujours débité sur son Wave (nécessite des URLs d'action joignables côté API)
         to_operator: toOp === 'om' ? 'orange-money' : 'wave', // le client est crédité sur l'opérateur choisi
-        amount: calc.brut, // montant brut : après les 3% PayDunya, le client reçoit le montant souhaité
+        amount: numericAmount, // montant souhaité par le client ; le backend calcule le brut à débiter
         from_number: agentPhone,
         to_number: toNumber.trim(),
       });
