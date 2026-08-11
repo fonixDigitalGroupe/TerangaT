@@ -471,11 +471,6 @@ export default function TransfertScreen() {
               </>
             )}
             
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Votre commission :</Text>
-              <Text style={styles.summaryValueGreen}>+{formatXof(calc.commission)}</Text>
-            </View>
-
             {error && confirmVisible ? (
               <View style={{ marginTop: spacing.sm }}>
                 <Alert message={error} />
@@ -880,7 +875,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.lg,
   },
-  confirmActionBtn: { flex: 1 },
+  confirmActionBtn: { flex: 1, height: 44 },
   confirmCancel: { alignItems: 'center', justifyContent: 'center', height: 48 },
   confirmCancelText: { color: colors.textMuted, fontSize: font.md, fontWeight: '600' },
 });
