@@ -167,6 +167,10 @@ export default function TransfertScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Transaction</Text>
+      </View>
+
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
@@ -382,6 +386,12 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    alignItems: 'center',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
