@@ -470,14 +470,16 @@ const styles = StyleSheet.create({
   },
   segment: {
     flexDirection: 'row',
+    alignSelf: 'center',
+    width: '78%',
     backgroundColor: '#eef1f5',
-    borderRadius: 10,
-    padding: 4,
+    borderRadius: 9,
+    padding: 3,
     marginBottom: spacing.lg,
   },
   segmentBtn: {
     flex: 1,
-    height: 44,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 7,
@@ -491,7 +493,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   segmentText: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
     color: '#8a94a6',
   },
