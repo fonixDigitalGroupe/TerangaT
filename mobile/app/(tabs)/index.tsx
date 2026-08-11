@@ -66,17 +66,6 @@ const OP_NAMES: Record<Operator, string> = {
   om: 'Max it',
 };
 
-function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={styles.opBadgeBox}>
-      <Image source={OP_LOGOS[op]} style={styles.opLogo} resizeMode="cover" />
-      <Text style={styles.opName} numberOfLines={1}>{OP_NAMES[op]}</Text>
-      <View style={{ flex: 1 }} />
-      <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
-    </Pressable>
-  );
-}
-
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
@@ -204,21 +193,24 @@ export default function TransfertScreen() {
 
             <View style={styles.formContainer}>
             
-            {/* Type d'opération (sélecteur) */}
-            <Pressable
-              style={[styles.cleanInputWrapper, { justifyContent: 'space-between' }]}
-              onPress={() => setTypePickerVisible(true)}
-            >
-              <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600' }}>
-                {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
-            </Pressable>
+            {/* Type d'opération + Opérateur sur une ligne, séparés par un trait */}
+            <View style={styles.selectRow}>
+              <Pressable style={styles.selectHalf} onPress={() => setTypePickerVisible(true)}>
+                <Text style={styles.selectText} numberOfLines={1}>
+                  {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+              </Pressable>
 
+              <View style={styles.selectDivider} />
 
-            {/* Opérateur (au-dessus du champ mobile) */}
-            <View style={styles.operatorRow}>
-              <OperatorBadge op={toOp} onPress={() => setOperatorPickerVisible(true)} />
+              <Pressable style={styles.selectHalf} onPress={() => setOperatorPickerVisible(true)}>
+                <Image source={OP_LOGOS[toOp]} style={styles.opLogoSmall} resizeMode="cover" />
+                <Text style={[styles.selectText, { marginLeft: 8 }]} numberOfLines={1}>
+                  {OP_NAMES[toOp]}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+              </Pressable>
             </View>
 
             {/* Champ Mobile */}
@@ -574,23 +566,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-  operatorRow: {
+  selectRow: {
     flexDirection: 'row',
-    marginBottom: spacing.md,
-  },
-  opBadgeBox: {
-    flex: 1,
-    height: 56,
-    borderRadius: 6,
+    alignItems: 'center',
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
+    borderRadius: 6,
+    height: 56,
+    marginBottom: spacing.md,
+  },
+  selectHalf: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    height: '100%',
     paddingHorizontal: spacing.md,
   },
+  selectDivider: { width: 1, height: '62%', backgroundColor: '#e2e6ec' },
+  selectText: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
+  opLogoSmall: { width: 22, height: 22, borderRadius: 11 },
   opLogo: { width: 26, height: 26, borderRadius: 13 },
-  opName: { fontSize: 15, fontWeight: '600', color: colors.text, marginLeft: 10 },
   sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.white,
