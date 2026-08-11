@@ -179,7 +179,7 @@ export default function TransfertScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={26} color="#c3c9d4" />
+            <Ionicons name="person" size={30} color="#c3c9d4" />
           </View>
           <View style={styles.greeting}>
             <Text style={styles.helloText}>Hello 👋</Text>
@@ -450,9 +450,9 @@ const styles = StyleSheet.create({
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: '#eef1f5',
     borderWidth: 1,
     borderColor: '#e2e6ec',
