@@ -90,12 +90,9 @@
                     ['agents',       'admin.agents',       'Agents'],
                     ['transactions', 'admin.transactions', 'Transactions'],
                     ['commissions',  'admin.commissions',  'Commissions'],
-                    ['operateurs',   'admin.operateurs',   'Opérateurs'],
                 ],
                 'Suivi' => [
-                    ['cartographie', 'admin.cartographie', 'Cartographie'],
                     ['statistiques', 'admin.statistiques', 'Statistiques'],
-                    ['litiges',      'admin.litiges',      'Litiges'],
                 ],
                 'Système' => [
                     ['parametres',   'admin.parametres',   'Paramètres'],
