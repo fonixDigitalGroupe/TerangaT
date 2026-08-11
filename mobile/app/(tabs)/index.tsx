@@ -190,9 +190,6 @@ export default function TransfertScreen() {
           <Pressable style={styles.roundBtn} hitSlop={6}>
             <Ionicons name="notifications" size={20} color={colors.text} />
           </Pressable>
-          <Pressable style={styles.roundBtn} hitSlop={6}>
-            <Ionicons name="heart" size={20} color={colors.text} />
-          </Pressable>
         </View>
       </View>
 
