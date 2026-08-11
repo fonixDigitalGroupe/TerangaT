@@ -89,6 +89,7 @@ export default function TransfertScreen() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
+  const [typePickerVisible, setTypePickerVisible] = useState(false);
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -203,21 +204,16 @@ export default function TransfertScreen() {
 
             <View style={styles.formContainer}>
             
-            {/* Dépôt / Retrait */}
-            <View style={styles.radioGroup}>
-              <Pressable style={styles.radioOption} onPress={() => setOperationType('depot')}>
-                <View style={[styles.radioOuter, operationType === 'depot' && styles.radioOuterActive]}>
-                  {operationType === 'depot' && <View style={styles.radioInner} />}
-                </View>
-                <Text style={styles.radioText}>Dépôt</Text>
-              </Pressable>
-              <Pressable style={styles.radioOption} onPress={() => setOperationType('retrait')}>
-                <View style={[styles.radioOuter, operationType === 'retrait' && styles.radioOuterActive]}>
-                  {operationType === 'retrait' && <View style={styles.radioInner} />}
-                </View>
-                <Text style={styles.radioText}>Retrait</Text>
-              </Pressable>
-            </View>
+            {/* Type d'opération (sélecteur) */}
+            <Pressable
+              style={[styles.cleanInputWrapper, { justifyContent: 'space-between' }]}
+              onPress={() => setTypePickerVisible(true)}
+            >
+              <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600' }}>
+                {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
+            </Pressable>
 
 
             {/* Opérateur (au-dessus du champ mobile) */}
@@ -312,6 +308,37 @@ export default function TransfertScreen() {
           </View>
         </InputAccessoryView>
       )}
+
+      {/* Feuille de sélection du type d'opération */}
+      <Modal
+        visible={typePickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setTypePickerVisible(false)}
+      >
+        <Pressable style={styles.sheetOverlay} onPress={() => setTypePickerVisible(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <Text style={styles.sheetTitle}>Type d'opération</Text>
+            {(['depot', 'retrait'] as const).map((t) => (
+              <Pressable
+                key={t}
+                style={styles.sheetOption}
+                onPress={() => {
+                  setOperationType(t);
+                  setTypePickerVisible(false);
+                }}
+              >
+                <Text style={[styles.sheetOptionText, { marginLeft: 0 }]}>
+                  {t === 'depot' ? 'Dépôt' : 'Retrait'}
+                </Text>
+                {operationType === t && (
+                  <Ionicons name="checkmark" size={20} color={BRAND_BLUE} style={{ marginLeft: 'auto' }} />
+                )}
+              </Pressable>
+            ))}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Feuille de sélection de l'opérateur */}
       <Modal
@@ -535,41 +562,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.lg,
     marginTop: spacing.xs,
-  },
-  radioGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.sm,
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: spacing.xl,
-  },
-  radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#c3c9d4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  radioOuterActive: {
-    borderColor: BRAND_BLUE,
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: BRAND_BLUE,
-  },
-  radioText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
   },
   cleanInputWrapper: {
     flexDirection: 'row',
