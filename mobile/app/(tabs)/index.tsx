@@ -439,7 +439,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
   content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
   topCardsRow: {
@@ -528,7 +528,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   formContainer: {
-    backgroundColor: colors.white,
     paddingTop: spacing.sm,
   },
   radioGroup: {
