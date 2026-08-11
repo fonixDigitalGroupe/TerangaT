@@ -16,6 +16,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
@@ -70,6 +71,8 @@ function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
     <Pressable onPress={onPress} style={styles.opBadgeBox}>
       <Image source={OP_LOGOS[op]} style={styles.opLogo} resizeMode="cover" />
       <Text style={styles.opName} numberOfLines={1}>{OP_NAMES[op]}</Text>
+      <View style={{ flex: 1 }} />
+      <Ionicons name="chevron-down" size={20} color={colors.textMuted} />
     </Pressable>
   );
 }
@@ -85,6 +88,7 @@ export default function TransfertScreen() {
   const [supportFees, setSupportFees] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -205,7 +209,7 @@ export default function TransfertScreen() {
 
             {/* Opérateur (au-dessus du champ mobile) */}
             <View style={styles.operatorRow}>
-              <OperatorBadge op={toOp} onPress={() => setToOp((o) => (o === 'wave' ? 'om' : 'wave'))} />
+              <OperatorBadge op={toOp} onPress={() => setOperatorPickerVisible(true)} />
             </View>
 
             {/* Champ Mobile */}
@@ -295,6 +299,36 @@ export default function TransfertScreen() {
           </View>
         </InputAccessoryView>
       )}
+
+      {/* Feuille de sélection de l'opérateur */}
+      <Modal
+        visible={operatorPickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setOperatorPickerVisible(false)}
+      >
+        <Pressable style={styles.sheetOverlay} onPress={() => setOperatorPickerVisible(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <Text style={styles.sheetTitle}>Choisir l'opérateur</Text>
+            {(['wave', 'om'] as Operator[]).map((opt) => (
+              <Pressable
+                key={opt}
+                style={styles.sheetOption}
+                onPress={() => {
+                  setToOp(opt);
+                  setOperatorPickerVisible(false);
+                }}
+              >
+                <Image source={OP_LOGOS[opt]} style={styles.opLogo} resizeMode="cover" />
+                <Text style={styles.sheetOptionText}>{OP_NAMES[opt]}</Text>
+                {toOp === opt && (
+                  <Ionicons name="checkmark" size={20} color={BRAND_BLUE} style={{ marginLeft: 'auto' }} />
+                )}
+              </Pressable>
+            ))}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Popup de confirmation (résumé) */}
       <Modal
@@ -522,6 +556,24 @@ const styles = StyleSheet.create({
   },
   opLogo: { width: 26, height: 26, borderRadius: 13 },
   opName: { fontSize: 15, fontWeight: '600', color: colors.text, marginLeft: 10 },
+  sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  sheetTitle: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
+  sheetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  sheetOptionText: { fontSize: 15, fontWeight: '600', color: colors.text, marginLeft: 12 },
   cleanInput: {
     flex: 1,
     fontSize: 15,
