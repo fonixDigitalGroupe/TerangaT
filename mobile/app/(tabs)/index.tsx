@@ -496,7 +496,7 @@ export default function TransfertScreen() {
                 disabled={sending}
                 style={[styles.confirmCancel, styles.confirmActionBtn]}
               >
-                <Text style={styles.confirmCancelText}>Modifier</Text>
+                <Text style={styles.confirmCancelText}>Annuler</Text>
               </Pressable>
             </View>
           </View>
