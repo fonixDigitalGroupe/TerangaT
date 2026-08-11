@@ -5,8 +5,8 @@
 @section('content')
 <div class="max-w-xl">
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">{{ $operator->exists ? 'Modifier l\'opérateur' : 'Nouvel opérateur' }}</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">{{ $operator->exists ? 'Modifier l\'opérateur' : 'Nouvel opérateur' }}</h2>
         </div>
 
         <form action="{{ $operator->exists ? route('admin.operateurs.update', $operator) : route('admin.operateurs.store') }}" method="POST" class="p-6 space-y-4">

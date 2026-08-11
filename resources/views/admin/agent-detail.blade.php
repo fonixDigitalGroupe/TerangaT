@@ -15,8 +15,8 @@
 
     {{-- Carte profil agent --}}
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Informations</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Informations</h2>
         </div>
         <div class="p-6 flex flex-col items-center text-center border-b border-slate-100">
             <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-slate-100 mb-3">
@@ -43,8 +43,8 @@
 
     {{-- Transactions récentes --}}
     <div class="lg:col-span-2 bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Transactions récentes</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Transactions récentes</h2>
         </div>
         <div class="overflow-x-auto px-5 py-4">
             <table class="w-full text-sm border border-slate-200 border-collapse">
@@ -88,8 +88,8 @@
 
 {{-- Vérification d'identité (KYC) --}}
 <div class="mt-5 bg-white border border-slate-200 shadow-sm">
-    <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="background-color:#5b6675;">
-        <h2 class="font-normal text-white uppercase text-sm tracking-wide">Vérification d'identité (KYC)</h2>
+    <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+        <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Vérification d'identité (KYC)</h2>
         @if($agent->kyc_submitted_at)
             <span class="text-[11px] text-white/80">Soumis le {{ $agent->kyc_submitted_at->format('d/m/Y H:i') }}</span>
         @endif

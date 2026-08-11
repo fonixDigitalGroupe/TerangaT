@@ -29,16 +29,16 @@
 
     {{-- Carte --}}
     <div class="lg:col-span-2 bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Carte des agents</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Carte des agents</h2>
         </div>
         <div class="p-4"><div id="map" class="rounded-md overflow-hidden border border-slate-200"></div></div>
     </div>
 
     {{-- Répartition --}}
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Répartition par région</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Répartition par région</h2>
         </div>
         <div class="p-5 space-y-3">
             @forelse($byRegion as $r)

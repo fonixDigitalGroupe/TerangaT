@@ -54,8 +54,8 @@
 <div class="grid grid-cols-1 gap-4 mb-4">
     {{-- Volume mensuel --}}
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Volume par mois</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Volume par mois</h2>
         </div>
         <div class="p-5"><canvas id="chartMonth" height="70"></canvas></div>
     </div>
@@ -64,16 +64,16 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
     {{-- Par type (mensuel) --}}
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Nombre de transactions par type</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Nombre de transactions par type</h2>
         </div>
         <div class="p-5"><canvas id="chartType" height="130"></canvas></div>
     </div>
 
     {{-- Par statut (mensuel) --}}
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Nombre de transactions par statut</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Nombre de transactions par statut</h2>
         </div>
         <div class="p-5"><canvas id="chartStatus" height="130"></canvas></div>
     </div>
@@ -82,8 +82,8 @@
 <div class="grid grid-cols-1 gap-4">
     {{-- Top agents --}}
     <div class="bg-white border border-slate-200 shadow-sm">
-        <div class="px-5 pt-4 pb-3" style="background-color:#5b6675;">
-            <h2 class="font-normal text-white uppercase text-sm tracking-wide">Top agents (volume)</h2>
+        <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+            <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Top agents (volume)</h2>
         </div>
         <div class="overflow-x-auto px-5 py-4">
             <table class="w-full text-sm border border-slate-200 border-collapse">

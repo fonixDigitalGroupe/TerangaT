@@ -6,8 +6,8 @@
 <div class="bg-white border border-slate-200 shadow-sm">
 
     {{-- Titre --}}
-    <div class="px-5 pt-4 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1" style="background-color:#5b6675;">
-        <h2 class="font-normal text-white uppercase text-sm tracking-wide">Commissions</h2>
+    <div class="px-5 pt-4 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
+        <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Commissions</h2>
         <span class="text-xs text-white/90">
             Plateforme : <span class="font-semibold">{{ number_format($totalPlatform, 0, ',', ' ') }} XOF</span>
             &nbsp;·&nbsp; Agents : <span class="font-semibold">{{ number_format($totalAgent, 0, ',', ' ') }} XOF</span>
