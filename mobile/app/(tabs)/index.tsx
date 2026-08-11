@@ -188,19 +188,19 @@ export default function TransfertScreen() {
 
             <View style={styles.formContainer}>
             
-            {/* Sélecteur Dépôt / Retrait */}
-            <View style={styles.segment}>
-              <Pressable
-                style={[styles.segmentBtn, operationType === 'depot' && styles.segmentBtnActive]}
-                onPress={() => setOperationType('depot')}
-              >
-                <Text style={[styles.segmentText, operationType === 'depot' && styles.segmentTextActive]}>Dépôt</Text>
+            {/* Dépôt / Retrait */}
+            <View style={styles.radioGroup}>
+              <Pressable style={styles.radioOption} onPress={() => setOperationType('depot')}>
+                <View style={[styles.radioOuter, operationType === 'depot' && styles.radioOuterActive]}>
+                  {operationType === 'depot' && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.radioText}>Dépôt</Text>
               </Pressable>
-              <Pressable
-                style={[styles.segmentBtn, operationType === 'retrait' && styles.segmentBtnActive]}
-                onPress={() => setOperationType('retrait')}
-              >
-                <Text style={[styles.segmentText, operationType === 'retrait' && styles.segmentTextActive]}>Retrait</Text>
+              <Pressable style={styles.radioOption} onPress={() => setOperationType('retrait')}>
+                <View style={[styles.radioOuter, operationType === 'retrait' && styles.radioOuterActive]}>
+                  {operationType === 'retrait' && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.radioText}>Retrait</Text>
               </Pressable>
             </View>
 
@@ -468,37 +468,40 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingTop: spacing.sm,
   },
-  segment: {
+  radioGroup: {
     flexDirection: 'row',
-    alignSelf: 'center',
-    width: '78%',
-    backgroundColor: '#eef1f5',
-    borderRadius: 9,
-    padding: 3,
+    alignItems: 'center',
     marginBottom: spacing.lg,
+    paddingHorizontal: spacing.sm,
   },
-  segmentBtn: {
-    flex: 1,
-    height: 36,
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: spacing.xl,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#c3c9d4',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 7,
+    marginRight: 8,
   },
-  segmentBtnActive: {
+  radioOuterActive: {
+    borderColor: BRAND_BLUE,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: BRAND_BLUE,
-    shadowColor: BRAND_BLUE,
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#8a94a6',
-  },
-  segmentTextActive: {
-    color: colors.white,
+  radioText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
   },
   cleanInputWrapper: {
     flexDirection: 'row',
