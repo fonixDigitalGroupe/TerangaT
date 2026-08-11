@@ -2,6 +2,12 @@ import { Tabs } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../src/theme';
 
+// L'onglet Historique est déclaré en premier (donc à gauche), mais l'app doit
+// s'ouvrir sur Transférer : on force la route initiale.
+export const unstable_settings = {
+  initialRouteName: 'index',
+};
+
 export default function TabsLayout() {
   return (
     <Tabs
