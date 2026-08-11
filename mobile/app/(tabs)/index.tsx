@@ -177,9 +177,23 @@ export default function TransfertScreen() {
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
       <View style={styles.header}>
-        <Pressable hitSlop={6}>
-          <Ionicons name="notifications-outline" size={22} color={colors.text} />
-        </Pressable>
+        <View style={styles.headerLeft}>
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={26} color="#c3c9d4" />
+          </View>
+          <View style={styles.greeting}>
+            <Text style={styles.helloText}>Hello 👋</Text>
+            <Text style={styles.userName} numberOfLines={1}>{user?.name ?? 'Agent'}</Text>
+          </View>
+        </View>
+        <View style={styles.headerRight}>
+          <Pressable style={styles.roundBtn} hitSlop={6}>
+            <Ionicons name="notifications" size={20} color={colors.text} />
+          </Pressable>
+          <Pressable style={styles.roundBtn} hitSlop={6}>
+            <Ionicons name="heart" size={20} color={colors.text} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.contentContainer}>
@@ -430,10 +444,36 @@ export default function TransfertScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.md,
-    alignItems: 'flex-end',
+  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#eef1f5',
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  greeting: { marginLeft: spacing.sm, flex: 1 },
+  helloText: { fontSize: 13, color: colors.textMuted },
+  userName: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 1 },
+  headerRight: { flexDirection: 'row', gap: spacing.sm },
+  roundBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#eef1f5',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   contentContainer: {
     flex: 1,
