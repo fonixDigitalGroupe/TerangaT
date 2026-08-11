@@ -390,13 +390,14 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -408,9 +409,9 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -463,7 +464,10 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     backgroundColor: colors.white,
-    paddingTop: spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
   },
   segment: {
     flexDirection: 'row',
