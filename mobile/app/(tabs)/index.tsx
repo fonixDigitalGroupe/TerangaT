@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingHorizontal: spacing.md,
   },
-  selectDivider: { width: 1, height: '62%', backgroundColor: '#e2e6ec' },
+  selectDivider: { width: 1, height: '100%', backgroundColor: '#e2e6ec' },
   selectText: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
   opLogoSmall: { width: 22, height: 22, borderRadius: 11 },
   opLogo: { width: 26, height: 26, borderRadius: 13 },
