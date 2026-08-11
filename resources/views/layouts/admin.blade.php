@@ -18,17 +18,17 @@
         main table th, main table td { padding-top:.4rem; padding-bottom:.4rem; }
         main table thead th { font-size:.8125rem; }
         main table tbody tr { transition: background .12s; }
-        .nav-link { position:relative; display:flex; align-items:center; gap:.7rem; margin:2px 12px; padding:.6rem .85rem; border-radius:.625rem; font-size:.875rem; font-weight:500; color:#c7d0e0; transition:all .15s; }
-        .nav-link:hover { background:rgba(255,255,255,.07); color:#fff; }
+        .nav-link { position:relative; display:flex; align-items:center; gap:.7rem; margin:2px 12px; padding:.6rem .85rem; border-radius:.625rem; font-size:.875rem; font-weight:500; color:#eaf1fb; transition:all .15s; }
+        .nav-link:hover { background:rgba(255,255,255,.18); color:#fff; }
         .nav-link:hover svg { color:#fff; }
-        .nav-link.active { background:rgba(255,255,255,.10); color:#F26522; font-weight:600; }
-        .nav-link.active svg { color:#F26522; }
-        .nav-link svg { color:#8b96ac; transition:color .15s; }
+        .nav-link.active { background:#fff; color:#0577DE; font-weight:600; }
+        .nav-link.active svg { color:#0577DE; }
+        .nav-link svg { color:#cfe0f5; transition:color .15s; }
         .nav-badge { margin-left:auto; min-width:18px; height:18px; padding:0 5px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border-radius:9px; background:#f59e0b; color:#fff; }
         .logout-link { color:#f0a0a0 !important; }
         .logout-link:hover { background:rgba(239,68,68,.12) !important; color:#fca5a5 !important; }
         .logout-link svg { color:#f0a0a0 !important; }
-        .sidebar-label { padding:0 1.5rem; margin-bottom:.4rem; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6b7896; }
+        .sidebar-label { padding:0 1.5rem; margin-bottom:.4rem; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.6); }
         /* Sidebar repliable */
         #sidebar { width:15rem; transition:width .25s ease; }
         #sidebar.collapsed { width:68px; }
@@ -51,9 +51,9 @@
 <div class="min-h-screen flex">
 
     {{-- Sidebar (sombre, style KELASI) --}}
-    <aside id="sidebar" class="shrink-0 flex flex-col overflow-hidden" style="background-color:#1e2a4a;">
+    <aside id="sidebar" class="shrink-0 flex flex-col overflow-hidden" style="background-color:#0577DE;">
         {{-- Logo (similaire à la version mobile) --}}
-        <div class="h-16 flex flex-col items-center justify-center" style="background-color:#F26522;">
+        <div class="h-16 flex flex-col items-center justify-center" style="background-color:#0563BC;">
             <div class="side-hide flex flex-col items-center justify-center">
                 <span class="leading-none text-white" style="font-family:'Dancing Script',cursive; font-size:2rem;">Téranga</span>
                 <span class="font-bold uppercase text-white/90" style="letter-spacing:.28em; font-size:.45rem; margin-top:1px; transform:translateX(-16px);">Transfert</span>
