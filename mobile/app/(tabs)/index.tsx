@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e6ec',
     borderRadius: 6,
-    height: 56,
+    height: 50,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e6ec',
     borderRadius: 6,
-    height: 56,
+    height: 50,
     marginBottom: spacing.md,
   },
   selectHalf: {
