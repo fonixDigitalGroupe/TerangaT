@@ -20,20 +20,20 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Transférer',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="bank-transfer" size={(size ?? 24) + 4} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="transactions"
         options={{
           title: 'Historique',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="history" size={size ?? 24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Transférer',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="bank-transfer" size={(size ?? 24) + 4} color={color} />
           ),
         }}
       />
