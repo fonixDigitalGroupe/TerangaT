@@ -1,16 +1,19 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { transactionsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
+import { useAuth } from '../../src/auth/AuthContext';
 import { Alert } from '../../src/components/ui';
-import { TransactionRow } from '../../src/components/TransactionRow';
+import { TransactionRow, formatF } from '../../src/components/TransactionRow';
 import { colors, font, spacing } from '../../src/theme';
 import type { Transaction } from '../../src/types';
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const [items, setItems] = useState<Transaction[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -18,6 +21,8 @@ export default function TransactionsScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const balance = user?.agent?.wallet?.balance ?? 0;
 
   const fetchPage = useCallback(async (targetPage: number, replace: boolean) => {
     try {
@@ -55,18 +60,24 @@ export default function TransactionsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 20) }]}>
-        <Text style={styles.header}>Historique</Text>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
+      {/* En-tête : avatar · solde · stats */}
+      <View style={styles.header}>
+        <View style={styles.headerIcon}>
+          <Ionicons name="person-outline" size={20} color={colors.textMuted} />
+        </View>
+        <Text style={styles.balance}>{formatF(balance)}</Text>
+        <View style={styles.headerIcon}>
+          <Ionicons name="trending-up" size={20} color={colors.textMuted} />
+        </View>
       </View>
-      
-      <View style={styles.contentContainer}>
-        {error && <View style={{ padding: spacing.lg }}><Alert message={error} /></View>}
 
-        {loading ? (
-          <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.xl }} />
-        ) : (
-          <FlatList
+      {error && <View style={{ paddingHorizontal: spacing.lg }}><Alert message={error} /></View>}
+
+      {loading ? (
+        <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.xl }} />
+      ) : (
+        <FlatList
           data={items}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
@@ -82,27 +93,29 @@ export default function TransactionsScreen() {
           }
         />
       )}
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.blue },
-  headerContainer: {
-    backgroundColor: colors.blue,
+  container: { flex: 1, backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  header: { fontSize: font.xl, fontWeight: '800', color: colors.white },
-  contentContainer: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    overflow: 'hidden',
+  headerIcon: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl },
+  balance: { fontSize: 26, fontWeight: '800', color: colors.text, letterSpacing: 0.5 },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   divider: { height: 1, backgroundColor: colors.border },
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
 });
