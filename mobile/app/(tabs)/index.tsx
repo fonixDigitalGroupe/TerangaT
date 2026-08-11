@@ -22,7 +22,6 @@ import * as Contacts from 'expo-contacts';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
-import { formatF } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
 
@@ -204,12 +203,11 @@ export default function TransfertScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
-      {/* En-tête épuré, comme l'Historique : avatar · solde · cloche */}
+      {/* En-tête épuré : avatar · cloche */}
       <View style={styles.header}>
         <View style={styles.headerIcon}>
           <Ionicons name="person-outline" size={20} color={colors.textMuted} />
         </View>
-        <Text style={styles.balance}>{formatF(user?.agent?.wallet?.balance ?? 0)}</Text>
         <Pressable style={styles.headerIcon} hitSlop={6}>
           <Ionicons name="notifications-outline" size={20} color={colors.textMuted} />
         </Pressable>
@@ -291,33 +289,16 @@ export default function TransfertScreen() {
               </View>
 
               {operationType === 'depot' ? (
-                <>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Débit de votre wallet :</Text>
-                    <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Espèces à encaisser :</Text>
-                    <Text style={styles.summaryValueGreen}>+{formatXof(calc.especes)}</Text>
-                  </View>
-                </>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Débit de votre wallet :</Text>
+                  <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
+                </View>
               ) : (
-                <>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Votre wallet sera crédité :</Text>
-                    <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Le client paiera :</Text>
-                    <Text style={styles.summaryValueRed}>-{formatXof(calc.paiementClient)}</Text>
-                  </View>
-                </>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Votre wallet sera crédité :</Text>
+                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
+                </View>
               )}
-
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Votre commission :</Text>
-                <Text style={styles.summaryValueGreen}>+{formatXof(calc.commission)}</Text>
-              </View>
             </View>
 
             <Pressable
@@ -514,7 +495,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  balance: { fontSize: 22, fontWeight: '700', color: colors.text, letterSpacing: 0.3 },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
