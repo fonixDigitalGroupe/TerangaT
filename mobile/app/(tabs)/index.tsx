@@ -240,6 +240,22 @@ export default function TransfertScreen() {
                </View>
             </View>
 
+            {/* Montant reçu (calculé, lecture seule) */}
+            <View style={{ marginBottom: spacing.md }}>
+               <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
+                 {operationType === 'depot' ? 'Montant reçu (espèces) :' : 'Le client paiera :'}
+               </Text>
+               <View style={[styles.cleanInputWrapper, { backgroundColor: '#f4f6f9' }]}>
+                 <TextInput
+                   style={[styles.cleanInput, { outlineStyle: 'none', color: colors.textMuted } as object]}
+                   editable={false}
+                   value={numericAmount > 0 ? String(operationType === 'depot' ? calc.especes : calc.paiementClient) : ''}
+                   placeholder="0"
+                   placeholderTextColor="#9aa3b0"
+                 />
+               </View>
+            </View>
+
             {/* Résumé Dynamique */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Résumé de l'opération</Text>
@@ -609,14 +625,14 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   proceedBtn: {
-    backgroundColor: BRAND_BLUE,
+    backgroundColor: colors.orange,
     borderRadius: 6,
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
   },
   proceedBtnDisabled: {
-    backgroundColor: '#a9d4ff',
+    backgroundColor: '#ffd7af',
   },
   proceedBtnText: {
     color: colors.white,
