@@ -20,7 +20,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
-import { formatF } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
 
@@ -79,9 +78,6 @@ export default function TransfertScreen() {
   const [supportFees, setSupportFees] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [showBalance, setShowBalance] = useState(false);
-
-  const balance = user?.agent?.wallet?.balance ?? 0;
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -205,22 +201,6 @@ export default function TransfertScreen() {
               </Pressable>
             </View>
 
-            {/* Solde masqué */}
-            <View style={styles.balanceBox}>
-              <View style={styles.balanceLeft}>
-                <Text style={styles.balanceValue}>
-                  {showBalance ? formatF(balance) : '••••••• FCFA'}
-                </Text>
-                <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8}>
-                  <Ionicons
-                    name={showBalance ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color={colors.text}
-                  />
-                </Pressable>
-              </View>
-              <Text style={styles.balanceLabel}>Mon wallet</Text>
-            </View>
 
             {/* Input Mobile avec Opérateur */}
             <View style={styles.mobileRow}>
@@ -409,7 +389,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -428,9 +408,9 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -483,10 +463,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
+    paddingTop: spacing.sm,
   },
   segment: {
     flexDirection: 'row',
@@ -495,22 +472,9 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: spacing.lg,
   },
-  balanceBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#eef1f5',
-    borderRadius: 12,
-    paddingHorizontal: spacing.md,
-    height: 56,
-    marginBottom: spacing.lg,
-  },
-  balanceLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  balanceValue: { fontSize: 16, fontWeight: '700', color: colors.text, letterSpacing: 1 },
-  balanceLabel: { fontSize: 15, fontWeight: '700', color: colors.blue },
   segmentBtn: {
     flex: 1,
-    height: 46,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 9,
@@ -543,9 +507,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   opBadgeBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
+    width: 56,
+    height: 56,
+    borderRadius: 12,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
