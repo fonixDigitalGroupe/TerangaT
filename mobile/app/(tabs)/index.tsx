@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
+import { AppHeader } from '../../src/components/AppHeader';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
 
@@ -113,18 +114,8 @@ function AmountField({
 
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  const menuItems: { icon: string; title: string; route: string }[] = [
-    { icon: 'qr-code-outline', title: 'QR Codes', route: '/settings/qr-codes' },
-    { icon: 'storefront-outline', title: 'Commerce', route: '/settings/commerce' },
-    { icon: 'lock-closed-outline', title: 'Changer mon code secret', route: '/settings/change-pin' },
-    { icon: 'settings-outline', title: 'Configuration', route: '/settings/configuration' },
-    { icon: 'chatbubble-ellipses-outline', title: 'Support & Feedbacks', route: '/settings/support' },
-    { icon: 'document-text-outline', title: 'Termes & Conditions', route: '/settings/terms' },
-  ];
   const [amount, setAmount] = useState('');
   const [received, setReceived] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -240,15 +231,7 @@ export default function TransfertScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + spacing.sm }]}>
-        <Pressable hitSlop={8} onPress={() => setMenuVisible(true)}>
-          <Ionicons name="menu" size={28} color={colors.white} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Téranga Transfert</Text>
-        <Pressable style={styles.roundBtn} hitSlop={6}>
-          <Ionicons name="notifications" size={20} color={colors.white} />
-        </Pressable>
-      </View>
+      <AppHeader title="Téranga Transfert" />
 
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -371,44 +354,6 @@ export default function TransfertScreen() {
           </View>
         </InputAccessoryView>
       )}
-
-      {/* Menu latéral (paramètres) */}
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <View style={styles.drawerOverlay}>
-          <View style={[styles.drawerPanel, { paddingTop: Math.max(insets.top, 12) + spacing.md }]}>
-            <Text style={styles.drawerTitle}>Paramètres</Text>
-            {menuItems.map((item) => (
-              <Pressable
-                key={item.title}
-                style={styles.drawerItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  router.push(item.route as never);
-                }}
-              >
-                <Ionicons name={item.icon as never} size={20} color={colors.text} />
-                <Text style={styles.drawerItemText}>{item.title}</Text>
-              </Pressable>
-            ))}
-            <Pressable
-              style={styles.drawerItem}
-              onPress={() => {
-                setMenuVisible(false);
-                void logout();
-              }}
-            >
-              <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-              <Text style={[styles.drawerItemText, { color: colors.danger }]}>Déconnexion</Text>
-            </Pressable>
-          </View>
-          <Pressable style={{ flex: 1 }} onPress={() => setMenuVisible(false)} />
-        </View>
-      </Modal>
 
       {/* Feuille de sélection du type d'opération */}
       <Modal
@@ -568,30 +513,6 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    backgroundColor: BRAND_BLUE,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.white,
-    marginHorizontal: spacing.sm,
-  },
-  roundBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   contentContainer: {
     flex: 1,
     backgroundColor: '#d3d9e2',
@@ -703,23 +624,6 @@ const styles = StyleSheet.create({
   selectText: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
   opLogoSmall: { width: 22, height: 22, borderRadius: 11 },
   opLogo: { width: 26, height: 26, borderRadius: 13 },
-  drawerOverlay: { flex: 1, flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.4)' },
-  drawerPanel: {
-    width: '78%',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  drawerTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
-  drawerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  drawerItemText: { fontSize: 15, fontWeight: '500', color: colors.text },
   sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.white,
