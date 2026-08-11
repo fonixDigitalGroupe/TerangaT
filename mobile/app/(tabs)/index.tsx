@@ -312,12 +312,12 @@ export default function TransfertScreen() {
 
               {operationType === 'depot' ? (
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Débit de votre wallet :</Text>
+                  <Text style={styles.summaryLabel}>Débit :</Text>
                   <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
                 </View>
               ) : (
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Votre wallet sera crédité :</Text>
+                  <Text style={styles.summaryLabel}>Crédit :</Text>
                   <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
                 </View>
               )}
@@ -450,7 +450,7 @@ export default function TransfertScreen() {
             {operationType === 'depot' ? (
               <>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Débit de votre wallet :</Text>
+                  <Text style={styles.summaryLabel}>Débit :</Text>
                   <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
                 </View>
                 <View style={styles.summaryRow}>
@@ -461,7 +461,7 @@ export default function TransfertScreen() {
             ) : (
               <>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Votre wallet sera crédité :</Text>
+                  <Text style={styles.summaryLabel}>Crédit :</Text>
                   <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
                 </View>
                 <View style={styles.summaryRow}>
