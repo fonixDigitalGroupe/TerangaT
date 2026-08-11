@@ -478,9 +478,9 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
+  content: { flexGrow: 1, paddingHorizontal: spacing.sm, paddingVertical: spacing.md },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -532,7 +532,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   formContainer: {
-    paddingTop: spacing.md,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.xs,
   },
   cleanInputWrapper: {
     flexDirection: 'row',
