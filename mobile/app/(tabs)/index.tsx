@@ -170,9 +170,9 @@ export default function TransfertScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + spacing.sm }]}>
         <View style={styles.headerLeft}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={30} color="rgba(255,255,255,0.9)" />
-          </View>
+          <Pressable hitSlop={8}>
+            <Ionicons name="menu" size={28} color={colors.white} />
+          </Pressable>
           <View style={styles.greeting}>
             <Text style={styles.helloText}>Hello 👋</Text>
             <Text style={styles.userName} numberOfLines={1}>{user?.name ?? 'Agent'}</Text>
@@ -468,22 +468,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
     backgroundColor: HEADER_INDIGO,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  greeting: { marginLeft: spacing.sm, flex: 1 },
+  greeting: { marginLeft: spacing.md, flex: 1 },
   helloText: { fontSize: 13, color: 'rgba(255,255,255,0.9)' },
   userName: { fontSize: 16, fontWeight: '700', color: colors.white, marginTop: 1 },
   headerRight: { flexDirection: 'row', gap: spacing.sm },
