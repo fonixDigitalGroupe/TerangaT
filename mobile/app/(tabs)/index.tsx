@@ -75,12 +75,49 @@ const OP_NAMES: Record<Operator, string> = {
   om: 'Max it',
 };
 
+// Champ montant : le libellé remonte en haut du cadre dès qu'on saisit,
+// et le cadre passe en orange quand il est actif (focus).
+function AmountField({
+  label,
+  value,
+  onChangeText,
+  focused,
+  onFocus,
+  onBlur,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  focused: boolean;
+  onFocus: () => void;
+  onBlur: () => void;
+}) {
+  const showLabel = value.length > 0;
+  return (
+    <View style={[styles.fieldBox, focused && styles.fieldBoxFocused]}>
+      {showLabel && <Text style={styles.fieldFloatLabel}>{label}</Text>}
+      <TextInput
+        style={[styles.fieldInput, { outlineStyle: 'none' } as object]}
+        placeholder={label}
+        placeholderTextColor="#9aa3b0"
+        keyboardType="number-pad"
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+      />
+    </View>
+  );
+}
+
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const router = useRouter();
   const [amount, setAmount] = useState('');
   const [received, setReceived] = useState('');
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [toNumber, setToNumber] = useState('');
   const [toOp, setToOp] = useState<Operator>('wave');
   const [operationType, setOperationType] = useState<'depot' | 'retrait'>('depot');
@@ -234,7 +271,7 @@ export default function TransfertScreen() {
             </View>
 
             {/* Champ Mobile */}
-            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
+            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }, focusedField === 'mobile' && styles.fieldBoxFocused]}>
               <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
               <TextInput
                 style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
@@ -244,36 +281,32 @@ export default function TransfertScreen() {
                 maxLength={9}
                 value={toNumber}
                 onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
+                onFocus={() => setFocusedField('mobile')}
+                onBlur={() => setFocusedField(null)}
                 inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
               />
               <Text style={{ fontSize: 18 }}>🇸🇳</Text>
             </View>
 
             {/* Montant */}
-            <View style={styles.cleanInputWrapper}>
-              <TextInput
-                style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
-                placeholder={operationType === 'depot' ? 'Montant à transférer' : 'Espèces à remettre au client'}
-                placeholderTextColor="#9aa3b0"
-                keyboardType="number-pad"
-                value={amount}
-                onChangeText={handleAmountChange}
-                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-              />
-            </View>
+            <AmountField
+              label={operationType === 'depot' ? 'Montant à transférer' : 'Espèces à remettre au client'}
+              value={amount}
+              onChangeText={handleAmountChange}
+              focused={focusedField === 'amount'}
+              onFocus={() => setFocusedField('amount')}
+              onBlur={() => setFocusedField(null)}
+            />
 
             {/* Montant reçu (espèces) — synchronisé avec le montant */}
-            <View style={styles.cleanInputWrapper}>
-              <TextInput
-                style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
-                placeholder={operationType === 'depot' ? 'Montant reçu (espèces)' : 'Le client paiera'}
-                placeholderTextColor="#9aa3b0"
-                keyboardType="number-pad"
-                value={received}
-                onChangeText={handleReceivedChange}
-                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-              />
-            </View>
+            <AmountField
+              label={operationType === 'depot' ? 'Montant reçu (espèces)' : 'Le client paiera'}
+              value={received}
+              onChangeText={handleReceivedChange}
+              focused={focusedField === 'received'}
+              onFocus={() => setFocusedField('received')}
+              onBlur={() => setFocusedField(null)}
+            />
 
             {/* Résumé Dynamique */}
             <View style={styles.summaryCard}>
@@ -574,6 +607,22 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginTop: spacing.xs,
   },
+  fieldBox: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    borderRadius: 6,
+    height: 50,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+  fieldBoxFocused: {
+    borderColor: colors.orange,
+    borderWidth: 1.5,
+  },
+  fieldFloatLabel: { fontSize: 11, color: colors.textMuted, marginBottom: 1 },
+  fieldInput: { fontSize: 15, color: colors.text, padding: 0 },
   cleanInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
