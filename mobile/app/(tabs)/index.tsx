@@ -25,6 +25,9 @@ import { useAuth } from '../../src/auth/AuthContext';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
+// Bleu de la maquette (onglet actif + bouton principal).
+const BRAND_BLUE = '#1E90FF';
+
 // ===== Logique métier des frais =====
 // Espèces encaissées (dépôt) = montant reçu par le client + frais (grille).
 // Le marchand y gagne sa commission (50). Son wallet est donc débité de :
@@ -268,7 +271,7 @@ export default function TransfertScreen() {
                 styles.proceedBtn,
                 !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
-                { width: '100%', marginTop: spacing.md }
+                { marginTop: spacing.xl, marginHorizontal: spacing.xl }
               ]}
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
@@ -479,7 +482,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segmentBtnActive: {
-    backgroundColor: colors.blue,
+    backgroundColor: BRAND_BLUE,
   },
   segmentText: {
     fontSize: 15,
@@ -536,14 +539,14 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   proceedBtn: {
-    backgroundColor: colors.blue,
+    backgroundColor: BRAND_BLUE,
     borderRadius: 12,
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
   },
   proceedBtnDisabled: {
-    backgroundColor: '#a9d0f5',
+    backgroundColor: '#a9d4ff',
   },
   proceedBtnText: {
     color: colors.white,
