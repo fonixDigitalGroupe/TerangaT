@@ -30,6 +30,10 @@ class Agent extends Model
         'status' => 'en attente',
     ];
 
+    protected $casts = [
+        'kyc_submitted_at' => 'datetime',
+    ];
+
     protected static function booted(): void
     {
         static::creating(function (Agent $agent) {
