@@ -225,20 +225,19 @@ export default function TransfertScreen() {
 
             <View style={styles.formContainer}>
             
-            {/* Radio Retrait / Dépôt */}
-            <View style={styles.radioGroup}>
-              <Pressable style={styles.radioOption} onPress={() => setOperationType('retrait')}>
-                <View style={[styles.radioOuter, operationType === 'retrait' && styles.radioOuterActive]}>
-                  {operationType === 'retrait' && <View style={styles.radioInner} />}
-                </View>
-                <Text style={styles.radioText}>Retrait</Text>
+            {/* Sélecteur Dépôt / Retrait */}
+            <View style={styles.segment}>
+              <Pressable
+                style={[styles.segmentBtn, operationType === 'depot' && styles.segmentBtnActive]}
+                onPress={() => setOperationType('depot')}
+              >
+                <Text style={[styles.segmentText, operationType === 'depot' && styles.segmentTextActive]}>Dépôt</Text>
               </Pressable>
-              
-              <Pressable style={styles.radioOption} onPress={() => setOperationType('depot')}>
-                <View style={[styles.radioOuter, operationType === 'depot' && styles.radioOuterActive]}>
-                  {operationType === 'depot' && <View style={styles.radioInner} />}
-                </View>
-                <Text style={styles.radioText}>Dépôt</Text>
+              <Pressable
+                style={[styles.segmentBtn, operationType === 'retrait' && styles.segmentBtnActive]}
+                onPress={() => setOperationType('retrait')}
+              >
+                <Text style={[styles.segmentText, operationType === 'retrait' && styles.segmentTextActive]}>Retrait</Text>
               </Pressable>
             </View>
 
@@ -575,40 +574,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingTop: spacing.md,
   },
-  radioGroup: {
+  segment: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.sm,
-  },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: spacing.lg,
-  },
-  radioOuter: {
-    width: 20,
-    height: 20,
+    backgroundColor: colors.blueLight,
     borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#c3c9d4',
+    padding: 4,
+    marginBottom: spacing.md,
+  },
+  segmentBtn: {
+    flex: 1,
+    height: 42,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    borderRadius: 8,
   },
-  radioOuterActive: {
-    borderColor: colors.orange,
+  segmentBtnActive: {
+    backgroundColor: colors.blue,
   },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.orange,
-  },
-  radioText: {
+  segmentText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
+    fontWeight: '700',
+    color: colors.blue,
+  },
+  segmentTextActive: {
+    color: colors.white,
   },
   cleanInputWrapper: {
     flexDirection: 'row',
