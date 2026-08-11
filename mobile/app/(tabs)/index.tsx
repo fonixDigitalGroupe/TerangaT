@@ -275,7 +275,7 @@ export default function TransfertScreen() {
               <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
               <TextInput
                 style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
-                placeholder="Mobile"
+                placeholder={toOp === 'wave' ? 'Numéro Wave' : 'Numéro Orange Money'}
                 placeholderTextColor="#9aa3b0"
                 keyboardType="phone-pad"
                 maxLength={9}
