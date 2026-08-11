@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
-  FlatList,
   Image,
   InputAccessoryView,
   Keyboard,
@@ -17,8 +16,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import * as Contacts from 'expo-contacts';
+import { Ionicons } from '@expo/vector-icons';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
@@ -116,42 +114,6 @@ export default function TransfertScreen() {
 
   const canSend =
     numericAmount > 0 && !calc.outOfRange && toNumber.trim().length > 0;
-
-  // Contacts picker
-  const [contactsVisible, setContactsVisible] = useState(false);
-  const [contacts, setContacts] = useState<Contacts.Contact[]>([]);
-  const [search, setSearch] = useState('');
-
-  const openContacts = async () => {
-    try {
-      const { status } = await Contacts.requestPermissionsAsync();
-      if (status !== 'granted') {
-        setError('Autorisez l’accès aux contacts pour en sélectionner un.');
-        return;
-      }
-      const { data } = await Contacts.getContactsAsync({ fields: [Contacts.Fields.PhoneNumbers] });
-      setContacts(data.filter((c) => c.phoneNumbers && c.phoneNumbers.length > 0));
-      setSearch('');
-      setContactsVisible(true);
-    } catch {
-      setError('Impossible de charger les contacts.');
-    }
-  };
-
-  const selectContact = (raw: string) => {
-    let num = raw.replace(/[^0-9]/g, '');
-    if (num.startsWith('221')) num = num.slice(3);
-    setToNumber(num);
-    setContactsVisible(false);
-  };
-
-  const filteredContacts = contacts.filter((c) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    const name = (c.name ?? '').toLowerCase();
-    const number = c.phoneNumbers?.[0]?.number ?? '';
-    return name.includes(q) || number.replace(/\s/g, '').includes(q);
-  });
 
   // « Envoyer » ouvre le popup de résumé/confirmation (pas d'appel API ici).
   const onSend = () => {
@@ -256,9 +218,6 @@ export default function TransfertScreen() {
                 />
                 <Text style={{ fontSize: 18 }}>🇸🇳</Text>
               </View>
-              <Pressable style={styles.contactBtnOut} hitSlop={8} onPress={openContacts}>
-                <MaterialIcons name="contacts" size={26} color={colors.gray} />
-              </Pressable>
             </View>
 
             {/* Montant */}
@@ -334,54 +293,6 @@ export default function TransfertScreen() {
           </View>
         </InputAccessoryView>
       )}
-
-      {/* Contact picker */}
-      <Modal
-        visible={contactsVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setContactsVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color={colors.textMuted} />
-              <TextInput
-                style={[styles.searchInput, { outlineStyle: 'none' } as object]}
-                placeholder="Nom ou Numéro..."
-                placeholderTextColor="#9aa3b0"
-                value={search}
-                onChangeText={setSearch}
-              />
-            </View>
-            <FlatList
-              data={filteredContacts}
-              keyExtractor={(_item, i) => String(i)}
-              keyboardShouldPersistTaps="handled"
-              ItemSeparatorComponent={() => <View style={styles.contactDivider} />}
-              renderItem={({ item }) => {
-                const number = item.phoneNumbers?.[0]?.number ?? '';
-                const name = item.name ?? '';
-                const initial = name ? name[0].toUpperCase() : '';
-                return (
-                  <Pressable style={styles.contactRow} onPress={() => selectContact(number)}>
-                    <View style={styles.contactAvatar}>
-                      <Text style={styles.contactInitial}>{initial}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      {name ? <Text style={styles.contactName}>{name}</Text> : null}
-                      <Text style={styles.contactNumber}>{number}</Text>
-                    </View>
-                  </Pressable>
-                );
-              }}
-            />
-            <Pressable style={styles.closeBtn} onPress={() => setContactsVisible(false)}>
-              <Ionicons name="close" size={28} color={colors.white} />
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
 
       {/* Popup de confirmation (résumé) */}
       <Modal
