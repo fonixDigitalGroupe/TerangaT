@@ -220,46 +220,43 @@ export default function TransfertScreen() {
             </View>
 
 
-            {/* Container blanc des champs */}
-            <View style={styles.fieldsCard}>
-              {/* Opérateur (au-dessus du champ mobile) */}
-              <View style={styles.operatorRow}>
-                <OperatorBadge op={toOp} onPress={() => setOperatorPickerVisible(true)} />
-              </View>
+            {/* Opérateur (au-dessus du champ mobile) */}
+            <View style={styles.operatorRow}>
+              <OperatorBadge op={toOp} onPress={() => setOperatorPickerVisible(true)} />
+            </View>
 
-              {/* Champ Mobile */}
-              <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
-                <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
-                <TextInput
-                  style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
-                  placeholder="Mobile"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="phone-pad"
-                  maxLength={9}
-                  value={toNumber}
-                  onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
-                  inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                />
-                <Text style={{ fontSize: 18 }}>🇸🇳</Text>
-              </View>
+            {/* Champ Mobile */}
+            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
+              <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
+              <TextInput
+                style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
+                placeholder="Mobile"
+                placeholderTextColor="#9aa3b0"
+                keyboardType="phone-pad"
+                maxLength={9}
+                value={toNumber}
+                onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
+                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+              />
+              <Text style={{ fontSize: 18 }}>🇸🇳</Text>
+            </View>
 
-              {/* Montant */}
-              <View>
-                 <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
-                   {operationType === 'depot' ? 'Montant à transférer :' : 'Espèces à remettre au client :'}
-                 </Text>
-                 <View style={[styles.cleanInputWrapper, { marginBottom: 0 }]}>
-                   <TextInput
-                     style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
-                     placeholder="0"
-                     placeholderTextColor="#9aa3b0"
-                     keyboardType="number-pad"
-                     value={amount}
-                     onChangeText={setAmount}
-                     inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                   />
-                 </View>
-              </View>
+            {/* Montant */}
+            <View style={{ marginBottom: spacing.md }}>
+               <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
+                 {operationType === 'depot' ? 'Montant à transférer :' : 'Espèces à remettre au client :'}
+               </Text>
+               <View style={styles.cleanInputWrapper}>
+                 <TextInput
+                   style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
+                   placeholder="0"
+                   placeholderTextColor="#9aa3b0"
+                   keyboardType="number-pad"
+                   value={amount}
+                   onChangeText={setAmount}
+                   inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+                 />
+               </View>
             </View>
 
             {/* Résumé Dynamique */}
@@ -531,15 +528,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   formContainer: {
-    paddingTop: spacing.sm,
-  },
-  fieldsCard: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    padding: spacing.lg,
+    marginTop: spacing.xs,
   },
   radioGroup: {
     flexDirection: 'row',
