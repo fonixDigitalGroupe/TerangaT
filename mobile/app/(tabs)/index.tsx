@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#e3e7ee',
   },
   content: { flexGrow: 1, paddingHorizontal: spacing.sm, paddingVertical: spacing.md },
   topCardsRow: {
