@@ -11,6 +11,12 @@ return [
     'mode' => env('PAYDUNYA_MODE', 'test'),
 
     /*
+    | Mode simulation : si true, les transferts sont marqués « completed » sans
+    | appeler PayDunya (pour tester le flux tant que le KYC n'est pas validé).
+    */
+    'mock' => (bool) env('PAYDUNYA_MOCK', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Clés API (renseignées UNIQUEMENT dans le .env du serveur — jamais ici)
     |--------------------------------------------------------------------------

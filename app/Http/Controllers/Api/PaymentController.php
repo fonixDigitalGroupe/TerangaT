@@ -154,6 +154,18 @@ class PaymentController extends Controller
                 'commission'         => $merchantComm,
             ]);
 
+            // MODE TEST : on simule le succès sans appeler PayDunya (utile tant que le
+            // KYC PayDunya n'est pas validé). Activé via PAYDUNYA_MOCK=true dans le .env.
+            if (config('paydunya.mock')) {
+                $tx->update(['status' => 'completed']);
+
+                return response()->json([
+                    'message'   => 'Transaction simulée (mode test, sans PayDunya).',
+                    'reference' => $tx->reference,
+                    'status'    => 'completed',
+                ]);
+            }
+
             // 1) Facture PayDunya sur le montant BRUT (c'est lui qui est débité au marchand).
             $invoice = $this->paydunya->createInvoice(
                 $brut,
