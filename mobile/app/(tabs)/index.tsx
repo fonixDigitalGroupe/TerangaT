@@ -167,20 +167,13 @@ export default function TransfertScreen() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + spacing.sm }]}>
-        <View style={styles.headerLeft}>
-          <Pressable hitSlop={8}>
-            <Ionicons name="menu" size={28} color={colors.white} />
-          </Pressable>
-          <View style={styles.greeting}>
-            <Text style={styles.helloText}>Hello 👋</Text>
-            <Text style={styles.userName} numberOfLines={1}>{user?.name ?? 'Agent'}</Text>
-          </View>
-        </View>
-        <View style={styles.headerRight}>
-          <Pressable style={styles.roundBtn} hitSlop={6}>
-            <Ionicons name="notifications" size={20} color={colors.white} />
-          </Pressable>
-        </View>
+        <Pressable hitSlop={8}>
+          <Ionicons name="menu" size={28} color={colors.white} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Téranga Transfert</Text>
+        <Pressable style={styles.roundBtn} hitSlop={6}>
+          <Ionicons name="notifications" size={20} color={colors.white} />
+        </Pressable>
       </View>
 
       <View style={styles.contentContainer}>
@@ -467,11 +460,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     backgroundColor: BRAND_BLUE,
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  greeting: { marginLeft: spacing.md, flex: 1 },
-  helloText: { fontSize: 13, color: 'rgba(255,255,255,0.9)' },
-  userName: { fontSize: 16, fontWeight: '700', color: colors.white, marginTop: 1 },
-  headerRight: { flexDirection: 'row', gap: spacing.sm },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.white,
+    marginHorizontal: spacing.sm,
+  },
   roundBtn: {
     width: 40,
     height: 40,
