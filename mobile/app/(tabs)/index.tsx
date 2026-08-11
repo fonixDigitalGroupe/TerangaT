@@ -16,7 +16,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
@@ -168,16 +167,6 @@ export default function TransfertScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
-      {/* En-tête épuré : avatar · cloche */}
-      <View style={styles.header}>
-        <View style={styles.headerIcon}>
-          <Ionicons name="person-outline" size={20} color={colors.textMuted} />
-        </View>
-        <Pressable style={styles.headerIcon} hitSlop={6}>
-          <Ionicons name="notifications-outline" size={20} color={colors.textMuted} />
-        </Pressable>
-      </View>
-
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
@@ -393,22 +382,6 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
