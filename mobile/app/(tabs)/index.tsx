@@ -27,6 +27,8 @@ const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
 // Bleu de la maquette (onglet actif + bouton principal).
 const BRAND_BLUE = '#1E90FF';
+// Indigo du header.
+const HEADER_INDIGO = '#4F46E5';
 
 // ===== Logique métier des frais =====
 // Espèces encaissées (dépôt) = montant reçu par le client + frais (grille).
@@ -465,7 +467,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
-    backgroundColor: BRAND_BLUE,
+    backgroundColor: HEADER_INDIGO,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
