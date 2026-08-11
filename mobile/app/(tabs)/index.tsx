@@ -56,6 +56,15 @@ const FEE_GRID: { min: number; max: number; fee: number }[] = [
 const gridFee = (montantSouhaite: number): number | null =>
   FEE_GRID.find((r) => montantSouhaite >= r.min && montantSouhaite <= r.max)?.fee ?? null;
 
+// Inverse : retrouve le montant (net) à partir des espèces échangées (net + frais).
+const netFromEspeces = (total: number): number | null => {
+  for (const r of FEE_GRID) {
+    const net = total - r.fee;
+    if (net >= r.min && net <= r.max) return net;
+  }
+  return null;
+};
+
 type Operator = 'wave' | 'om';
 const OP_LOGOS: Record<Operator, ReturnType<typeof require>> = {
   wave: require('../../assets/logo-wave.png'),
@@ -71,6 +80,7 @@ export default function TransfertScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [amount, setAmount] = useState('');
+  const [received, setReceived] = useState('');
   const [toNumber, setToNumber] = useState('');
   const [toOp, setToOp] = useState<Operator>('wave');
   const [operationType, setOperationType] = useState<'depot' | 'retrait'>('depot');
@@ -92,6 +102,22 @@ export default function TransfertScreen() {
     const n = parseFloat(amount.replace(/[^0-9.]/g, ''));
     return Number.isFinite(n) ? n : 0;
   }, [amount]);
+
+  // Saisie du montant (net) -> calcule les espèces (net + frais).
+  const handleAmountChange = (text: string) => {
+    setAmount(text);
+    const n = parseFloat(text.replace(/[^0-9.]/g, ''));
+    const fee = Number.isFinite(n) && n > 0 ? gridFee(n) : null;
+    setReceived(fee !== null ? String(n + fee) : '');
+  };
+
+  // Saisie des espèces -> retrouve le montant (net) via la grille inversée.
+  const handleReceivedChange = (text: string) => {
+    setReceived(text);
+    const total = parseFloat(text.replace(/[^0-9.]/g, ''));
+    const net = Number.isFinite(total) && total > 0 ? netFromEspeces(total) : null;
+    setAmount(net !== null ? String(net) : '');
+  };
 
   const calc = useMemo(() => {
     // Montant saisi = montant que le client reçoit (dépôt) ou retire (retrait).
@@ -156,6 +182,7 @@ export default function TransfertScreen() {
       setConfirmVisible(false);
       setSuccess(res.message ?? `Transfert de ${formatXof(numericAmount)} initié.`);
       setAmount('');
+      setReceived('');
       setToNumber('');
     } catch (e) {
       setError(apiErrorMessage(e, 'Transfert impossible.'));
@@ -234,24 +261,26 @@ export default function TransfertScreen() {
                    placeholderTextColor="#9aa3b0"
                    keyboardType="number-pad"
                    value={amount}
-                   onChangeText={setAmount}
+                   onChangeText={handleAmountChange}
                    inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
                  />
                </View>
             </View>
 
-            {/* Montant reçu (calculé, lecture seule) */}
+            {/* Montant reçu (espèces) — synchronisé avec le montant */}
             <View style={{ marginBottom: spacing.md }}>
                <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
                  {operationType === 'depot' ? 'Montant reçu (espèces) :' : 'Le client paiera :'}
                </Text>
-               <View style={[styles.cleanInputWrapper, { backgroundColor: '#f4f6f9' }]}>
+               <View style={styles.cleanInputWrapper}>
                  <TextInput
-                   style={[styles.cleanInput, { outlineStyle: 'none', color: colors.textMuted } as object]}
-                   editable={false}
-                   value={numericAmount > 0 ? String(operationType === 'depot' ? calc.especes : calc.paiementClient) : ''}
+                   style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
                    placeholder="0"
                    placeholderTextColor="#9aa3b0"
+                   keyboardType="number-pad"
+                   value={received}
+                   onChangeText={handleReceivedChange}
+                   inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
                  />
                </View>
             </View>
