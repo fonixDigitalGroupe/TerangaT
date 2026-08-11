@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
+import { formatF } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
 
@@ -78,6 +79,9 @@ export default function TransfertScreen() {
   const [supportFees, setSupportFees] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showBalance, setShowBalance] = useState(false);
+
+  const balance = user?.agent?.wallet?.balance ?? 0;
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -201,10 +205,27 @@ export default function TransfertScreen() {
               </Pressable>
             </View>
 
+            {/* Solde masqué */}
+            <View style={styles.balanceBox}>
+              <View style={styles.balanceLeft}>
+                <Text style={styles.balanceValue}>
+                  {showBalance ? formatF(balance) : '••••••• FCFA'}
+                </Text>
+                <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8}>
+                  <Ionicons
+                    name={showBalance ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color={colors.text}
+                  />
+                </Pressable>
+              </View>
+              <Text style={styles.balanceLabel}>Mon wallet</Text>
+            </View>
+
             {/* Input Mobile avec Opérateur */}
             <View style={styles.mobileRow}>
               <OperatorBadge op={toOp} onPress={() => setToOp((o) => (o === 'wave' ? 'om' : 'wave'))} />
-              <View style={[styles.cleanInputWrapper, { flex: 1, marginBottom: 0, marginLeft: spacing.sm, backgroundColor: '#f0f2f5', flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
+              <View style={[styles.cleanInputWrapper, { flex: 1, marginBottom: 0, marginLeft: spacing.sm, flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
                 <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 16, marginRight: 4 }}>+221</Text>
                 <TextInput
                   style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
@@ -270,9 +291,7 @@ export default function TransfertScreen() {
                 { width: '100%', marginTop: spacing.md }
               ]}
             >
-              <Text style={styles.proceedBtnText}>
-                {operationType === 'retrait' ? 'Demander le paiement' : 'Valider le Dépôt'}
-              </Text>
+              <Text style={styles.proceedBtnText}>Procéder</Text>
             </Pressable>
             </View>
 
@@ -471,25 +490,38 @@ const styles = StyleSheet.create({
   },
   segment: {
     flexDirection: 'row',
-    backgroundColor: colors.blueLight,
-    borderRadius: 10,
+    backgroundColor: '#eef1f5',
+    borderRadius: 12,
     padding: 4,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
+  balanceBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#eef1f5',
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    height: 56,
+    marginBottom: spacing.lg,
+  },
+  balanceLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  balanceValue: { fontSize: 16, fontWeight: '700', color: colors.text, letterSpacing: 1 },
+  balanceLabel: { fontSize: 15, fontWeight: '700', color: colors.blue },
   segmentBtn: {
     flex: 1,
-    height: 42,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: 9,
   },
   segmentBtnActive: {
     backgroundColor: colors.blue,
   },
   segmentText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: colors.blue,
+    color: colors.textMuted,
   },
   segmentTextActive: {
     color: colors.white,
@@ -500,10 +532,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
-    borderRadius: 8,
-    height: 48,
+    borderRadius: 12,
+    height: 56,
     paddingHorizontal: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   mobileRow: {
     flexDirection: 'row',
@@ -541,18 +573,18 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   proceedBtn: {
-    backgroundColor: colors.orange,
-    borderRadius: 8,
-    height: 48,
+    backgroundColor: colors.blue,
+    borderRadius: 12,
+    height: 54,
     alignItems: 'center',
     justifyContent: 'center',
   },
   proceedBtnDisabled: {
-    backgroundColor: '#ffd7af',
+    backgroundColor: '#a9d0f5',
   },
   proceedBtnText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
   },
   summaryCard: {
