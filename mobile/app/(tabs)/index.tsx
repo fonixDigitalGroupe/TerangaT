@@ -388,10 +388,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   header: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
     alignItems: 'center',
   },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  headerTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
