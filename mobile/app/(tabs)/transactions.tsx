@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  balance: { fontSize: 26, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
+  balance: { fontSize: 22, fontWeight: '700', color: colors.text, letterSpacing: 0.3 },
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   divider: { height: 1, backgroundColor: colors.border },
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },

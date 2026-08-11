@@ -92,11 +92,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: 11,
   },
   middle: { flex: 1, paddingRight: spacing.sm },
-  title: { fontSize: font.md, fontWeight: '500', color: colors.text },
-  sub: { fontSize: font.sm, color: colors.textMuted, marginTop: 3 },
-  amount: { fontSize: font.md, fontWeight: '600' },
+  title: { fontSize: font.sm, fontWeight: '500', color: colors.text },
+  sub: { fontSize: font.xs, color: colors.textMuted, marginTop: 2 },
+  amount: { fontSize: font.sm, fontWeight: '600' },
   amountFailed: { textDecorationLine: 'line-through' },
 });
