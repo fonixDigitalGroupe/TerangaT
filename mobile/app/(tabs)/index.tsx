@@ -22,6 +22,7 @@ import * as Contacts from 'expo-contacts';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
+import { formatF } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
 
@@ -203,6 +204,17 @@ export default function TransfertScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
+      {/* En-tête épuré, comme l'Historique : avatar · solde · cloche */}
+      <View style={styles.header}>
+        <View style={styles.headerIcon}>
+          <Ionicons name="person-outline" size={20} color={colors.textMuted} />
+        </View>
+        <Text style={styles.balance}>{formatF(user?.agent?.wallet?.balance ?? 0)}</Text>
+        <Pressable style={styles.headerIcon} hitSlop={6}>
+          <Ionicons name="notifications-outline" size={20} color={colors.textMuted} />
+        </Pressable>
+      </View>
+
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
@@ -487,6 +499,22 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  balance: { fontSize: 22, fontWeight: '700', color: colors.text, letterSpacing: 0.3 },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
