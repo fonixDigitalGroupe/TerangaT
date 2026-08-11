@@ -59,6 +59,8 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
     kind === 'failed' ? colors.textMuted : isDeposit ? colors.danger : colors.text;
 
   const statusLabel = STATUS_LABEL[kind];
+  const statusColor =
+    kind === 'failed' ? colors.danger : kind === 'pending' ? colors.orange : colors.textMuted;
 
   return (
     <Pressable
@@ -71,7 +73,9 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
         </Text>
         <Text style={styles.sub} numberOfLines={1}>
           {formatDateTime(tx.created_at)}
-          {statusLabel ? ` · ${statusLabel}` : ''}
+          {statusLabel ? (
+            <Text style={{ color: statusColor, fontWeight: '600' }}> · {statusLabel}</Text>
+          ) : null}
         </Text>
       </View>
       <Text
