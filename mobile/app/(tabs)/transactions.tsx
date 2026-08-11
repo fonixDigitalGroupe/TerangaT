@@ -57,34 +57,47 @@ export default function TransactionsScreen() {
     <View style={styles.container}>
       <AppHeader title="Historique" />
 
-      {error && <View style={{ paddingHorizontal: spacing.lg }}><Alert message={error} /></View>}
+      <View style={styles.grayArea}>
+        {error && <View style={{ marginBottom: spacing.sm }}><Alert message={error} /></View>}
 
-      {loading ? (
-        <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.xl }} />
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => <TransactionRow tx={item} />}
-          ItemSeparatorComponent={() => <View style={styles.divider} />}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          onEndReached={onEndReached}
-          onEndReachedThreshold={0.4}
-          ListEmptyComponent={<Text style={styles.empty}>Aucune transaction.</Text>}
-          ListFooterComponent={
-            loadingMore ? <ActivityIndicator color={colors.blue} style={{ margin: spacing.md }} /> : null
-          }
-        />
-      )}
+        {loading ? (
+          <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.xl }} />
+        ) : (
+          <View style={styles.card}>
+            <FlatList
+              data={items}
+              keyExtractor={(item) => String(item.id)}
+              contentContainerStyle={styles.list}
+              renderItem={({ item }) => <TransactionRow tx={item} />}
+              ItemSeparatorComponent={() => <View style={styles.divider} />}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              onEndReached={onEndReached}
+              onEndReachedThreshold={0.4}
+              ListEmptyComponent={<Text style={styles.empty}>Aucune transaction.</Text>}
+              ListFooterComponent={
+                loadingMore ? <ActivityIndicator color={colors.blue} style={{ margin: spacing.md }} /> : null
+              }
+            />
+          </View>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl },
+  container: { flex: 1, backgroundColor: '#d3d9e2' },
+  grayArea: { flex: 1, backgroundColor: '#d3d9e2', padding: spacing.sm },
+  card: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  list: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   divider: { height: 1, backgroundColor: colors.border },
   empty: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
 });
