@@ -22,6 +22,7 @@ import * as Contacts from 'expo-contacts';
 import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
+import { formatF } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
 
@@ -202,20 +203,16 @@ export default function TransfertScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header Minimaliste - Style CBAO */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerLogoContainer}>
-            <Text style={styles.brandScript}>Téranga</Text>
-            <Text style={styles.brandSub}>TRANSFERT</Text>
-          </View>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
+      {/* En-tête épuré, comme l'Historique : avatar · solde · cloche */}
+      <View style={styles.header}>
+        <View style={styles.headerIcon}>
+          <Ionicons name="person-outline" size={20} color={colors.textMuted} />
         </View>
-        <View style={styles.headerRight}>
-          <Pressable style={styles.iconBtnCircle} hitSlop={6}>
-            <Ionicons name="notifications-outline" size={22} color={colors.white} />
-          </Pressable>
-        </View>
+        <Text style={styles.balance}>{formatF(user?.agent?.wallet?.balance ?? 0)}</Text>
+        <Pressable style={styles.headerIcon} hitSlop={6}>
+          <Ionicons name="notifications-outline" size={20} color={colors.textMuted} />
+        </Pressable>
       </View>
 
       <View style={styles.contentContainer}>
@@ -504,46 +501,21 @@ export default function TransfertScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
   header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  headerLeft: {
-    flexDirection: 'row',
+  headerIcon: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
-    gap: spacing.sm,
-  },
-  headerLogoContainer: {
     justifyContent: 'center',
   },
-  brandScript: { 
-    color: colors.white, 
-    fontSize: 28, 
-    fontFamily: 'KaushanScript_400Regular',
-    lineHeight: 34,
-  },
-  brandSub: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: -4,
-    transform: [{ translateX: 2 }],
-  },
-  headerRight: { flexDirection: 'row', gap: spacing.sm },
-  iconBtnCircle: { 
-    width: 44, 
-    height: 44, 
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)', // Translucent white for blue background
-    alignItems: 'center', 
-    justifyContent: 'center' 
-  },
+  balance: { fontSize: 22, fontWeight: '700', color: colors.text, letterSpacing: 0.3 },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
