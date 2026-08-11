@@ -439,7 +439,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -447,6 +447,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
+    backgroundColor: colors.white,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: {
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
+  content: { flexGrow: 1, paddingHorizontal: spacing.sm, paddingVertical: spacing.md },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
