@@ -60,11 +60,16 @@ const OP_LOGOS: Record<Operator, ReturnType<typeof require>> = {
   wave: require('../../assets/logo-wave.png'),
   om: require('../../assets/logo-om.png'),
 };
+const OP_NAMES: Record<Operator, string> = {
+  wave: 'Wave Sénégal',
+  om: 'Max it',
+};
 
 function OperatorBadge({ op, onPress }: { op: Operator; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={styles.opBadgeBox}>
       <Image source={OP_LOGOS[op]} style={styles.opLogo} resizeMode="cover" />
+      <Text style={styles.opName} numberOfLines={1}>{OP_NAMES[op]}</Text>
     </Pressable>
   );
 }
@@ -504,7 +509,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   opBadgeBox: {
-    width: 56,
+    width: 78,
     height: 56,
     borderTopLeftRadius: 6,
     borderBottomLeftRadius: 6,
@@ -513,8 +518,10 @@ const styles = StyleSheet.create({
     borderColor: '#e2e6ec',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 4,
   },
-  opLogo: { width: 30, height: 30, borderRadius: 15 },
+  opLogo: { width: 24, height: 24, borderRadius: 12 },
+  opName: { fontSize: 9, fontWeight: '600', color: colors.textMuted, marginTop: 3 },
   cleanInput: {
     flex: 1,
     fontSize: 15,
