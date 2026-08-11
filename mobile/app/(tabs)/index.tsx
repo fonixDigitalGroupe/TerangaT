@@ -203,23 +203,25 @@ export default function TransfertScreen() {
             </View>
 
 
-            {/* Input Mobile avec Opérateur */}
-            <View style={styles.mobileRow}>
+            {/* Opérateur (au-dessus du champ mobile) */}
+            <View style={styles.operatorRow}>
               <OperatorBadge op={toOp} onPress={() => setToOp((o) => (o === 'wave' ? 'om' : 'wave'))} />
-              <View style={[styles.cleanInputWrapper, { flex: 1, marginBottom: 0, marginLeft: 0, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeftWidth: 0, flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
-                <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 16, marginRight: 4 }}>+221</Text>
-                <TextInput
-                  style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
-                  placeholder="Mobile"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="phone-pad"
-                  maxLength={9}
-                  value={toNumber}
-                  onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
-                  inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                />
-                <Text style={{ fontSize: 18 }}>🇸🇳</Text>
-              </View>
+            </View>
+
+            {/* Champ Mobile */}
+            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
+              <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
+              <TextInput
+                style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
+                placeholder="Mobile"
+                placeholderTextColor="#9aa3b0"
+                keyboardType="phone-pad"
+                maxLength={9}
+                value={toNumber}
+                onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
+                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+              />
+              <Text style={{ fontSize: 18 }}>🇸🇳</Text>
             </View>
 
             {/* Montant */}
@@ -503,16 +505,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-  mobileRow: {
+  operatorRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   opBadgeBox: {
     width: 78,
     height: 56,
-    borderTopLeftRadius: 6,
-    borderBottomLeftRadius: 6,
+    borderRadius: 6,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
