@@ -18,8 +18,8 @@
         <div class="px-5 pt-4 pb-3" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
             <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Informations</h2>
         </div>
-        <div class="p-6 flex flex-col items-center text-center border-b border-slate-100">
-            <div class="w-16 h-16 rounded-full overflow-hidden ring-2 ring-slate-100 mb-3">
+        <div class="p-4 flex flex-col items-center text-center border-b border-slate-100">
+            <div class="w-14 h-14 rounded-full overflow-hidden ring-2 ring-slate-100 mb-2">
                 @include('admin.partials.avatar')
             </div>
             <p class="font-semibold text-slate-800">{{ $agent->user->name ?? '—' }}</p>
@@ -28,15 +28,15 @@
                 $st = strtolower($agent->status ?? 'en attente');
                 $cls = str_contains($st, 'vérif') || str_contains($st, 'verif') ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
             @endphp
-            <span class="mt-2 text-xs px-2 py-0.5 rounded-full capitalize {{ $cls }}">{{ $agent->status ?? 'en attente' }}</span>
+            <span class="mt-1.5 text-xs px-2 py-0.5 rounded-full capitalize {{ $cls }}">{{ $agent->status ?? 'en attente' }}</span>
         </div>
         <dl class="divide-y divide-slate-100 text-sm">
-            <div class="flex justify-between px-5 py-3"><dt class="text-slate-500">Téléphone</dt><dd class="text-slate-800">{{ $agent->user->phone ?? '—' }}</dd></div>
-            <div class="flex justify-between px-5 py-3"><dt class="text-slate-500">Boutique</dt><dd class="text-slate-800">{{ $agent->shop_name ?? '—' }}</dd></div>
-            <div class="flex justify-between px-5 py-3"><dt class="text-slate-500">Région</dt><dd class="text-slate-800">{{ $agent->user->country ?? '—' }}</dd></div>
-            <div class="flex justify-between px-5 py-3"><dt class="text-slate-500">Transactions</dt><dd class="text-slate-800">{{ $agent->transactions_count }}</dd></div>
+            <div class="flex justify-between px-5 py-2"><dt class="text-slate-500">Téléphone</dt><dd class="text-slate-800">{{ $agent->user->phone ?? '—' }}</dd></div>
+            <div class="flex justify-between px-5 py-2"><dt class="text-slate-500">Boutique</dt><dd class="text-slate-800">{{ $agent->shop_name ?? '—' }}</dd></div>
+            <div class="flex justify-between px-5 py-2"><dt class="text-slate-500">Région</dt><dd class="text-slate-800">{{ $agent->user->country ?? '—' }}</dd></div>
+            <div class="flex justify-between px-5 py-2"><dt class="text-slate-500">Transactions</dt><dd class="text-slate-800">{{ $agent->transactions_count }}</dd></div>
         </dl>
-        <div class="p-4 border-t border-slate-100">
+        <div class="p-3 border-t border-slate-100">
             <a href="{{ route('admin.agents.edit', $agent) }}" class="btn btn-edit w-full justify-center">Modifier</a>
         </div>
     </div>
@@ -91,20 +91,20 @@
     <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="background-color:#ffffff;border-bottom:1px solid #e2e8f0;">
         <h2 class="font-normal text-slate-800 uppercase text-sm tracking-wide">Vérification d'identité (KYC)</h2>
         @if($agent->kyc_submitted_at)
-            <span class="text-[11px] text-white/80">Soumis le {{ $agent->kyc_submitted_at->format('d/m/Y H:i') }}</span>
+            <span class="text-[11px] text-slate-400">Soumis le {{ $agent->kyc_submitted_at->format('d/m/Y H:i') }}</span>
         @endif
     </div>
 
-    <div class="p-6">
+    <div class="p-4">
         @if(!$agent->kyc_submitted_at && !$agent->cni_recto_path)
             <p class="text-sm text-slate-400 text-center py-4">L'agent n'a pas encore soumis ses pièces d'identité.</p>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div class="flex justify-between px-1 py-2 border-b border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 mb-4">
+                <div class="flex justify-between px-1 py-1.5 border-b border-slate-100">
                     <span class="text-slate-500 text-sm">Numéro de la boutique</span>
                     <span class="text-slate-800 text-sm font-medium">{{ $agent->shop_number ?? 'Non renseigné' }}</span>
                 </div>
-                <div class="flex justify-between px-1 py-2 border-b border-slate-100">
+                <div class="flex justify-between px-1 py-1.5 border-b border-slate-100">
                     <span class="text-slate-500 text-sm">Numéro CNI</span>
                     <span class="text-slate-800 text-sm font-medium">{{ $agent->cni_number ?? 'Non renseigné' }}</span>
                 </div>
@@ -124,10 +124,10 @@
                         @if($path)
                             <a href="{{ asset('storage/' . $path) }}" target="_blank" class="block">
                                 <img src="{{ asset('storage/' . $path) }}" alt="{{ $label }}"
-                                     class="w-full h-40 object-cover rounded-md border border-slate-200 hover:opacity-90 transition">
+                                     class="w-full h-32 object-cover rounded-md border border-slate-200 hover:opacity-90 transition">
                             </a>
                         @else
-                            <div class="w-full h-40 rounded-md border border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xs">
+                            <div class="w-full h-32 rounded-md border border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xs">
                                 Non fourni
                             </div>
                         @endif
@@ -136,7 +136,7 @@
             </div>
 
             {{-- Actions de validation --}}
-            <div class="flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-slate-100">
+            <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-slate-100">
                 <span class="text-sm text-slate-500">Décision :</span>
                 <form method="POST" action="{{ route('admin.agents.kyc-status', $agent) }}">
                     @csrf
