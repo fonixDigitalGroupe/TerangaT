@@ -100,8 +100,8 @@ function Divider() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  flex: { flex: 1, backgroundColor: '#d3d9e2' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#d3d9e2' },
   content: { padding: spacing.md, paddingBottom: spacing.xl },
   amountHeader: { alignItems: 'center', gap: spacing.sm, marginVertical: spacing.lg },
   amount: { fontSize: font.xxl, fontWeight: '800', color: colors.text },

@@ -51,7 +51,9 @@ function RootNavigator() {
         options={{
           headerShown: true,
           title: 'Détail transaction',
-          headerTintColor: colors.blue,
+          headerStyle: { backgroundColor: '#1E90FF' },
+          headerTintColor: '#ffffff',
+          headerTitleStyle: { color: '#ffffff' },
         }}
       />
     </Stack>
