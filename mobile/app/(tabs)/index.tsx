@@ -492,7 +492,13 @@ export default function TransfertScreen() {
               </Pressable>
 
               <Pressable
-                onPress={() => setConfirmVisible(false)}
+                onPress={() => {
+                  setConfirmVisible(false);
+                  setAmount('');
+                  setReceived('');
+                  setToNumber('');
+                  setError(null);
+                }}
                 disabled={sending}
                 style={[styles.confirmCancel, styles.confirmActionBtn]}
               >
