@@ -177,7 +177,9 @@ export default function TransfertScreen() {
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Transaction</Text>
+        <Pressable hitSlop={6}>
+          <Ionicons name="notifications-outline" size={22} color={colors.text} />
+        </Pressable>
       </View>
 
       <View style={styles.contentContainer}>
@@ -431,9 +433,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
-  headerTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
   contentContainer: {
     flex: 1,
     backgroundColor: colors.white,
