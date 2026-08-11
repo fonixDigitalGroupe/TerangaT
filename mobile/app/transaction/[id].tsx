@@ -1,11 +1,37 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { transactionsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
-import { Alert, Badge, Card } from '../../src/components/ui';
-import { colors, font, formatXof, radius, spacing } from '../../src/theme';
+import { Alert } from '../../src/components/ui';
+import { formatF } from '../../src/components/TransactionRow';
+import { colors, font, spacing } from '../../src/theme';
 import type { Transaction } from '../../src/types';
+
+const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()} à ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function prettyPhone(raw: string): string {
+  const d = (raw ?? '').replace(/\D/g, '').replace(/^221/, '');
+  return d.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+}
+
+function statusInfo(status: string): { label: string; color: string; icon: 'checkmark-circle' | 'close-circle' | 'time' } {
+  const s = (status ?? '').toLowerCase();
+  if (['completed', 'réussi', 'reussi', 'terminé', 'termine', 'success', 'payé', 'paye'].includes(s)) {
+    return { label: 'Effectué', color: colors.success, icon: 'checkmark-circle' };
+  }
+  if (['échoué', 'echoue', 'failed', 'cancelled', 'annulé', 'annule', 'refusé', 'refuse'].includes(s)) {
+    return { label: 'Échoué', color: colors.danger, icon: 'close-circle' };
+  }
+  return { label: 'En attente', color: colors.orange, icon: 'time' };
+}
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,11 +51,7 @@ export default function TransactionDetailScreen() {
     }
   }, [id]);
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load])
-  );
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   if (loading) {
     return (
@@ -41,56 +63,76 @@ export default function TransactionDetailScreen() {
 
   if (error || !tx) {
     return (
-      <View style={styles.content}>
+      <View style={styles.center}>
         <Alert message={error ?? 'Transaction introuvable.'} />
       </View>
     );
   }
 
   const isDeposit = tx.type === 'dépôt';
-  const date = new Date(tx.created_at).toLocaleString('fr-FR');
+  const st = statusInfo(tx.status);
+  const frais = Math.max(0, (tx.total ?? 0) + (tx.commission ?? 0) - tx.amount);
+
+  const onShare = () => {
+    void Share.share({
+      message:
+        `Téranga Transfert\n` +
+        `${isDeposit ? 'Dépôt' : 'Retrait'} — ${prettyPhone(tx.client_phone)}\n` +
+        `Montant : ${formatF(tx.amount)}\n` +
+        `Statut : ${st.label}\n` +
+        `Date : ${formatDateTime(tx.created_at)}\n` +
+        `ID : ${tx.reference}`,
+    });
+  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
-      <View style={styles.amountHeader}>
-        <Badge label={isDeposit ? 'Dépôt' : 'Retrait'} tone={isDeposit ? 'orange' : 'blue'} />
-        <Text style={styles.amount}>{formatXof(tx.amount)}</Text>
-        <Badge label={tx.status === 'completed' ? 'Complétée' : tx.status} tone="success" />
+      {/* Montant + description */}
+      <Text style={[styles.amount, { color: isDeposit ? colors.danger : colors.text }]}>
+        {isDeposit ? '-' : ''}{formatF(tx.amount)}
+      </Text>
+      <Text style={styles.description}>
+        {isDeposit ? 'Dépôt' : 'Retrait'} — {prettyPhone(tx.client_phone)}
+      </Text>
+
+      {/* Carte Partager */}
+      <View style={styles.card}>
+        <Pressable style={styles.shareBtn} onPress={onShare}>
+          <View style={styles.shareIcon}>
+            <Ionicons name="share-outline" size={22} color={colors.text} />
+          </View>
+          <Text style={styles.shareText}>Partager</Text>
+        </Pressable>
       </View>
 
-      <Card style={styles.card}>
-        <Row label="Référence" value={tx.reference} />
+      {/* Carte détails */}
+      <View style={styles.card}>
+        <Row label="Statut">
+          <View style={styles.statusVal}>
+            <Ionicons name={st.icon} size={18} color={st.color} />
+            <Text style={[styles.value, { color: st.color, marginLeft: 6 }]}>{st.label}</Text>
+          </View>
+        </Row>
         <Divider />
-        <Row label="Téléphone client" value={tx.client_phone} />
+        <Row label="Frais"><Text style={styles.value}>{formatF(frais)}</Text></Row>
         <Divider />
-        <Row label="Date" value={date} />
+        <Row label="Date et heure"><Text style={styles.value}>{formatDateTime(tx.created_at)}</Text></Row>
         <Divider />
-        <Row label="Montant" value={formatXof(tx.amount)} />
+        <Row label="Numéro client"><Text style={styles.value}>+221 {prettyPhone(tx.client_phone)}</Text></Row>
         <Divider />
-        <Row label="Commission agent" value={formatXof(tx.commission)} />
-        <Divider />
-        <Row label="Total" value={formatXof(tx.total)} bold />
-      </Card>
-
-      {tx.commission_breakdown && (
-        <>
-          <Text style={styles.sectionTitle}>Répartition des commissions</Text>
-          <Card style={styles.card}>
-            <Row label="Part agent (60%)" value={formatXof(tx.commission_breakdown.agent_amount)} />
-            <Divider />
-            <Row label="Part plateforme (40%)" value={formatXof(tx.commission_breakdown.platform_amount)} />
-          </Card>
-        </>
-      )}
+        <Row label="ID de transaction">
+          <Text style={[styles.value, styles.mono]} numberOfLines={2}>{tx.reference}</Text>
+        </Row>
+      </View>
     </ScrollView>
   );
 }
 
-function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[styles.rowValue, bold && { fontWeight: '800', color: colors.blue }]}>{value}</Text>
+      <View style={styles.rowValue}>{children}</View>
     </View>
   );
 }
@@ -100,15 +142,32 @@ function Divider() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#d3d9e2' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#d3d9e2' },
-  content: { padding: spacing.md, paddingBottom: spacing.xl },
-  amountHeader: { alignItems: 'center', gap: spacing.sm, marginVertical: spacing.lg },
-  amount: { fontSize: font.xxl, fontWeight: '800', color: colors.text },
-  card: { padding: spacing.md, marginBottom: spacing.md },
-  sectionTitle: { fontSize: font.sm, fontWeight: '700', color: colors.textMuted, marginBottom: spacing.sm },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm },
-  rowLabel: { color: colors.textMuted, fontSize: font.sm },
-  rowValue: { color: colors.text, fontSize: font.sm, fontWeight: '600', maxWidth: '55%', textAlign: 'right' },
+  flex: { flex: 1, backgroundColor: '#f2f4f7' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f2f4f7', padding: spacing.lg },
+  content: { padding: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.xl },
+  amount: { fontSize: 40, fontWeight: '800', textAlign: 'center' },
+  description: { fontSize: font.md, color: colors.text, textAlign: 'center', marginTop: spacing.xs, marginBottom: spacing.lg },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  shareBtn: { alignItems: 'center', gap: spacing.sm },
+  shareIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#eef1f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareText: { fontSize: font.md, fontWeight: '700', color: colors.text },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm },
+  rowLabel: { color: colors.text, fontSize: font.md },
+  rowValue: { flex: 1, alignItems: 'flex-end', paddingLeft: spacing.md },
+  statusVal: { flexDirection: 'row', alignItems: 'center' },
+  value: { color: colors.textMuted, fontSize: font.md, textAlign: 'right' },
+  mono: { fontFamily: 'monospace', fontSize: font.sm },
   divider: { height: 1, backgroundColor: colors.border },
 });
