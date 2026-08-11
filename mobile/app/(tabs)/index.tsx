@@ -201,7 +201,7 @@ export default function TransfertScreen() {
             {/* Input Mobile avec Opérateur */}
             <View style={styles.mobileRow}>
               <OperatorBadge op={toOp} onPress={() => setToOp((o) => (o === 'wave' ? 'om' : 'wave'))} />
-              <View style={[styles.cleanInputWrapper, { flex: 1, marginBottom: 0, marginLeft: spacing.sm, flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
+              <View style={[styles.cleanInputWrapper, { flex: 1, marginBottom: 0, marginLeft: 0, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeftWidth: 0, flexDirection: 'row', alignItems: 'center', paddingRight: 12 }]}>
                 <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 16, marginRight: 4 }}>+221</Text>
                 <TextInput
                   style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
@@ -506,7 +506,8 @@ const styles = StyleSheet.create({
   opBadgeBox: {
     width: 56,
     height: 56,
-    borderRadius: 6,
+    borderTopLeftRadius: 6,
+    borderBottomLeftRadius: 6,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
@@ -557,8 +558,8 @@ const styles = StyleSheet.create({
     borderColor: '#e2e6ec',
   },
   summaryTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
   },
