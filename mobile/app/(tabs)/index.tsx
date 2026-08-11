@@ -165,11 +165,11 @@ export default function TransfertScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + spacing.sm }]}>
         <View style={styles.headerLeft}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={30} color="#c3c9d4" />
+            <Ionicons name="person" size={30} color="rgba(255,255,255,0.9)" />
           </View>
           <View style={styles.greeting}>
             <Text style={styles.helloText}>Hello 👋</Text>
@@ -178,7 +178,7 @@ export default function TransfertScreen() {
         </View>
         <View style={styles.headerRight}>
           <Pressable style={styles.roundBtn} hitSlop={6}>
-            <Ionicons name="notifications" size={20} color={colors.text} />
+            <Ionicons name="notifications" size={20} color={colors.white} />
           </Pressable>
         </View>
       </View>
@@ -458,37 +458,38 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.white,
+    paddingBottom: spacing.lg,
+    backgroundColor: BRAND_BLUE,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: {
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#eef1f5',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderWidth: 1,
-    borderColor: '#e2e6ec',
+    borderColor: 'rgba(255,255,255,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   greeting: { marginLeft: spacing.sm, flex: 1 },
-  helloText: { fontSize: 13, color: colors.textMuted },
-  userName: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 1 },
+  helloText: { fontSize: 13, color: 'rgba(255,255,255,0.9)' },
+  userName: { fontSize: 16, fontWeight: '700', color: colors.white, marginTop: 1 },
   headerRight: { flexDirection: 'row', gap: spacing.sm },
   roundBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#eef1f5',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
