@@ -250,39 +250,29 @@ export default function TransfertScreen() {
             </View>
 
             {/* Montant */}
-            <View style={{ marginBottom: spacing.md }}>
-               <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
-                 {operationType === 'depot' ? 'Montant à transférer :' : 'Espèces à remettre au client :'}
-               </Text>
-               <View style={styles.cleanInputWrapper}>
-                 <TextInput
-                   style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
-                   placeholder="0"
-                   placeholderTextColor="#9aa3b0"
-                   keyboardType="number-pad"
-                   value={amount}
-                   onChangeText={handleAmountChange}
-                   inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                 />
-               </View>
+            <View style={styles.cleanInputWrapper}>
+              <TextInput
+                style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
+                placeholder={operationType === 'depot' ? 'Montant à transférer' : 'Espèces à remettre au client'}
+                placeholderTextColor="#9aa3b0"
+                keyboardType="number-pad"
+                value={amount}
+                onChangeText={handleAmountChange}
+                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+              />
             </View>
 
             {/* Montant reçu (espèces) — synchronisé avec le montant */}
-            <View style={{ marginBottom: spacing.md }}>
-               <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 4, marginLeft: 4, fontWeight: '500' }}>
-                 {operationType === 'depot' ? 'Montant reçu (espèces) :' : 'Le client paiera :'}
-               </Text>
-               <View style={styles.cleanInputWrapper}>
-                 <TextInput
-                   style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
-                   placeholder="0"
-                   placeholderTextColor="#9aa3b0"
-                   keyboardType="number-pad"
-                   value={received}
-                   onChangeText={handleReceivedChange}
-                   inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-                 />
-               </View>
+            <View style={styles.cleanInputWrapper}>
+              <TextInput
+                style={[styles.cleanInput, { outlineStyle: 'none' } as object]}
+                placeholder={operationType === 'depot' ? 'Montant reçu (espèces)' : 'Le client paiera'}
+                placeholderTextColor="#9aa3b0"
+                keyboardType="number-pad"
+                value={received}
+                onChangeText={handleReceivedChange}
+                inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
+              />
             </View>
 
             {/* Résumé Dynamique */}
@@ -598,7 +588,7 @@ const styles = StyleSheet.create({
   selectRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: '#eef1f5',
     borderWidth: 1,
     borderColor: '#e2e6ec',
     borderRadius: 6,
