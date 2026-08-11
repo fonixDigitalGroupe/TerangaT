@@ -195,7 +195,7 @@ export default function TransfertScreen() {
             
             {/* Type d'opération + Opérateur sur une ligne, séparés par un trait */}
             <View style={styles.selectRow}>
-              <Pressable style={[styles.selectHalf, { flex: 0.5 }]} onPress={() => setTypePickerVisible(true)}>
+              <Pressable style={[styles.selectHalf, { flex: 0.38 }]} onPress={() => setTypePickerVisible(true)}>
                 <Text style={styles.selectText} numberOfLines={1}>
                   {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
                 </Text>
