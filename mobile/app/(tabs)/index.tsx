@@ -470,6 +470,8 @@ const styles = StyleSheet.create({
   },
   segment: {
     flexDirection: 'row',
+    alignSelf: 'center',
+    width: '70%',
     backgroundColor: '#eef1f5',
     borderRadius: 12,
     overflow: 'hidden',
