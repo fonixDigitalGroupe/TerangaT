@@ -27,8 +27,6 @@ const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
 // Bleu de la maquette (onglet actif + bouton principal).
 const BRAND_BLUE = '#1E90FF';
-// Indigo du header.
-const HEADER_INDIGO = '#4F46E5';
 
 // ===== Logique métier des frais =====
 // Espèces encaissées (dépôt) = montant reçu par le client + frais (grille).
@@ -460,14 +458,14 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
-    backgroundColor: HEADER_INDIGO,
+    backgroundColor: BRAND_BLUE,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   greeting: { marginLeft: spacing.md, flex: 1 },
@@ -484,7 +482,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
   },
   content: { flexGrow: 1, paddingHorizontal: spacing.sm, paddingVertical: spacing.md },
   topCardsRow: {
