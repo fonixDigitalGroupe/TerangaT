@@ -469,15 +469,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#eef1f5',
     borderRadius: 12,
-    padding: 4,
+    overflow: 'hidden',
     marginBottom: spacing.lg,
   },
   segmentBtn: {
     flex: 1,
-    height: 38,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 9,
   },
   segmentBtnActive: {
     backgroundColor: colors.blue,
