@@ -342,7 +342,7 @@ export default function TransfertScreen() {
                 styles.proceedBtn,
                 !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
-                { marginTop: spacing.md, alignSelf: 'center', width: '62%' }
+                { marginTop: spacing.sm, alignSelf: 'center', width: '62%' }
               ]}
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
+  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.md },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   formContainer: {
-    paddingTop: spacing.sm,
+    paddingTop: 0,
   },
   fieldBox: {
     backgroundColor: colors.white,
