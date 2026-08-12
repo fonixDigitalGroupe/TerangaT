@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     borderColor: '#e8ecf2',
     padding: 20,
   },
-  title: { fontSize: 23, fontWeight: '600', color: '#9aa3b0', lineHeight: 31 },
+  title: { fontSize: 20, fontWeight: '700', color: '#1b3b5c', lineHeight: 28 },
   channel: { color: '#25b16a', fontWeight: '800' },
   phone: { color: NAVY, fontWeight: '800' },
   devHint: { fontSize: 14, color: PRIMARY, fontWeight: '700', marginTop: 14 },
