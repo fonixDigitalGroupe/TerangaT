@@ -19,8 +19,8 @@
         .header .shop { font-size:20px; font-weight:800; margin-top:12px; }
         .wrap { max-width:440px; margin:0 auto; padding:18px; }
         .card { background:transparent; border:0; border-radius:0; padding:4px 0 0; }
-        label { display:block; font-size:14px; font-weight:600; color:#26415e; margin:16px 0 8px; }
-        label:first-of-type { margin-top:4px; }
+        .card > .select, .card > .dd, .card > .field { margin-top:12px; }
+        .card > .select:first-child, .card > .dd:first-child { margin-top:2px; }
         .select { position:relative; }
         .select select {
             -webkit-appearance:none; appearance:none;
@@ -57,8 +57,8 @@
         .field { display:flex; align-items:center; border:1px solid var(--border); border-radius:10px; overflow:hidden; height:52px; background:#fff; }
         .field .prefix { display:flex; align-items:center; gap:6px; align-self:stretch; padding:0 12px; background:#f4f6f9; border-right:1px solid var(--border); font-size:15px; }
         .field input { flex:1; border:0; outline:0; font-size:16px; padding:0 14px; background:transparent; color:var(--navy); width:100%; }
-        .summary { margin-top:16px; background:#f6f8fb; border:1px solid #e8ecf2; border-radius:10px; padding:14px; }
-        .summary .row { display:flex; justify-content:space-between; font-size:14px; margin-bottom:8px; color:var(--muted); }
+        .summary { margin-top:14px; background:#f6f8fb; border:1px solid #e8ecf2; border-radius:10px; padding:10px 12px; }
+        .summary .row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; color:var(--muted); }
         .summary .row:last-child { margin-bottom:0; }
         .summary .row .v { color:var(--navy); font-weight:600; }
         .summary .row.total .v { color:var(--blue); font-size:16px; }
@@ -83,7 +83,6 @@
 
     <div class="wrap">
         <div class="card">
-            <label>Type d'opération</label>
             <div class="select">
                 <select id="typeSel">
                     <option value="depot">Dépôt</option>
@@ -91,7 +90,6 @@
                 </select>
             </div>
 
-            <label>Opérateur</label>
             <div class="dd" id="opDd">
                 <div class="dd-btn" id="opBtn">
                     <img id="opBtnLogo" src="{{ asset('images/logo-wave.png') }}" alt="">
@@ -107,15 +105,13 @@
                 </div>
             </div>
 
-            <label>Montant (FCFA)</label>
             <div class="field">
-                <input id="amount" type="number" inputmode="numeric" placeholder="Ex : 5000" min="100" max="50000">
+                <input id="amount" type="number" inputmode="numeric" placeholder="Montant (FCFA)" min="100" max="50000">
             </div>
 
-            <label>Votre numéro</label>
             <div class="field">
                 <span class="prefix">🇸🇳 +221</span>
-                <input id="phone" type="tel" inputmode="numeric" placeholder="7X XXX XX XX" maxlength="9">
+                <input id="phone" type="tel" inputmode="numeric" placeholder="Votre numéro" maxlength="9">
             </div>
 
             <div class="summary">
