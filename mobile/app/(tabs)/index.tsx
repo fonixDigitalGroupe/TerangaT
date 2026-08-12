@@ -87,6 +87,7 @@ function AmountField({
   onFocus,
   onBlur,
   error,
+  boxStyle,
 }: {
   label: string;
   value: string;
@@ -95,10 +96,11 @@ function AmountField({
   onFocus: () => void;
   onBlur: () => void;
   error?: boolean;
+  boxStyle?: object;
 }) {
   const showLabel = value.length > 0;
   return (
-    <View style={[styles.fieldBox, focused && styles.fieldBoxFocused, error && styles.fieldBoxError]}>
+    <View style={[styles.fieldBox, boxStyle, focused && styles.fieldBoxFocused, error && styles.fieldBoxError]}>
       {showLabel && <Text style={styles.fieldFloatLabel}>{label}</Text>}
       <TextInput
         style={[styles.fieldInput, { outlineStyle: 'none' } as object]}
@@ -336,26 +338,28 @@ export default function TransfertScreen() {
               <Text style={{ fontSize: 18 }}>🇸🇳</Text>
             </View>
 
-            {/* Montant */}
-            <AmountField
-              label={operationType === 'depot' ? 'Montant à transférer' : 'Espèces à remettre au client'}
-              value={amount}
-              onChangeText={handleAmountChange}
-              focused={focusedField === 'amount'}
-              error={fieldErrors.amount}
-              onFocus={() => setFocusedField('amount')}
-              onBlur={() => setFocusedField(null)}
-            />
-
-            {/* Montant reçu (espèces) — synchronisé avec le montant */}
-            <AmountField
-              label={operationType === 'depot' ? 'Montant reçu (espèces)' : 'Le client paiera'}
-              value={received}
-              onChangeText={handleReceivedChange}
-              focused={focusedField === 'received'}
-              onFocus={() => setFocusedField('received')}
-              onBlur={() => setFocusedField(null)}
-            />
+            {/* Montant + Montant reçu, sur la même ligne (collés) */}
+            <View style={{ flexDirection: 'row' }}>
+              <AmountField
+                label={operationType === 'depot' ? 'Montant à transférer' : 'Espèces à remettre'}
+                value={amount}
+                onChangeText={handleAmountChange}
+                focused={focusedField === 'amount'}
+                error={fieldErrors.amount}
+                onFocus={() => setFocusedField('amount')}
+                onBlur={() => setFocusedField(null)}
+                boxStyle={{ flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+              />
+              <AmountField
+                label={operationType === 'depot' ? 'Montant reçu' : 'Le client paiera'}
+                value={received}
+                onChangeText={handleReceivedChange}
+                focused={focusedField === 'received'}
+                onFocus={() => setFocusedField('received')}
+                onBlur={() => setFocusedField(null)}
+                boxStyle={{ flex: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeftWidth: 0 }}
+              />
+            </View>
 
             {/* Résumé de l'opération */}
             <View style={styles.summaryCard}>
