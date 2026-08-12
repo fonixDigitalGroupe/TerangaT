@@ -28,6 +28,27 @@
             border-right:2px solid var(--muted); border-bottom:2px solid var(--muted);
             transform:translateY(-70%) rotate(45deg); pointer-events:none;
         }
+        /* Dropdown opérateur avec logo (façon app) */
+        .dd { position:relative; }
+        .dd-btn {
+            display:flex; align-items:center; width:100%; height:52px; border:1px solid var(--border);
+            background:#fff; border-radius:10px; padding:0 42px 0 12px; cursor:pointer; position:relative;
+        }
+        .dd-btn::after {
+            content:''; position:absolute; right:16px; top:50%; width:9px; height:9px;
+            border-right:2px solid var(--muted); border-bottom:2px solid var(--muted);
+            transform:translateY(-70%) rotate(45deg);
+        }
+        .dd-btn img, .dd-item img { width:28px; height:28px; border-radius:14px; object-fit:cover; }
+        .dd-btn .nm, .dd-item .nm { font-size:15px; font-weight:600; color:var(--navy); margin-left:10px; }
+        .dd-menu {
+            position:absolute; left:0; right:0; top:58px; background:#fff; border:1px solid var(--border);
+            border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12); overflow:hidden; z-index:10; display:none;
+        }
+        .dd-menu.open { display:block; }
+        .dd-item { display:flex; align-items:center; padding:12px; cursor:pointer; }
+        .dd-item:hover { background:#f4f6f9; }
+        .dd-item + .dd-item { border-top:1px solid #eef1f5; }
         .field { display:flex; align-items:center; border:1px solid var(--border); border-radius:10px; overflow:hidden; height:52px; background:#fff; }
         .field .prefix { display:flex; align-items:center; gap:6px; align-self:stretch; padding:0 12px; background:#f4f6f9; border-right:1px solid var(--border); font-size:15px; }
         .field input { flex:1; border:0; outline:0; font-size:16px; padding:0 14px; background:transparent; color:var(--navy); width:100%; }
@@ -63,11 +84,19 @@
             </div>
 
             <label>Opérateur</label>
-            <div class="select">
-                <select id="opSel">
-                    <option value="wave">Wave</option>
-                    <option value="orange-money">Orange Money</option>
-                </select>
+            <div class="dd" id="opDd">
+                <div class="dd-btn" id="opBtn">
+                    <img id="opBtnLogo" src="{{ asset('images/logo-wave.png') }}" alt="">
+                    <span class="nm" id="opBtnName">Wave</span>
+                </div>
+                <div class="dd-menu" id="opMenu">
+                    <div class="dd-item" data-v="wave" data-name="Wave" data-logo="{{ asset('images/logo-wave.png') }}">
+                        <img src="{{ asset('images/logo-wave.png') }}" alt=""><span class="nm">Wave</span>
+                    </div>
+                    <div class="dd-item" data-v="orange-money" data-name="Orange Money" data-logo="{{ asset('images/logo-om.png') }}">
+                        <img src="{{ asset('images/logo-om.png') }}" alt=""><span class="nm">Orange Money</span>
+                    </div>
+                </div>
             </div>
 
             <label>Montant (FCFA)</label>
@@ -101,8 +130,7 @@
         const CSRF = document.querySelector('meta[name=csrf-token]').content;
 
         const typeSel = document.getElementById('typeSel');
-        const opSel = document.getElementById('opSel');
-        let type = typeSel.value, operator = opSel.value;
+        let type = typeSel.value, operator = 'wave';
 
         const gridFee = (n) => {
             for (const t of FEE_GRID) if (n >= t.min && n <= t.max) return t.fee;
@@ -111,7 +139,20 @@
         const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
 
         typeSel.addEventListener('change', () => { type = typeSel.value; render(); });
-        opSel.addEventListener('change', () => { operator = opSel.value; });
+
+        // Dropdown opérateur avec logo
+        const opBtn = document.getElementById('opBtn');
+        const opMenu = document.getElementById('opMenu');
+        opBtn.addEventListener('click', (e) => { e.stopPropagation(); opMenu.classList.toggle('open'); });
+        document.addEventListener('click', () => opMenu.classList.remove('open'));
+        document.querySelectorAll('#opMenu .dd-item').forEach((item) => {
+            item.addEventListener('click', () => {
+                operator = item.dataset.v;
+                document.getElementById('opBtnName').textContent = item.dataset.name;
+                document.getElementById('opBtnLogo').src = item.dataset.logo;
+                opMenu.classList.remove('open');
+            });
+        });
 
         const amountEl = document.getElementById('amount');
         const phoneEl = document.getElementById('phone');
