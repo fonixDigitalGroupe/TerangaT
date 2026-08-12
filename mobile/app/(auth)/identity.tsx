@@ -18,8 +18,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker';
 import { Alert as UiAlert } from '../../src/components/ui';
 
-const PRIMARY = '#0577DE';
-const ACCENT = '#F88B1A';
+const PRIMARY = '#1E90FF';
+const ACCENT = '#1A84D8';
 const LABEL = '#26415e';
 
 export default function IdentityScreen() {
@@ -70,17 +70,18 @@ export default function IdentityScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backCircle}>
-          <Ionicons name="arrow-back" size={22} color={ACCENT} />
+      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+        <Pressable onPress={() => router.back()} hitSlop={10}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </Pressable>
+        <Text style={styles.headerTitle}>Confirmer votre identité</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View>
-              <Text style={styles.bigTitle}>Vérifions votre identité</Text>
               <Text style={styles.hint}>Ces informations permettent de valider votre compte agent.</Text>
 
               {error && <UiAlert message={error} />}
@@ -140,10 +141,16 @@ function DocRow({ label, uri, onPress }: { label: string; uri: string | null; on
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, backgroundColor: '#f6f8fb' },
-  backCircle: { width: 40, height: 40, borderRadius: 13, backgroundColor: '#fdecd8', alignItems: 'center', justifyContent: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    backgroundColor: '#1A84D8',
+  },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
   scroll: { flexGrow: 1, padding: 22, paddingTop: 24 },
-  bigTitle: { fontSize: 21, fontWeight: '700', color: '#1b3b5c', marginBottom: 6 },
   hint: { fontSize: 14, color: '#9aa3b0', marginBottom: 22, lineHeight: 20 },
   label: { fontSize: 15, fontWeight: '600', color: LABEL, marginBottom: 9 },
   field: { height: 50, borderWidth: 1, borderColor: '#e2e6ec', borderRadius: 12, justifyContent: 'center' },
