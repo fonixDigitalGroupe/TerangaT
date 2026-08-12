@@ -53,6 +53,17 @@ const FEE_GRID: { min: number; max: number; fee: number }[] = [
   { min: 45001, max: 50000, fee: 1850 },
 ];
 
+// Numéro sénégalais formaté : 77 123 45 67 (à partir des chiffres bruts).
+const formatSnPhone = (digits: string): string => {
+  const d = digits.replace(/\D/g, '').slice(0, 9);
+  const g: string[] = [];
+  if (d.length > 0) g.push(d.slice(0, 2));
+  if (d.length > 2) g.push(d.slice(2, 5));
+  if (d.length > 5) g.push(d.slice(5, 7));
+  if (d.length > 7) g.push(d.slice(7, 9));
+  return g.join(' ');
+};
+
 // Frais selon la grille ; null si le montant est hors des bornes (1 000 – 50 000).
 const gridFee = (montantSouhaite: number): number | null =>
   FEE_GRID.find((r) => montantSouhaite >= r.min && montantSouhaite <= r.max)?.fee ?? null;
@@ -278,14 +289,14 @@ export default function TransfertScreen() {
 
             {/* Champ Mobile */}
             <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }, focusedField === 'mobile' && styles.fieldBoxFocused, fieldErrors.mobile && styles.fieldBoxError]}>
-              <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
+              <Text style={{ fontSize: 15, color: colors.text, marginLeft: 4, marginRight: 6 }}>+221</Text>
               <TextInput
-                style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
+                style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 0, backgroundColor: 'transparent' } as object]}
                 placeholder={toOp === 'wave' ? 'Numéro Wave' : 'Numéro Orange Money'}
                 placeholderTextColor="#9aa3b0"
                 keyboardType="phone-pad"
-                maxLength={9}
-                value={toNumber}
+                maxLength={12}
+                value={formatSnPhone(toNumber)}
                 onChangeText={(t) => {
                   const v = t.replace(/\D/g, '').slice(0, 9);
                   setToNumber(v);
