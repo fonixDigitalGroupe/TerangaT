@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Image,
@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { paiementsApi, dashboardApi } from '../../src/api/endpoints';
+import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -131,15 +131,6 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
   const [typePickerVisible, setTypePickerVisible] = useState(false);
-  const [balance, setBalance] = useState(user?.agent?.wallet?.balance ?? 0);
-  const [showBalance, setShowBalance] = useState(false);
-
-  useEffect(() => {
-    dashboardApi
-      .get()
-      .then((d) => setBalance(d.wallet?.balance ?? 0))
-      .catch(() => {});
-  }, []);
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -254,25 +245,6 @@ export default function TransfertScreen() {
   return (
     <View style={styles.container}>
       <AppHeader brand />
-
-      {/* Carte solde */}
-      <LinearGradient
-        colors={['#35A3E8', '#1A84D8', '#0C68C2']}
-        locations={[0, 0.55, 1]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.commCard}
-      >
-        <Text style={styles.commLabel}>Solde disponible</Text>
-        <View style={styles.commAmountRow}>
-          <Text style={styles.commAmount}>
-            {showBalance ? formatXof(balance) : '••••••• FCFA'}
-          </Text>
-          <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8}>
-            <Ionicons name={showBalance ? 'eye-off' : 'eye'} size={22} color="#fff" />
-          </Pressable>
-        </View>
-      </LinearGradient>
 
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -561,22 +533,6 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
-  commCard: {
-    borderRadius: 16,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.md,
-    marginBottom: spacing.lg,
-    shadowColor: '#0C4A8A',
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  commLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '600', marginBottom: 6 },
-  commAmountRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  commAmount: { color: colors.white, fontSize: 26, fontWeight: '800', letterSpacing: 0.5 },
   contentContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
