@@ -277,7 +277,7 @@ export default function TransfertScreen() {
         <View style={styles.commQr}>
           <QRCode
             value={agentPhone || 'TERANGA'}
-            size={68}
+            size={78}
             color="#000000"
             backgroundColor="#ffffff"
           />
@@ -565,7 +565,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+  container: { flex: 1, backgroundColor: '#f2f4f7' },
   commCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -584,9 +584,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   commQr: {
-    width: 84,
-    height: 84,
-    borderRadius: 12,
+    width: 92,
+    height: 92,
+    borderRadius: 6,
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
