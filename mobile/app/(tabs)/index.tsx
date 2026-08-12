@@ -271,9 +271,6 @@ export default function TransfertScreen() {
 
       {/* Carte compte marchand */}
       <View style={styles.acctCard}>
-        <View style={styles.acctQr}>
-          <QRCode value={agentPhone || 'TERANGA'} size={72} color="#000000" backgroundColor="#ffffff" />
-        </View>
         <View style={styles.acctInfo}>
           <Text style={styles.acctTitle}>Compte marchand</Text>
           <Text style={styles.acctCode}>{user?.agent?.code ?? '—'}</Text>
@@ -284,6 +281,9 @@ export default function TransfertScreen() {
               <Ionicons name={showBalance ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.text} />
             </Pressable>
           </View>
+        </View>
+        <View style={styles.acctQr}>
+          <QRCode value={agentPhone || 'TERANGA'} size={72} color="#000000" backgroundColor="#ffffff" />
         </View>
       </View>
 
@@ -571,7 +571,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eef1f5' },
+  container: { flex: 1, backgroundColor: '#ffffff' },
   acctCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -582,10 +582,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     padding: spacing.md,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   acctQr: {
     width: 84,
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  acctInfo: { flex: 1, marginLeft: spacing.md },
+  acctInfo: { flex: 1, marginRight: spacing.md },
   acctTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
   acctCode: { fontSize: 13, color: colors.textMuted, letterSpacing: 0.5, marginTop: 2, marginBottom: spacing.sm },
   acctRow: { flexDirection: 'row', alignItems: 'center' },
