@@ -57,8 +57,8 @@
         .summary .row:last-child { margin-bottom:0; }
         .summary .row .v { color:var(--navy); font-weight:600; }
         .summary .row.total .v { color:var(--blue); font-size:16px; }
-        .cta { width:100%; height:54px; border:0; border-radius:12px; background:var(--blue); color:#fff; font-size:17px; font-weight:700; margin-top:20px; cursor:pointer; }
-        .cta:disabled { background:#9cc4ea; }
+        .cta { width:100%; height:54px; border:0; border-radius:12px; background:#F88B1A; color:#fff; font-size:17px; font-weight:700; margin-top:20px; cursor:pointer; }
+        .cta:disabled { background:#f6c58a; }
         .msg { margin-top:14px; padding:12px 14px; border-radius:10px; font-size:14px; line-height:20px; display:none; }
         .msg.err { background:#fdecea; color:#c0392b; }
         .msg.ok { background:#e8f6ef; color:#1e8e5a; }
