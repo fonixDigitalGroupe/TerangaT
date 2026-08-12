@@ -335,28 +335,6 @@ export default function TransfertScreen() {
               onBlur={() => setFocusedField(null)}
             />
 
-            {/* Résumé Dynamique */}
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Résumé de l'opération</Text>
-
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Frais :</Text>
-                <Text style={styles.summaryValue}>{formatXof(calc.frais)}</Text>
-              </View>
-
-              {operationType === 'depot' ? (
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Débit :</Text>
-                  <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
-                </View>
-              ) : (
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Crédit :</Text>
-                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
-                </View>
-              )}
-            </View>
-
             <Pressable
               onPress={onSend}
               disabled={!canSend}
