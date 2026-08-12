@@ -1,29 +1,40 @@
-import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import QRCode from 'react-native-qrcode-svg';
+import { useAuth } from '../../src/auth/AuthContext';
+import { API_BASE_URL } from '../../src/api/config';
 import { colors, font, spacing } from '../../src/theme';
 
+const WEB_BASE = API_BASE_URL.replace(/\/api\/?$/, '');
+
 export default function QrCodesScreen() {
+  const { user } = useAuth();
+  const code = user?.agent?.code ?? '';
+  const payUrl = code ? `${WEB_BASE}/pay/${code}` : '';
+
+  const onShare = () => {
+    if (!payUrl) return;
+    void Share.share({ message: `Payez ${user?.agent?.shop_name ?? 'mon commerce'} via Téranga : ${payUrl}` });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.qrWrapper}>
         <View style={styles.qrInner}>
-          {/* Simulated QR Code using API */}
-          <Image 
-            source={{ uri: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=teranga-pay-merchant' }}
-            style={styles.qrImage}
-          />
-          {/* Center logo overlay */}
-          <View style={styles.qrCenterLogo}>
-            <Text style={styles.logoText}>
-              <Text style={styles.logoT}>Té</Text>ranga
-            </Text>
-          </View>
+          {payUrl ? (
+            <QRCode value={payUrl} size={240} backgroundColor="#fff" color={'#1a2233'} />
+          ) : (
+            <Text style={styles.noCode}>Code marchand indisponible.</Text>
+          )}
         </View>
       </View>
 
-      <Pressable style={styles.orderBtn}>
-        <Text style={styles.orderBtnText}>Commander étiquette</Text>
-        <Ionicons name="qr-code-outline" size={20} color={colors.blue} />
+      {code ? <Text style={styles.code}>{code}</Text> : null}
+      <Text style={styles.hint}>Le client scanne ce QR pour payer votre commerce.</Text>
+
+      <Pressable style={styles.orderBtn} onPress={onShare}>
+        <Text style={styles.orderBtnText}>Partager le lien</Text>
+        <Ionicons name="share-outline" size={20} color={colors.blue} />
       </Pressable>
     </View>
   );
@@ -32,39 +43,18 @@ export default function QrCodesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white, padding: spacing.xl, alignItems: 'center' },
   qrWrapper: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 32,
+    borderRadius: 24,
     borderWidth: 2,
-    borderColor: '#E8F5F3', // Light tint for border
-    padding: spacing.md,
-    marginBottom: spacing.xl,
+    borderColor: '#E8F5F3',
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  qrInner: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qrImage: { width: '100%', height: '100%' },
-  qrCenterLogo: {
-    position: 'absolute',
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoText: { fontFamily: 'Quicksand_700Bold', fontSize: 14, color: colors.blue },
-  logoT: { color: colors.orange },
+  qrInner: { alignItems: 'center', justifyContent: 'center' },
+  noCode: { color: colors.textMuted, fontSize: font.md, textAlign: 'center', width: 240 },
+  code: { fontSize: 20, fontWeight: '800', color: '#1a2233', letterSpacing: 1 },
+  hint: { fontSize: 13, color: colors.textMuted, marginTop: 6, marginBottom: spacing.xl, textAlign: 'center' },
   orderBtn: {
     flexDirection: 'row',
     alignItems: 'center',

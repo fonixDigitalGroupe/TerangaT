@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, font, spacing } from '../theme';
 import type { Transaction } from '../types';
@@ -48,10 +49,28 @@ const STATUS_LABEL: Record<StatusKind, string> = {
   failed: 'Échoué',
 };
 
-export function TransactionRow({ tx }: { tx: Transaction }) {
+export function TransactionRow({
+  tx,
+  onConfirm,
+}: {
+  tx: Transaction;
+  onConfirm?: (tx: Transaction) => Promise<void>;
+}) {
   const router = useRouter();
   const isDeposit = tx.type === 'dépôt';
   const kind = statusKind(tx.status);
+  const needsConfirm = (tx.status ?? '').toLowerCase() === 'à confirmer';
+  const [confirming, setConfirming] = useState(false);
+
+  const handleConfirm = async () => {
+    if (!onConfirm || confirming) return;
+    setConfirming(true);
+    try {
+      await onConfirm(tx);
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   // Dépôt = wallet marchand débité (négatif, rouge) ; Retrait = crédité (positif, sombre).
   const sign = isDeposit ? '-' : '';
@@ -73,21 +92,37 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
         </Text>
         <Text style={styles.sub} numberOfLines={1}>
           {formatDateTime(tx.created_at)}
-          {statusLabel ? (
+          {needsConfirm ? (
+            <Text style={{ color: colors.orange, fontWeight: '600' }}> · À confirmer</Text>
+          ) : statusLabel ? (
             <Text style={{ color: statusColor, fontWeight: '600' }}> · {statusLabel}</Text>
           ) : null}
         </Text>
       </View>
-      <Text
-        style={[
-          styles.amount,
-          { color: amountColor },
-          kind === 'failed' && styles.amountFailed,
-        ]}
-      >
-        {sign}
-        {formatF(tx.amount)}
-      </Text>
+      {needsConfirm && onConfirm ? (
+        <Pressable
+          onPress={handleConfirm}
+          disabled={confirming}
+          style={({ pressed }) => [styles.confirmBtn, pressed && { opacity: 0.85 }]}
+        >
+          {confirming ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.confirmText}>Confirmer</Text>
+          )}
+        </Pressable>
+      ) : (
+        <Text
+          style={[
+            styles.amount,
+            { color: amountColor },
+            kind === 'failed' && styles.amountFailed,
+          ]}
+        >
+          {sign}
+          {formatF(tx.amount)}
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -103,4 +138,14 @@ const styles = StyleSheet.create({
   sub: { fontSize: font.xs, color: colors.textMuted, marginTop: 2 },
   amount: { fontSize: font.sm, fontWeight: '600' },
   amountFailed: { textDecorationLine: 'line-through' },
+  confirmBtn: {
+    backgroundColor: colors.blue,
+    paddingHorizontal: 14,
+    height: 34,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 92,
+  },
+  confirmText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 });

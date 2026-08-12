@@ -118,6 +118,11 @@ export const paiementsApi = {
     const { data } = await api.post<PaiementResponse>('/paiements/transfert', payload);
     return data;
   },
+  // Le marchand confirme un dépôt web « à confirmer » (il a reçu les espèces).
+  async confirmerDepot(transactionId: number): Promise<PaiementResponse> {
+    const { data } = await api.post<PaiementResponse>(`/paiements/${transactionId}/confirmer`, {});
+    return data;
+  },
 };
 
 export const agentApi = {

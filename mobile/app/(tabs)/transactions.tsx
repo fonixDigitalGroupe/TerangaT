@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { transactionsApi } from '../../src/api/endpoints';
+import { transactionsApi, paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -60,6 +60,17 @@ export default function TransactionsScreen() {
     setRefreshing(true);
     fetchPage(1, true);
   };
+
+  const onConfirmDepot = useCallback(async (tx: Transaction) => {
+    try {
+      const res = await paiementsApi.confirmerDepot(tx.id);
+      setItems((prev) =>
+        prev.map((t) => (t.id === tx.id ? { ...t, status: res.status ?? 'completed' } : t))
+      );
+    } catch (e) {
+      setError(apiErrorMessage(e, 'Confirmation impossible.'));
+    }
+  }, []);
 
   const onEndReached = () => {
     if (!loadingMore && !loading && page < lastPage) {
@@ -130,7 +141,7 @@ export default function TransactionsScreen() {
               data={filtered}
               keyExtractor={(item) => String(item.id)}
               contentContainerStyle={styles.list}
-              renderItem={({ item }) => <TransactionRow tx={item} />}
+              renderItem={({ item }) => <TransactionRow tx={item} onConfirm={onConfirmDepot} />}
               ItemSeparatorComponent={() => <View style={styles.divider} />}
               refreshing={refreshing}
               onRefresh={onRefresh}
