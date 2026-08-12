@@ -130,13 +130,13 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
   const [typePickerVisible, setTypePickerVisible] = useState(false);
-  const [totalCommission, setTotalCommission] = useState(0);
-  const [showCommission, setShowCommission] = useState(false);
+  const [balance, setBalance] = useState(user?.agent?.wallet?.balance ?? 0);
+  const [showBalance, setShowBalance] = useState(false);
 
   useEffect(() => {
     dashboardApi
       .get()
-      .then((d) => setTotalCommission(d.stats?.total_commission ?? 0))
+      .then((d) => setBalance(d.wallet?.balance ?? 0))
       .catch(() => {});
   }, []);
 
@@ -263,13 +263,13 @@ export default function TransfertScreen() {
         style={styles.commCard}
       >
         <View style={{ flex: 1 }}>
-          <Text style={styles.commLabel}>Mes commissions</Text>
+          <Text style={styles.commLabel}>Solde</Text>
           <View style={styles.commAmountRow}>
             <Text style={styles.commAmount}>
-              {showCommission ? formatXof(totalCommission) : '••••••• FCFA'}
+              {showBalance ? formatXof(balance) : '••••••• FCFA'}
             </Text>
-            <Pressable onPress={() => setShowCommission((v) => !v)} hitSlop={8}>
-              <Ionicons name={showCommission ? 'eye-off' : 'eye'} size={20} color="#fff" />
+            <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8}>
+              <Ionicons name={showBalance ? 'eye-off' : 'eye'} size={20} color="#fff" />
             </Pressable>
           </View>
           <Text style={styles.commTagline}>Ñooko Bokk !</Text>
