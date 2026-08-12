@@ -533,9 +533,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
   contentContainer: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#eef1f5',
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.lg },
+  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.lg },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -588,6 +588,13 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: spacing.lg,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   fieldBox: {
     backgroundColor: colors.white,
