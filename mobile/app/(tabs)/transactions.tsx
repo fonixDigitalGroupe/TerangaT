@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -11,19 +10,15 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { transactionsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
-import { TransactionRow, formatF } from '../../src/components/TransactionRow';
+import { TransactionRow } from '../../src/components/TransactionRow';
 import { colors, spacing } from '../../src/theme';
 import type { Transaction } from '../../src/types';
 
 type TypeFilter = 'all' | 'depot' | 'retrait';
-
-const fmtDate = (d: Date) =>
-  `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
 export default function TransactionsScreen() {
   const [items, setItems] = useState<Transaction[]>([]);
@@ -37,16 +32,6 @@ export default function TransactionsScreen() {
   // Filtres
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-  // Par défaut : du premier au dernier jour du mois courant.
-  const [dateStart, setDateStart] = useState<Date | null>(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth(), 1);
-  });
-  const [dateEnd, setDateEnd] = useState<Date | null>(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth() + 1, 0);
-  });
-  const [pickerFor, setPickerFor] = useState<'start' | 'end' | null>(null);
 
   const fetchPage = useCallback(async (targetPage: number, replace: boolean) => {
     try {
@@ -85,9 +70,6 @@ export default function TransactionsScreen() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const start = dateStart ? new Date(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0) : null;
-    const end = dateEnd ? new Date(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 23, 59, 59) : null;
-
     return items.filter((tx) => {
       if (typeFilter !== 'all') {
         const wanted = typeFilter === 'depot' ? 'dépôt' : 'retrait';
@@ -97,27 +79,9 @@ export default function TransactionsScreen() {
         const hay = `${tx.client_phone ?? ''} ${tx.reference ?? ''}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
-      if (start || end) {
-        const d = new Date(tx.created_at);
-        if (start && d < start) return false;
-        if (end && d > end) return false;
-      }
       return true;
     });
-  }, [items, search, typeFilter, dateStart, dateEnd]);
-
-  const hasDateFilter = dateStart || dateEnd;
-
-  // Total des commissions marchand (50 F par transaction réussie) sur le filtre courant.
-  const totalCommission = useMemo(
-    () =>
-      filtered.reduce((sum, tx) => {
-        const s = (tx.status ?? '').toLowerCase();
-        const done = ['completed', 'réussi', 'reussi', 'terminé', 'termine', 'success', 'payé', 'paye'].includes(s);
-        return done ? sum + (tx.commission ?? 0) : sum;
-      }, 0),
-    [filtered]
-  );
+  }, [items, search, typeFilter]);
 
   return (
     <View style={styles.container}>
@@ -156,29 +120,6 @@ export default function TransactionsScreen() {
           ))}
         </View>
 
-        {/* Période */}
-        <View style={styles.dateRow}>
-          <Pressable style={styles.dateBtn} onPress={() => setPickerFor('start')}>
-            <Ionicons name="calendar-outline" size={15} color={colors.textMuted} />
-            <Text style={styles.dateText}>{dateStart ? fmtDate(dateStart) : 'Date début'}</Text>
-          </Pressable>
-          <Pressable style={styles.dateBtn} onPress={() => setPickerFor('end')}>
-            <Ionicons name="calendar-outline" size={15} color={colors.textMuted} />
-            <Text style={styles.dateText}>{dateEnd ? fmtDate(dateEnd) : 'Date fin'}</Text>
-          </Pressable>
-          {hasDateFilter && (
-            <Pressable onPress={() => { setDateStart(null); setDateEnd(null); }} hitSlop={8}>
-              <Ionicons name="close-circle" size={20} color={colors.textMuted} />
-            </Pressable>
-          )}
-        </View>
-
-        {/* Total des commissions gagnées */}
-        <View style={styles.commissionBar}>
-          <Text style={styles.commissionLabel}>Commissions gagnées</Text>
-          <Text style={styles.commissionValue}>{formatF(totalCommission)}</Text>
-        </View>
-
         {error && <View style={{ marginBottom: spacing.sm }}><Alert message={error} /></View>}
 
         {loading ? (
@@ -203,28 +144,13 @@ export default function TransactionsScreen() {
           </View>
         )}
       </View>
-
-      {pickerFor && (
-        <DateTimePicker
-          value={(pickerFor === 'start' ? dateStart : dateEnd) ?? new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_e, d) => {
-            setPickerFor(null);
-            if (d) {
-              if (pickerFor === 'start') setDateStart(d);
-              else setDateEnd(d);
-            }
-          }}
-        />
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#d3d9e2' },
-  grayArea: { flex: 1, backgroundColor: '#d3d9e2', padding: spacing.sm },
+  container: { flex: 1, backgroundColor: '#eef1f5' },
+  grayArea: { flex: 1, backgroundColor: '#eef1f5', padding: spacing.md },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -236,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   searchInput: { flex: 1, fontSize: 15, color: colors.text },
-  chipsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  chipsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   chip: {
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
@@ -248,32 +174,6 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.blue, borderColor: colors.blue },
   chipText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
   chipTextActive: { color: colors.white },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
-  dateBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.white,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    height: 40,
-  },
-  dateText: { fontSize: 13, color: colors.text },
-  commissionBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.blue,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  commissionLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)' },
-  commissionValue: { fontSize: 16, fontWeight: '800', color: colors.white },
   card: {
     flex: 1,
     backgroundColor: colors.white,
