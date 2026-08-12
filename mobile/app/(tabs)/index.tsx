@@ -258,7 +258,7 @@ export default function TransfertScreen() {
 
       {/* Carte commissions */}
       <LinearGradient
-        colors={['#35A3E8', '#1A84D8', '#0C68C2']}
+        colors={['#FFA83D', '#F97316', '#E85D04']}
         locations={[0, 0.55, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
