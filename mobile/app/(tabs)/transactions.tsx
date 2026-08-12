@@ -16,7 +16,7 @@ import { transactionsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
-import { TransactionRow } from '../../src/components/TransactionRow';
+import { TransactionRow, formatF } from '../../src/components/TransactionRow';
 import { colors, spacing } from '../../src/theme';
 import type { Transaction } from '../../src/types';
 
@@ -108,6 +108,17 @@ export default function TransactionsScreen() {
 
   const hasDateFilter = dateStart || dateEnd;
 
+  // Total des commissions marchand (50 F par transaction réussie) sur le filtre courant.
+  const totalCommission = useMemo(
+    () =>
+      filtered.reduce((sum, tx) => {
+        const s = (tx.status ?? '').toLowerCase();
+        const done = ['completed', 'réussi', 'reussi', 'terminé', 'termine', 'success', 'payé', 'paye'].includes(s);
+        return done ? sum + (tx.commission ?? 0) : sum;
+      }, 0),
+    [filtered]
+  );
+
   return (
     <View style={styles.container}>
       <AppHeader title="Historique" />
@@ -160,6 +171,12 @@ export default function TransactionsScreen() {
               <Ionicons name="close-circle" size={20} color={colors.textMuted} />
             </Pressable>
           )}
+        </View>
+
+        {/* Total des commissions gagnées */}
+        <View style={styles.commissionBar}>
+          <Text style={styles.commissionLabel}>Commissions gagnées</Text>
+          <Text style={styles.commissionValue}>{formatF(totalCommission)}</Text>
         </View>
 
         {error && <View style={{ marginBottom: spacing.sm }}><Alert message={error} /></View>}
@@ -245,6 +262,18 @@ const styles = StyleSheet.create({
     height: 40,
   },
   dateText: { fontSize: 13, color: colors.text },
+  commissionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.blue,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  commissionLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)' },
+  commissionValue: { fontSize: 16, fontWeight: '800', color: colors.white },
   card: {
     flex: 1,
     backgroundColor: colors.white,
