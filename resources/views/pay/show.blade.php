@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Payer {{ $merchant }} — Téranga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
     <style>
         :root { --blue:#1A84D8; --navy:#1a2233; --gray:#eef1f5; --border:#e2e6ec; --muted:#8a93a3; }
         * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#fff; color:var(--navy); }
         .header { background:var(--blue); color:#fff; padding:22px 18px 22px; border-radius:0 0 22px 22px; }
-        .header .brand { font-size:13px; opacity:.85; letter-spacing:1px; text-transform:uppercase; }
-        .header .shop { font-size:22px; font-weight:800; margin-top:4px; }
+        .brand-logo { display:inline-block; }
+        .brand-logo .script { font-family:'Kaushan Script', cursive; font-size:30px; line-height:32px; color:#fff; }
+        .brand-logo .sub { display:block; font-size:9px; font-weight:800; letter-spacing:1.2px; color:rgba(255,255,255,.85); margin-top:-2px; margin-left:2px; }
+        .header .shop { font-size:20px; font-weight:800; margin-top:12px; }
         .wrap { max-width:440px; margin:0 auto; padding:18px; }
         .card { background:transparent; border:0; border-radius:0; padding:4px 0 0; }
         label { display:block; font-size:14px; font-weight:600; color:#26415e; margin:16px 0 8px; }
@@ -68,7 +73,10 @@
 <body>
     <div class="header">
         <div class="wrap" style="padding-bottom:0;">
-            <div class="brand">Téranga Transfert</div>
+            <div class="brand-logo">
+                <span class="script">Téranga</span>
+                <span class="sub">TRANSFERT</span>
+            </div>
             <div class="shop">{{ $merchant }}</div>
         </div>
     </div>
