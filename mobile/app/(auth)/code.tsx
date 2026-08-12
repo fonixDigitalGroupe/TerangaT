@@ -107,7 +107,7 @@ export default function CodeScreen() {
             <Text style={styles.phone}>+221 {maskPhone(phone)}</Text> pour valider votre compte.
           </Text>
 
-          {dev_code ? <Text style={styles.devHint}>🔧 Mode test — code : {dev_code}</Text> : null}
+          {dev_code ? <Text style={styles.devHint}>{dev_code}</Text> : null}
 
           {/* Cases OTP (clavier système) */}
           <Pressable style={styles.otpRow} onPress={() => inputRef.current?.focus()}>
