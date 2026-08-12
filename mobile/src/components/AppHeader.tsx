@@ -30,8 +30,10 @@ export function AppHeader({ title, brand }: { title?: string; brand?: boolean })
         </Pressable>
         {brand ? (
           <View style={styles.brandWrap}>
-            <Text style={styles.brandScript}>Téranga</Text>
-            <Text style={styles.brandSub}>TRANSFERT</Text>
+            <View>
+              <Text style={styles.brandScript}>Téranga</Text>
+              <Text style={styles.brandSub}>TRANSFERT</Text>
+            </View>
           </View>
         ) : (
           <Text style={styles.headerTitle}>{title}</Text>
@@ -103,16 +105,17 @@ const styles = StyleSheet.create({
   brandWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   brandScript: {
     color: colors.text,
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'KaushanScript_400Regular',
-    lineHeight: 28,
+    lineHeight: 32,
   },
   brandSub: {
     color: colors.textMuted,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1.2,
-    marginTop: -2,
+    marginTop: -3,
+    alignSelf: 'flex-start',
   },
   roundBtn: {
     width: 40,
