@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Image,
   InputAccessoryView,
@@ -17,7 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { paiementsApi } from '../../src/api/endpoints';
+import { paiementsApi, dashboardApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -127,6 +128,15 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
   const [typePickerVisible, setTypePickerVisible] = useState(false);
+  const [totalCommission, setTotalCommission] = useState(0);
+  const [showCommission, setShowCommission] = useState(false);
+
+  useEffect(() => {
+    dashboardApi
+      .get()
+      .then((d) => setTotalCommission(d.stats?.total_commission ?? 0))
+      .catch(() => {});
+  }, []);
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -232,6 +242,30 @@ export default function TransfertScreen() {
   return (
     <View style={styles.container}>
       <AppHeader title="Téranga Transfert" />
+
+      {/* Carte commissions */}
+      <LinearGradient
+        colors={['#2b93ff', '#1573d6']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.commCard}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.commLabel}>Mes commissions</Text>
+          <View style={styles.commAmountRow}>
+            <Text style={styles.commAmount}>
+              {showCommission ? formatXof(totalCommission) : '••••••• FCFA'}
+            </Text>
+            <Pressable onPress={() => setShowCommission((v) => !v)} hitSlop={8}>
+              <Ionicons name={showCommission ? 'eye-off' : 'eye'} size={20} color="#fff" />
+            </Pressable>
+          </View>
+          <Text style={styles.commTagline}>Ñooko Bokk !</Text>
+        </View>
+        <View style={styles.commQr}>
+          <Ionicons name="qr-code" size={64} color="#1573d6" />
+        </View>
+      </LinearGradient>
 
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -514,6 +548,32 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white },
+  commCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+  },
+  commLabel: { color: colors.white, fontSize: 16, fontWeight: '700', marginBottom: spacing.sm },
+  commAmountRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  commAmount: { color: colors.white, fontSize: 18, fontWeight: '700', letterSpacing: 1 },
+  commTagline: {
+    color: colors.white,
+    fontSize: 22,
+    fontFamily: 'KaushanScript_400Regular',
+    marginTop: spacing.md,
+  },
+  commQr: {
+    width: 84,
+    height: 84,
+    borderRadius: 12,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.md,
+  },
   contentContainer: {
     flex: 1,
     backgroundColor: '#d3d9e2',
