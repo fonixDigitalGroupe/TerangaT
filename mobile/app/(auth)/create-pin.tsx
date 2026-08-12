@@ -144,7 +144,7 @@ export default function CreatePinScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#eef1f5' },
+  safe: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,12 +156,8 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e8ecf2',
-    paddingHorizontal: 20,
-    paddingVertical: 26,
+    paddingHorizontal: 8,
+    paddingTop: 26,
     alignItems: 'center',
   },
   title: { fontSize: 22, fontWeight: '800', color: NAVY, textAlign: 'center' },
