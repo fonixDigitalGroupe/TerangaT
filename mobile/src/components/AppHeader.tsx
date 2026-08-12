@@ -6,8 +6,6 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../auth/AuthContext';
 import { colors, spacing } from '../theme';
 
-const HEADER_BLUE = '#1E90FF';
-
 const MENU_ITEMS: { icon: string; title: string; route: string }[] = [
   { icon: 'qr-code-outline', title: 'QR Codes', route: '/settings/qr-codes' },
   { icon: 'storefront-outline', title: 'Commerce', route: '/settings/commerce' },
@@ -28,11 +26,11 @@ export function AppHeader({ title }: { title: string }) {
     <>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + spacing.sm }]}>
         <Pressable hitSlop={8} onPress={() => setMenuVisible(true)}>
-          <Ionicons name="menu" size={28} color={colors.white} />
+          <Ionicons name="menu" size={28} color={colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{title}</Text>
         <Pressable style={styles.roundBtn} hitSlop={6}>
-          <Ionicons name="notifications" size={20} color={colors.white} />
+          <Ionicons name="notifications" size={20} color={colors.text} />
         </Pressable>
       </View>
 
@@ -82,24 +80,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    backgroundColor: HEADER_BLUE,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
-    color: colors.white,
+    color: colors.text,
     marginHorizontal: spacing.sm,
   },
   roundBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#eef1f5',
     alignItems: 'center',
     justifyContent: 'center',
   },
