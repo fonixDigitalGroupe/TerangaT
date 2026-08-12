@@ -26,7 +26,7 @@ export function AppHeader({ title, brand }: { title?: string; brand?: boolean })
     <>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + spacing.sm }]}>
         <Pressable hitSlop={8} onPress={() => setMenuVisible(true)}>
-          <Ionicons name="menu" size={28} color={colors.text} />
+          <Ionicons name="menu" size={28} color={colors.white} />
         </Pressable>
         {brand ? (
           <View style={styles.brandWrap}>
@@ -39,7 +39,7 @@ export function AppHeader({ title, brand }: { title?: string; brand?: boolean })
           <Text style={styles.headerTitle}>{title}</Text>
         )}
         <Pressable style={styles.roundBtn} hitSlop={6}>
-          <Ionicons name="notifications" size={20} color={colors.text} />
+          <Ionicons name="notifications" size={20} color={colors.white} />
         </Pressable>
       </View>
 
@@ -90,27 +90,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#1A84D8',
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
     marginHorizontal: spacing.sm,
   },
   brandWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   brandScript: {
-    color: '#1A84D8',
+    color: colors.white,
     fontSize: 28,
     fontFamily: 'KaushanScript_400Regular',
     lineHeight: 32,
   },
   brandSub: {
-    color: colors.textMuted,
+    color: 'rgba(255,255,255,0.85)',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -122,7 +120,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#eef1f5',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
