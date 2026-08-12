@@ -226,6 +226,53 @@ class PaymentController extends Controller
     }
 
     /**
+     * Le marchand confirme un DÉPÔT web « à confirmer » : il a reçu les espèces
+     * du client, on crédite donc le client (déboursement) et son wallet est débité.
+     */
+    public function confirmerDepot(Request $request, Transaction $transaction)
+    {
+        $agent = $request->user()->agent;
+        if (! $agent || $transaction->agent_id !== $agent->id) {
+            return response()->json(['message' => 'Transaction introuvable.'], 404);
+        }
+        if ($transaction->status !== 'à confirmer') {
+            return response()->json(['message' => 'Cette transaction n\'est pas en attente de confirmation.'], 422);
+        }
+
+        if (config('paydunya.mock')) {
+            $transaction->update(['status' => 'completed']);
+            return response()->json(['message' => 'Dépôt confirmé (mode test).', 'status' => 'completed']);
+        }
+
+        $mode = self::OPERATORS[$transaction->operator]['mode'] ?? 'wave-senegal';
+        $disb = $this->paydunya->disburse(
+            $transaction->client_phone,
+            (int) $transaction->amount,
+            $mode,
+            $transaction->reference
+        );
+
+        if ($disb['ok']) {
+            $status = ($disb['status'] ?? null) === 'pending' ? 'en attente' : 'completed';
+        } else {
+            // Le marchand a encaissé le cash mais le reversement au client a échoué
+            // (ex. solde PayDunya insuffisant) : à relancer.
+            $status = 'à reverser';
+        }
+
+        $transaction->update([
+            'status'       => $status,
+            'disburse_ref' => data_get($disb, 'raw.provider_ref') ?? data_get($disb, 'raw.transaction_id'),
+        ]);
+
+        return response()->json([
+            'message'   => $disb['ok'] ? 'Dépôt confirmé et client crédité.' : ($disb['message'] ?? 'Reversement à relancer.'),
+            'reference' => $transaction->reference,
+            'status'    => $status,
+        ], $disb['ok'] ? 200 : 422);
+    }
+
+    /**
      * IPN : PayDunya notifie le serveur du statut final d'un paiement.
      * Route publique (pas d'auth) — PayDunya l'appelle.
      */

@@ -24,6 +24,7 @@ class Transaction extends Model
         'client_phone',
         'sender_phone',
         'status',
+        'source',
         'reference',
         'paydunya_token',
         'paydunya_ref',

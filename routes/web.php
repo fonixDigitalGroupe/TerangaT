@@ -5,6 +5,7 @@ use App\Http\Controllers\AgentAuthController;
 use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PublicPaymentController;
 
 Route::get('/', function () {
     if (! auth()->check()) {
@@ -27,6 +28,10 @@ Route::get('/paiement/annuler', fn () => response(
     'Paiement annulé. Vous pouvez retourner dans l\'application Téranga Transfert.',
     200
 ))->name('paiement.annuler');
+
+// Page de paiement publique liée au QR d'un marchand (client scanne -> paie).
+Route::get('/pay/{code}', [PublicPaymentController::class, 'show'])->name('pay.show');
+Route::post('/pay/{code}', [PublicPaymentController::class, 'store'])->name('pay.store');
 
 // Auth Routes
 Route::get('/register', [AgentAuthController::class, 'showRegister'])->name('register');

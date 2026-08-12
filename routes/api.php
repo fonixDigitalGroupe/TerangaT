@@ -43,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/paiements/retrait', [PaymentController::class, 'retrait']);
         Route::post('/paiements/depot', [PaymentController::class, 'depot']);
         Route::post('/paiements/transfert', [PaymentController::class, 'transfert']);
+        // Confirmation d'un dépôt web « à confirmer » par le marchand.
+        Route::post('/paiements/{transaction}/confirmer', [PaymentController::class, 'confirmerDepot']);
 
         // KYC : soumission des pièces d'identité
         Route::post('/agent/kyc', [AgentController::class, 'uploadKyc']);
