@@ -252,7 +252,7 @@ export default function TransfertScreen() {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Téranga Transfert" />
+      <AppHeader brand />
 
       {/* Carte commissions */}
       <LinearGradient

@@ -15,8 +15,8 @@ const MENU_ITEMS: { icon: string; title: string; route: string }[] = [
   { icon: 'document-text-outline', title: 'Termes & Conditions', route: '/settings/terms' },
 ];
 
-/** En-tête bleu commun (hamburger + titre centré + cloche) avec menu latéral. */
-export function AppHeader({ title }: { title: string }) {
+/** En-tête commun (hamburger + titre/logo centré + cloche) avec menu latéral. */
+export function AppHeader({ title, brand }: { title?: string; brand?: boolean }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { logout } = useAuth();
@@ -28,7 +28,14 @@ export function AppHeader({ title }: { title: string }) {
         <Pressable hitSlop={8} onPress={() => setMenuVisible(true)}>
           <Ionicons name="menu" size={28} color={colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>{title}</Text>
+        {brand ? (
+          <View style={styles.brandWrap}>
+            <Text style={styles.brandScript}>Téranga</Text>
+            <Text style={styles.brandSub}>TRANSFERT</Text>
+          </View>
+        ) : (
+          <Text style={styles.headerTitle}>{title}</Text>
+        )}
         <Pressable style={styles.roundBtn} hitSlop={6}>
           <Ionicons name="notifications" size={20} color={colors.text} />
         </Pressable>
@@ -92,6 +99,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
     marginHorizontal: spacing.sm,
+  },
+  brandWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  brandScript: {
+    color: colors.text,
+    fontSize: 24,
+    fontFamily: 'KaushanScript_400Regular',
+    lineHeight: 28,
+  },
+  brandSub: {
+    color: colors.textMuted,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginTop: -2,
   },
   roundBtn: {
     width: 40,
