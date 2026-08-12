@@ -37,7 +37,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Transférer',
+          title: 'Opération',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="bank-transfer" size={(size ?? 24) + 4} color={color} />
           ),
