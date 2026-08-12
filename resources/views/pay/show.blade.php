@@ -110,6 +110,10 @@
             </div>
 
             <div class="field">
+                <input id="amount2" type="number" inputmode="numeric" placeholder="Espèces à remettre">
+            </div>
+
+            <div class="field">
                 <span class="prefix">🇸🇳 +221</span>
                 <input id="phone" type="tel" inputmode="numeric" placeholder="Votre numéro" maxlength="9">
             </div>
@@ -159,13 +163,38 @@
         });
 
         const amountEl = document.getElementById('amount');
+        const amount2El = document.getElementById('amount2');
         const phoneEl = document.getElementById('phone');
-        amountEl.addEventListener('input', render);
+
+        // Espèces (montant + frais) -> retrouve le montant net via la grille inversée.
+        const netFromEspeces = (total) => {
+            for (const t of FEE_GRID) {
+                const net = total - t.fee;
+                if (net >= t.min && net <= t.max) return net;
+            }
+            return null;
+        };
+
+        // Saisie du montant (net) -> calcule les espèces (net + frais).
+        amountEl.addEventListener('input', () => {
+            const n = parseInt(amountEl.value || '0', 10) || 0;
+            const fee = n > 0 ? gridFee(n) : null;
+            amount2El.value = fee !== null ? String(n + fee) : '';
+            render();
+        });
+        // Saisie des espèces -> retrouve le montant net.
+        amount2El.addEventListener('input', () => {
+            const total = parseInt(amount2El.value || '0', 10) || 0;
+            const net = total > 0 ? netFromEspeces(total) : null;
+            amountEl.value = net !== null ? String(net) : '';
+            render();
+        });
         phoneEl.addEventListener('input', () => { phoneEl.value = phoneEl.value.replace(/\D/g, '').slice(0, 9); });
 
         function render() {
             const n = parseInt(amountEl.value || '0', 10) || 0;
             const fee = n > 0 ? gridFee(n) : 0;
+            amount2El.placeholder = type === 'depot' ? 'Espèces à remettre' : 'Total à payer';
             document.getElementById('sMontant').textContent = fmt(n);
             document.getElementById('sFrais').textContent = fee === null ? '—' : fmt(fee);
             document.getElementById('sTotalLabel').textContent = type === 'depot' ? 'Espèces à remettre' : 'Total à payer';
