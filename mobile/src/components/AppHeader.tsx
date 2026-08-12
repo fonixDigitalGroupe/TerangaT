@@ -32,7 +32,7 @@ export function AppHeader({ title, brand }: { title?: string; brand?: boolean })
           <View style={styles.brandWrap}>
             <View>
               <Text style={styles.brandScript}>Téranga</Text>
-              <Text style={styles.brandSub}>OPÉRATION</Text>
+              <Text style={styles.brandSub}>TRANSFERT</Text>
             </View>
           </View>
         ) : (

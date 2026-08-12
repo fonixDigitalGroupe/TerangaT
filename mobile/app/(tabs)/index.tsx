@@ -452,7 +452,7 @@ export default function TransfertScreen() {
       >
         <View style={styles.sheetBackdrop}>
           <View style={styles.confirmSheet}>
-            <Text style={styles.confirmSheetTitle}>Confirmation de transfert</Text>
+            <Text style={styles.confirmSheetTitle}>Confirmation d'opération</Text>
 
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Client :</Text>
