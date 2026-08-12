@@ -283,7 +283,7 @@ export default function TransfertScreen() {
           </View>
         </View>
         <View style={styles.acctQr}>
-          <QRCode value={agentPhone || 'TERANGA'} size={72} color="#000000" backgroundColor="#ffffff" />
+          <QRCode value={agentPhone || 'TERANGA'} size={88} color="#000000" backgroundColor="#ffffff" />
         </View>
       </View>
 
@@ -581,29 +581,20 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     marginBottom: spacing.md,
     padding: spacing.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
   },
   acctQr: {
-    width: 84,
-    height: 84,
-    borderRadius: 8,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: '#e8ecf2',
+    width: 92,
+    height: 92,
     alignItems: 'center',
     justifyContent: 'center',
   },
   acctInfo: { flex: 1, marginRight: spacing.md },
   acctTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
   acctCode: { fontSize: 13, color: colors.textMuted, letterSpacing: 0.5, marginTop: 2, marginBottom: spacing.sm },
-  acctRow: { flexDirection: 'row', alignItems: 'center' },
+  acctRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   acctLabel: { fontSize: 12, color: colors.textMuted, marginBottom: 2 },
-  acctValue: { flex: 1, fontSize: 20, fontWeight: '800', color: colors.text },
-  acctEye: { paddingLeft: spacing.sm },
+  acctValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  acctEye: {},
   contentContainer: {
     flex: 1,
     backgroundColor: '#eef1f5',
