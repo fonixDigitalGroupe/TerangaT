@@ -8,9 +8,8 @@ import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { colors } from '../../src/theme';
 
-const PRIMARY = '#0577DE';
-const ACCENT = '#F88B1A';
-const NAVY = '#1b3b5c';
+const PRIMARY = '#1A84D8';
+const NAVY = '#1a2233';
 const SLOTS = [0, 1, 2, 3];
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
@@ -88,40 +87,36 @@ export default function CreatePinScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
         <Pressable
           onPress={() => (phase === 'confirm' ? (setPhase('create'), setCode(''), setPin('')) : router.back())}
           hitSlop={10}
-          style={styles.backCircle}
         >
-          <Ionicons name="arrow-back" size={22} color={ACCENT} />
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </Pressable>
-        <View style={styles.logoRow}>
-          <Text style={styles.logoBrand}>
-            t<Text style={{ color: ACCENT }}>é</Text>ranga
-          </Text>
-          <Text style={styles.logoDesc}>transfert</Text>
-        </View>
-        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle}>Code secret</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>
-          {phase === 'create' ? 'Définissez votre code secret' : 'Confirmez votre code secret'}
-        </Text>
-        <Text style={styles.subtitle}>Ce code à 4 chiffres vous servira à vous connecter.</Text>
+        <View style={styles.card}>
+          <Text style={styles.title}>
+            {phase === 'create' ? 'Définissez votre code secret' : 'Confirmez votre code secret'}
+          </Text>
+          <Text style={styles.subtitle}>Ce code à 4 chiffres vous servira à vous connecter.</Text>
 
-        {error && <Alert message={error} />}
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <View style={styles.otpRow}>
-          {SLOTS.map((i) => (
-            <View key={i} style={[styles.otpBox, i < code.length && styles.otpBoxFilled]}>
-              {i < code.length ? <View style={styles.pinDot} /> : null}
-            </View>
-          ))}
+          <View style={styles.otpRow}>
+            {SLOTS.map((i) => (
+              <View key={i} style={[styles.otpBox, i < code.length && styles.otpBoxFilled]}>
+                {i < code.length ? <View style={styles.pinDot} /> : null}
+              </View>
+            ))}
+          </View>
+
+          {loading ? <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} /> : <View style={{ height: 36 }} />}
         </View>
-
-        {loading ? <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} /> : <View style={{ height: 36 }} />}
 
         <View style={styles.keypad}>
           {KEYS.map((k, i) => (
@@ -149,30 +144,30 @@ export default function CreatePinScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.white },
-  topBar: {
+  safe: { flex: 1, backgroundColor: '#eef1f5' },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#f6f8fb',
+    paddingBottom: 14,
+    backgroundColor: '#1A84D8',
   },
-  backCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: '#fdecd8',
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e8ecf2',
+    paddingHorizontal: 20,
+    paddingVertical: 26,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  logoRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  logoBrand: { fontSize: 22, color: PRIMARY, fontFamily: 'Quicksand_700Bold', letterSpacing: -0.3 },
-  logoDesc: { fontSize: 15, color: '#9aa7b8', fontWeight: '600' },
-  content: { flex: 1, paddingHorizontal: 24, paddingTop: 26 },
-  title: { fontSize: 23, fontWeight: '700', color: NAVY },
-  subtitle: { fontSize: 15, color: '#9aa3b0', marginTop: 8, lineHeight: 21 },
-  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 34 },
+  title: { fontSize: 22, fontWeight: '800', color: NAVY, textAlign: 'center' },
+  subtitle: { fontSize: 14, color: '#8a93a3', marginTop: 12, lineHeight: 21, textAlign: 'center' },
+  errorText: { color: '#e2483a', fontSize: 13, fontWeight: '600', marginTop: 12 },
+  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 30 },
   otpBox: {
     width: 60,
     height: 60,
