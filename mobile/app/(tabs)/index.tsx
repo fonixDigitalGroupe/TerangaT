@@ -572,7 +572,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: { flex: 1, backgroundColor: '#1A84D8' },
   commCard: {
     flexDirection: 'row',
     alignItems: 'center',
