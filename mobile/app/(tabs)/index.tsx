@@ -277,21 +277,21 @@ export default function TransfertScreen() {
 
             <View style={styles.formContainer}>
             
-            {/* Type d'opération + Opérateur sur une ligne, séparés par un trait */}
+            {/* Opérateur (gauche) + Type d'opération (droite), séparés par un trait */}
             <View style={styles.selectRow}>
-              <Pressable style={[styles.selectHalf, { flex: 0.38 }]} onPress={() => setTypePickerVisible(true)}>
-                <Text style={styles.selectText} numberOfLines={1}>
-                  {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
+              <Pressable style={styles.selectHalf} onPress={() => setOperatorPickerVisible(true)}>
+                <Image source={OP_LOGOS[toOp]} style={styles.opLogoSmall} resizeMode="cover" />
+                <Text style={[styles.selectText, { marginLeft: 8 }]} numberOfLines={1}>
+                  {OP_NAMES[toOp]}
                 </Text>
                 <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
               </Pressable>
 
               <View style={styles.selectDivider} />
 
-              <Pressable style={styles.selectHalf} onPress={() => setOperatorPickerVisible(true)}>
-                <Image source={OP_LOGOS[toOp]} style={styles.opLogoSmall} resizeMode="cover" />
-                <Text style={[styles.selectText, { marginLeft: 8 }]} numberOfLines={1}>
-                  {OP_NAMES[toOp]}
+              <Pressable style={[styles.selectHalf, { flex: 0.38 }]} onPress={() => setTypePickerVisible(true)}>
+                <Text style={styles.selectText} numberOfLines={1}>
+                  {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
                 </Text>
                 <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
               </Pressable>
@@ -342,7 +342,7 @@ export default function TransfertScreen() {
                 styles.proceedBtn,
                 !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
-                { marginTop: spacing.xl, marginHorizontal: spacing.xl }
+                { marginTop: spacing.md, alignSelf: 'center', width: '62%' }
               ]}
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
   selectRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eef1f5',
+    backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
     borderRadius: 6,
