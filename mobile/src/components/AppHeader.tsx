@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   brandWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   brandScript: {
-    color: colors.text,
+    color: '#1A84D8',
     fontSize: 28,
     fontFamily: 'KaushanScript_400Regular',
     lineHeight: 32,
