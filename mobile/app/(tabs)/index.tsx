@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import QRCode from 'react-native-qrcode-svg';
 import {
   Image,
   InputAccessoryView,
@@ -142,17 +143,13 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
   const [typePickerVisible, setTypePickerVisible] = useState(false);
-  const [balance, setBalance] = useState(user?.agent?.wallet?.balance ?? 0);
   const [gain, setGain] = useState(0);
   const [showBalance, setShowBalance] = useState(false);
 
   useEffect(() => {
     dashboardApi
       .get()
-      .then((d) => {
-        setBalance(d.wallet?.balance ?? 0);
-        setGain(d.stats?.total_commission ?? 0);
-      })
+      .then((d) => setGain(d.stats?.total_commission ?? 0))
       .catch(() => {});
   }, []);
 
@@ -274,22 +271,19 @@ export default function TransfertScreen() {
 
       {/* Carte compte marchand */}
       <View style={styles.acctCard}>
-        <View style={styles.acctTop}>
+        <View style={styles.acctQr}>
+          <QRCode value={agentPhone || 'TERANGA'} size={72} color="#000000" backgroundColor="#ffffff" />
+        </View>
+        <View style={styles.acctInfo}>
           <Text style={styles.acctTitle}>Compte marchand</Text>
           <Text style={styles.acctCode}>{user?.agent?.code ?? '—'}</Text>
-        </View>
-        <View style={styles.acctRow}>
-          <View style={styles.acctCol}>
-            <Text style={styles.acctLabel}>Solde (FCFA)</Text>
-            <Text style={styles.acctValue}>{showBalance ? fmtNum(balance) : '••••'}</Text>
-          </View>
-          <View style={styles.acctCol}>
-            <Text style={styles.acctLabel}>Gain (FCFA)</Text>
+          <Text style={styles.acctLabel}>Gain (FCFA)</Text>
+          <View style={styles.acctRow}>
             <Text style={styles.acctValue}>{showBalance ? fmtNum(gain) : '••••'}</Text>
+            <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8} style={styles.acctEye}>
+              <Ionicons name={showBalance ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.text} />
+            </Pressable>
           </View>
-          <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8} style={styles.acctEye}>
-            <Ionicons name={showBalance ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.text} />
-          </Pressable>
         </View>
       </View>
 
@@ -577,27 +571,38 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: { flex: 1, backgroundColor: '#eef1f5' },
   acctCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.white,
     borderRadius: 14,
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
     marginBottom: spacing.md,
-    padding: spacing.lg,
+    padding: spacing.md,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
   },
-  acctTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md },
+  acctQr: {
+    width: 84,
+    height: 84,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#e8ecf2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acctInfo: { flex: 1, marginLeft: spacing.md },
   acctTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  acctCode: { fontSize: 14, color: colors.textMuted, letterSpacing: 0.5 },
-  acctRow: { flexDirection: 'row', alignItems: 'flex-end' },
-  acctCol: { flex: 1 },
-  acctLabel: { fontSize: 12, color: colors.textMuted, marginBottom: 4 },
-  acctValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  acctCode: { fontSize: 13, color: colors.textMuted, letterSpacing: 0.5, marginTop: 2, marginBottom: spacing.sm },
+  acctRow: { flexDirection: 'row', alignItems: 'center' },
+  acctLabel: { fontSize: 12, color: colors.textMuted, marginBottom: 2 },
+  acctValue: { flex: 1, fontSize: 20, fontWeight: '800', color: colors.text },
   acctEye: { paddingLeft: spacing.sm },
   contentContainer: {
     flex: 1,
