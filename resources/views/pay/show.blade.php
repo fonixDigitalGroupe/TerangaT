@@ -8,12 +8,12 @@
     <style>
         :root { --blue:#1A84D8; --navy:#1a2233; --gray:#eef1f5; --border:#e2e6ec; --muted:#8a93a3; }
         * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-        body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--gray); color:var(--navy); }
-        .header { background:var(--blue); color:#fff; padding:22px 18px 20px; }
+        body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#fff; color:var(--navy); }
+        .header { background:var(--blue); color:#fff; padding:22px 18px 22px; border-radius:0 0 22px 22px; }
         .header .brand { font-size:13px; opacity:.85; letter-spacing:1px; text-transform:uppercase; }
         .header .shop { font-size:22px; font-weight:800; margin-top:4px; }
         .wrap { max-width:440px; margin:0 auto; padding:18px; }
-        .card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px; }
+        .card { background:transparent; border:0; border-radius:0; padding:4px 0 0; }
         label { display:block; font-size:14px; font-weight:600; color:#26415e; margin:16px 0 8px; }
         label:first-of-type { margin-top:4px; }
         .select { position:relative; }
@@ -68,7 +68,7 @@
 <body>
     <div class="header">
         <div class="wrap" style="padding-bottom:0;">
-            <div class="brand">Téranga · Paiement</div>
+            <div class="brand">Téranga Transfert</div>
             <div class="shop">{{ $merchant }}</div>
         </div>
     </div>
