@@ -560,7 +560,7 @@ export default function TransfertScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1A84D8' },
+  container: { flex: 1, backgroundColor: '#ffffff' },
   commCard: {
     borderRadius: 16,
     paddingVertical: spacing.lg,
@@ -580,8 +580,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
   },
   content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   topCardsRow: {
