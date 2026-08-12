@@ -348,7 +348,7 @@ export default function TransfertScreen() {
                 styles.proceedBtn,
                 !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
-                { marginTop: spacing.md }
+                { marginTop: spacing.xs }
               ]}
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
