@@ -348,7 +348,7 @@ export default function TransfertScreen() {
                 styles.proceedBtn,
                 !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
-                { marginTop: spacing.md, alignSelf: 'center', width: '62%' }
+                { marginTop: spacing.md }
               ]}
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
@@ -369,7 +369,7 @@ export default function TransfertScreen() {
                   <Text style={styles.recentEmptyText}>Pas d'historique disponible</Text>
                 </View>
               ) : (
-                recent.slice(0, 5).map((t) => <TransactionRow key={t.id} tx={t} />)
+                recent.slice(0, 2).map((t) => <TransactionRow key={t.id} tx={t} />)
               )}
             </View>
 
@@ -722,7 +722,7 @@ const styles = StyleSheet.create({
   proceedBtn: {
     backgroundColor: colors.orange,
     borderRadius: 6,
-    height: 54,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
