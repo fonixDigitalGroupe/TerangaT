@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Image,
@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { paiementsApi } from '../../src/api/endpoints';
+import { paiementsApi, dashboardApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -142,6 +142,21 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
   const [typePickerVisible, setTypePickerVisible] = useState(false);
+  const [balance, setBalance] = useState(user?.agent?.wallet?.balance ?? 0);
+  const [gain, setGain] = useState(0);
+  const [showBalance, setShowBalance] = useState(false);
+
+  useEffect(() => {
+    dashboardApi
+      .get()
+      .then((d) => {
+        setBalance(d.wallet?.balance ?? 0);
+        setGain(d.stats?.total_commission ?? 0);
+      })
+      .catch(() => {});
+  }, []);
+
+  const fmtNum = (n: number) => (Number.isFinite(n) ? n : 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -256,6 +271,27 @@ export default function TransfertScreen() {
   return (
     <View style={styles.container}>
       <AppHeader brand />
+
+      {/* Carte compte marchand */}
+      <View style={styles.acctCard}>
+        <View style={styles.acctTop}>
+          <Text style={styles.acctTitle}>Compte marchand</Text>
+          <Text style={styles.acctCode}>{user?.agent?.code ?? '—'}</Text>
+        </View>
+        <View style={styles.acctRow}>
+          <View style={styles.acctCol}>
+            <Text style={styles.acctLabel}>Solde (FCFA)</Text>
+            <Text style={styles.acctValue}>{showBalance ? fmtNum(balance) : '••••'}</Text>
+          </View>
+          <View style={styles.acctCol}>
+            <Text style={styles.acctLabel}>Gain (FCFA)</Text>
+            <Text style={styles.acctValue}>{showBalance ? fmtNum(gain) : '••••'}</Text>
+          </View>
+          <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8} style={styles.acctEye}>
+            <Ionicons name={showBalance ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.text} />
+          </Pressable>
+        </View>
+      </View>
 
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -542,6 +578,27 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
+  acctCard: {
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+    padding: spacing.lg,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  acctTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md },
+  acctTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
+  acctCode: { fontSize: 14, color: colors.textMuted, letterSpacing: 0.5 },
+  acctRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  acctCol: { flex: 1 },
+  acctLabel: { fontSize: 12, color: colors.textMuted, marginBottom: 4 },
+  acctValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  acctEye: { paddingLeft: spacing.sm },
   contentContainer: {
     flex: 1,
     backgroundColor: '#eef1f5',
