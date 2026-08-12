@@ -478,15 +478,50 @@ export default function TransfertScreen() {
           <View style={styles.confirmSheet}>
             <Text style={styles.confirmSheetTitle}>Confirmation de transfert</Text>
 
-            <Text style={styles.confirmSheetText}>
-              Vous allez envoyer {formatXof(numericAmount)} à +221 {toNumber} sur{' '}
-              {toOp === 'wave' ? 'Wave Sénégal' : 'Orange Money Sénégal'}. Frais : {formatXof(calc.frais)}
-            </Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Client :</Text>
+              <Text style={styles.summaryValue}>+221 {toNumber}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Opérateur :</Text>
+              <Text style={styles.summaryValue}>{toOp === 'wave' ? 'Wave Sénégal' : 'Orange Money'}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Type :</Text>
+              <Text style={styles.summaryValue}>{operationType === 'depot' ? 'Dépôt' : 'Retrait'}</Text>
+            </View>
 
-            <Text style={styles.confirmSheetWarning}>
-              Assurez-vous de mettre le bon numéro et de choisir le bon wallet. En cas d'erreur, le
-              remboursement pourrait prendre du temps.
-            </Text>
+            <View style={[styles.dashed, { marginVertical: spacing.md }]} />
+
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Frais :</Text>
+              <Text style={styles.summaryValue}>{formatXof(calc.frais)}</Text>
+            </View>
+            {operationType === 'depot' ? (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Débit :</Text>
+                  <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Espèces à encaisser :</Text>
+                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.especes)}</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Crédit :</Text>
+                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Le client paiera :</Text>
+                  <Text style={styles.summaryValueRed}>-{formatXof(calc.paiementClient)}</Text>
+                </View>
+              </>
+            )}
+
+            <View style={{ marginTop: spacing.sm }} />
 
             {error && confirmVisible ? (
               <View style={{ marginBottom: spacing.sm }}>
@@ -930,20 +965,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     marginBottom: spacing.md,
-  },
-  confirmSheetText: {
-    fontSize: 15,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: spacing.md,
-  },
-  confirmSheetWarning: {
-    fontSize: 14,
-    color: colors.danger,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: spacing.lg,
   },
   sheetCloseBtn: {
     flex: 1,
