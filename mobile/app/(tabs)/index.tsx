@@ -267,25 +267,22 @@ export default function TransfertScreen() {
 
             <View style={styles.formContainer}>
             
-            {/* Opérateur (gauche) + Type d'opération (droite), séparés par un trait */}
-            <View style={styles.selectRow}>
-              <Pressable style={styles.selectHalf} onPress={() => setOperatorPickerVisible(true)}>
-                <Image source={OP_LOGOS[toOp]} style={styles.opLogoSmall} resizeMode="cover" />
-                <Text style={[styles.selectText, { marginLeft: 8 }]} numberOfLines={1}>
-                  {OP_NAMES[toOp]}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
-              </Pressable>
+            {/* Type d'opération (au-dessus) */}
+            <Pressable style={styles.selectFull} onPress={() => setTypePickerVisible(true)}>
+              <Text style={styles.selectText} numberOfLines={1}>
+                {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+            </Pressable>
 
-              <View style={styles.selectDivider} />
-
-              <Pressable style={[styles.selectHalf, { flex: 0.38 }]} onPress={() => setTypePickerVisible(true)}>
-                <Text style={styles.selectText} numberOfLines={1}>
-                  {operationType === 'depot' ? 'Dépôt' : 'Retrait'}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
-              </Pressable>
-            </View>
+            {/* Opérateur (en dessous) */}
+            <Pressable style={styles.selectFull} onPress={() => setOperatorPickerVisible(true)}>
+              <Image source={OP_LOGOS[toOp]} style={styles.opLogoSmall} resizeMode="cover" />
+              <Text style={[styles.selectText, { marginLeft: 8 }]} numberOfLines={1}>
+                {OP_NAMES[toOp]}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+            </Pressable>
 
             {/* Champ Mobile */}
             <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 0, overflow: 'hidden' }, focusedField === 'mobile' && styles.fieldBoxFocused, fieldErrors.mobile && styles.fieldBoxError]}>
@@ -648,6 +645,17 @@ const styles = StyleSheet.create({
     borderColor: '#e2e6ec',
     borderRadius: 8,
     height: 50,
+    marginBottom: spacing.md,
+  },
+  selectFull: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    borderRadius: 8,
+    height: 50,
+    paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
   selectHalf: {
