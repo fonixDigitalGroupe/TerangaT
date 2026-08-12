@@ -379,13 +379,16 @@ export default function TransfertScreen() {
 
             <Pressable
               onPress={onSend}
-              style={({ pressed }) => [
-                styles.proceedBtn,
-                pressed && { opacity: 0.9 },
-                { marginTop: spacing.xs }
-              ]}
+              style={({ pressed }) => [{ marginTop: spacing.xs }, pressed && { opacity: 0.9 }]}
             >
-              <Text style={styles.proceedBtnText}>Procéder</Text>
+              <LinearGradient
+                colors={['#35A3E8', '#1A84D8', '#0C68C2']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.proceedBtn}
+              >
+                <Text style={styles.proceedBtnText}>Procéder</Text>
+              </LinearGradient>
             </Pressable>
             </View>
 
@@ -750,14 +753,10 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   proceedBtn: {
-    backgroundColor: BRAND_BLUE,
     borderRadius: 6,
     height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  proceedBtnDisabled: {
-    backgroundColor: '#a9d4ff',
   },
   proceedBtnText: {
     color: colors.white,
