@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import QRCode from 'react-native-qrcode-svg';
 import {
   Image,
   InputAccessoryView,
@@ -18,7 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { paiementsApi, dashboardApi } from '../../src/api/endpoints';
+import { paiementsApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -143,17 +142,6 @@ export default function TransfertScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [operatorPickerVisible, setOperatorPickerVisible] = useState(false);
   const [typePickerVisible, setTypePickerVisible] = useState(false);
-  const [gain, setGain] = useState(0);
-  const [showBalance, setShowBalance] = useState(false);
-
-  useEffect(() => {
-    dashboardApi
-      .get()
-      .then((d) => setGain(d.stats?.total_commission ?? 0))
-      .catch(() => {});
-  }, []);
-
-  const fmtNum = (n: number) => (Number.isFinite(n) ? n : 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 
   // Popup de confirmation (résumé) sur la même page
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -268,24 +256,6 @@ export default function TransfertScreen() {
   return (
     <View style={styles.container}>
       <AppHeader brand />
-
-      {/* Carte compte marchand */}
-      <View style={styles.acctCard}>
-        <View style={styles.acctInfo}>
-          <Text style={styles.acctTitle}>Compte marchand</Text>
-          <Text style={styles.acctCode}>{user?.agent?.code ?? '—'}</Text>
-          <Text style={styles.acctLabel}>Gain (FCFA)</Text>
-          <View style={styles.acctRow}>
-            <Text style={styles.acctValue}>{showBalance ? fmtNum(gain) : '••••'}</Text>
-            <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8} style={styles.acctEye}>
-              <Ionicons name={showBalance ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.text} />
-            </Pressable>
-          </View>
-        </View>
-        <View style={styles.acctQr}>
-          <QRCode value={agentPhone || 'TERANGA'} size={64} color="#000000" backgroundColor="#ffffff" />
-        </View>
-      </View>
 
       <View style={styles.contentContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -572,29 +542,6 @@ export default function TransfertScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
-  acctCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 14,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
-    padding: spacing.md,
-  },
-  acctQr: {
-    width: 68,
-    height: 68,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  acctInfo: { flex: 1, marginRight: spacing.md },
-  acctTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  acctCode: { fontSize: 13, color: colors.textMuted, letterSpacing: 0.5, marginTop: 2, marginBottom: spacing.sm },
-  acctRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  acctLabel: { fontSize: 12, color: colors.textMuted, marginBottom: 2 },
-  acctValue: { fontSize: 20, fontWeight: '800', color: colors.text },
-  acctEye: {},
   contentContainer: {
     flex: 1,
     backgroundColor: '#eef1f5',
