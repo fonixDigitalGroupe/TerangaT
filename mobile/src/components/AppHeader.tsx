@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginTop: -3,
     alignSelf: 'flex-start',
-    marginLeft: 2,
+    marginLeft: -2,
   },
   roundBtn: {
     width: 40,
