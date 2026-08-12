@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import {
@@ -23,10 +22,8 @@ import { paiementsApi, dashboardApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
-import { TransactionRow } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
-import type { Transaction } from '../../src/types';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
@@ -119,7 +116,6 @@ function AmountField({
 export default function TransfertScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const router = useRouter();
   const [amount, setAmount] = useState('');
   const [received, setReceived] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -133,15 +129,11 @@ export default function TransfertScreen() {
   const [typePickerVisible, setTypePickerVisible] = useState(false);
   const [totalCommission, setTotalCommission] = useState(0);
   const [showCommission, setShowCommission] = useState(false);
-  const [recent, setRecent] = useState<Transaction[]>([]);
 
   useEffect(() => {
     dashboardApi
       .get()
-      .then((d) => {
-        setTotalCommission(d.stats?.total_commission ?? 0);
-        setRecent(d.recent_transactions ?? []);
-      })
+      .then((d) => setTotalCommission(d.stats?.total_commission ?? 0))
       .catch(() => {});
   }, []);
 
@@ -348,6 +340,26 @@ export default function TransfertScreen() {
               onBlur={() => setFocusedField(null)}
             />
 
+            {/* Résumé de l'opération */}
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryTitle}>Résumé de l'opération</Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Frais :</Text>
+                <Text style={styles.summaryValue}>{formatXof(calc.frais)}</Text>
+              </View>
+              {operationType === 'depot' ? (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Débit :</Text>
+                  <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
+                </View>
+              ) : (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Crédit :</Text>
+                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
+                </View>
+              )}
+            </View>
+
             <Pressable
               onPress={onSend}
               disabled={!canSend}
@@ -360,24 +372,6 @@ export default function TransfertScreen() {
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
             </Pressable>
-            </View>
-
-            {/* Transactions récentes */}
-            <View style={styles.recentSection}>
-              <View style={styles.recentHeader}>
-                <Text style={styles.recentTitle}>Transactions récentes</Text>
-                <Pressable onPress={() => router.push('/(tabs)/transactions')} hitSlop={8}>
-                  <Text style={styles.recentLink}>Tout voir</Text>
-                </Pressable>
-              </View>
-              {recent.length === 0 ? (
-                <View style={styles.recentEmpty}>
-                  <Ionicons name="hourglass-outline" size={40} color="#8A99AC" style={styles.recentEmptyIcon} />
-                  <Text style={styles.recentEmptyText}>Pas d'historique disponible</Text>
-                </View>
-              ) : (
-                recent.slice(0, 2).map((t) => <TransactionRow key={t.id} tx={t} />)
-              )}
             </View>
 
 
