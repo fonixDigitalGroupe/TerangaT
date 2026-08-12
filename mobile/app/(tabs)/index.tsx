@@ -283,7 +283,7 @@ export default function TransfertScreen() {
           </View>
         </View>
         <View style={styles.acctQr}>
-          <QRCode value={agentPhone || 'TERANGA'} size={88} color="#000000" backgroundColor="#ffffff" />
+          <QRCode value={agentPhone || 'TERANGA'} size={64} color="#000000" backgroundColor="#ffffff" />
         </View>
       </View>
 
@@ -583,8 +583,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   acctQr: {
-    width: 92,
-    height: 92,
+    width: 68,
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
   },
