@@ -86,6 +86,7 @@ function AmountField({
   focused,
   onFocus,
   onBlur,
+  error,
 }: {
   label: string;
   value: string;
@@ -93,10 +94,11 @@ function AmountField({
   focused: boolean;
   onFocus: () => void;
   onBlur: () => void;
+  error?: boolean;
 }) {
   const showLabel = value.length > 0;
   return (
-    <View style={[styles.fieldBox, focused && styles.fieldBoxFocused]}>
+    <View style={[styles.fieldBox, focused && styles.fieldBoxFocused, error && styles.fieldBoxError]}>
       {showLabel && <Text style={styles.fieldFloatLabel}>{label}</Text>}
       <TextInput
         style={[styles.fieldInput, { outlineStyle: 'none' } as object]}
@@ -119,6 +121,7 @@ export default function TransfertScreen() {
   const [amount, setAmount] = useState('');
   const [received, setReceived] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ mobile: boolean; amount: boolean }>({ mobile: false, amount: false });
   const [toNumber, setToNumber] = useState('');
   const [toOp, setToOp] = useState<Operator>('wave');
   const [operationType, setOperationType] = useState<'depot' | 'retrait'>('depot');
@@ -153,6 +156,7 @@ export default function TransfertScreen() {
   // Saisie du montant (net) -> calcule les espèces (net + frais).
   const handleAmountChange = (text: string) => {
     setAmount(text);
+    if (text.trim()) setFieldErrors((e) => ({ ...e, amount: false }));
     const n = parseFloat(text.replace(/[^0-9.]/g, ''));
     const fee = Number.isFinite(n) && n > 0 ? gridFee(n) : null;
     setReceived(fee !== null ? String(n + fee) : '');
@@ -186,19 +190,26 @@ export default function TransfertScreen() {
     return { brut, frais, commission, outOfRange, creditWallet: brut, paiementClient: especesTotal };
   }, [numericAmount, operationType]);
 
-  const canSend =
-    numericAmount > 0 && !calc.outOfRange && toNumber.trim().length > 0;
-
   // « Envoyer » ouvre le popup de résumé/confirmation (pas d'appel API ici).
   const onSend = () => {
     setError(null);
     setSuccess(null);
-    if (calc.outOfRange) {
-      setError('Montant hors grille : le transfert doit être compris entre 100 et 50 000 FCFA.');
+
+    // Validation champ par champ : erreur sur le champ vide concerné.
+    const errs = { mobile: !toNumber.trim(), amount: !amount.trim() };
+    setFieldErrors(errs);
+    if (errs.mobile || errs.amount) {
+      setError(
+        errs.mobile && errs.amount
+          ? 'Renseignez le montant et le numéro du client.'
+          : errs.mobile
+            ? 'Renseignez le numéro du client.'
+            : 'Renseignez le montant.'
+      );
       return;
     }
-    if (!canSend) {
-      setError('Renseignez le montant et le numéro du client.');
+    if (calc.outOfRange) {
+      setError('Montant hors grille : le transfert doit être compris entre 100 et 50 000 FCFA.');
       return;
     }
     setConfirmVisible(true);
@@ -303,7 +314,7 @@ export default function TransfertScreen() {
             </View>
 
             {/* Champ Mobile */}
-            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }, focusedField === 'mobile' && styles.fieldBoxFocused]}>
+            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }, focusedField === 'mobile' && styles.fieldBoxFocused, fieldErrors.mobile && styles.fieldBoxError]}>
               <Text style={{ fontSize: 15, color: colors.text, fontWeight: '600', marginLeft: 4, marginRight: 4 }}>+221</Text>
               <TextInput
                 style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 4, backgroundColor: 'transparent' } as object]}
@@ -312,7 +323,11 @@ export default function TransfertScreen() {
                 keyboardType="phone-pad"
                 maxLength={9}
                 value={toNumber}
-                onChangeText={(t) => setToNumber(t.replace(/\D/g, '').slice(0, 9))}
+                onChangeText={(t) => {
+                  const v = t.replace(/\D/g, '').slice(0, 9);
+                  setToNumber(v);
+                  if (v) setFieldErrors((e) => ({ ...e, mobile: false }));
+                }}
                 onFocus={() => setFocusedField('mobile')}
                 onBlur={() => setFocusedField(null)}
                 inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
@@ -326,6 +341,7 @@ export default function TransfertScreen() {
               value={amount}
               onChangeText={handleAmountChange}
               focused={focusedField === 'amount'}
+              error={fieldErrors.amount}
               onFocus={() => setFocusedField('amount')}
               onBlur={() => setFocusedField(null)}
             />
@@ -362,11 +378,9 @@ export default function TransfertScreen() {
 
             <Pressable
               onPress={onSend}
-              disabled={!canSend}
               style={({ pressed }) => [
                 styles.proceedBtn,
-                !canSend && styles.proceedBtnDisabled,
-                pressed && canSend && { opacity: 0.9 },
+                pressed && { opacity: 0.9 },
                 { marginTop: spacing.xs }
               ]}
             >
@@ -646,7 +660,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   fieldBoxFocused: {
-    borderColor: colors.orange,
+    borderColor: '#8bb8f0',
+    borderWidth: 1.5,
+  },
+  fieldBoxError: {
+    borderColor: colors.danger,
     borderWidth: 1.5,
   },
   fieldFloatLabel: { fontSize: 11, color: colors.textMuted, marginBottom: 1 },
