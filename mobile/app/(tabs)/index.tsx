@@ -467,81 +467,34 @@ export default function TransfertScreen() {
         </Pressable>
       </Modal>
 
-      {/* Popup de confirmation (résumé) */}
+      {/* Feuille de confirmation (en bas) */}
       <Modal
         visible={confirmVisible}
-        animationType="fade"
+        animationType="slide"
         transparent
         onRequestClose={() => !sending && setConfirmVisible(false)}
       >
-        <View style={styles.confirmOverlay}>
-          <View style={[styles.summaryCard, { width: '100%', marginBottom: 0, padding: spacing.lg }]}>
-            <Text style={styles.summaryTitle}>Confirmer l'opération</Text>
-            
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Client :</Text>
-              <Text style={styles.summaryValue}>+221 {toNumber}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Opérateur :</Text>
-              <Text style={styles.summaryValue}>{toOp === 'wave' ? 'Wave' : 'Orange Money'}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Type :</Text>
-              <Text style={styles.summaryValue}>{operationType === 'depot' ? 'Dépôt' : 'Retrait'}</Text>
-            </View>
+        <View style={styles.sheetBackdrop}>
+          <View style={styles.confirmSheet}>
+            <Text style={styles.confirmSheetTitle}>Confirmation de transfert</Text>
 
-            <View style={[styles.dashed, { marginVertical: spacing.md }]} />
+            <Text style={styles.confirmSheetText}>
+              Vous allez envoyer {formatXof(numericAmount)} à +221 {toNumber} sur{' '}
+              {toOp === 'wave' ? 'Wave Sénégal' : 'Orange Money Sénégal'}. Frais : {formatXof(calc.frais)}
+            </Text>
 
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Frais :</Text>
-              <Text style={styles.summaryValue}>{formatXof(calc.frais)}</Text>
-            </View>
+            <Text style={styles.confirmSheetWarning}>
+              Assurez-vous de mettre le bon numéro et de choisir le bon wallet. En cas d'erreur, le
+              remboursement pourrait prendre du temps.
+            </Text>
 
-            {operationType === 'depot' ? (
-              <>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Débit :</Text>
-                  <Text style={styles.summaryValueRed}>-{formatXof(calc.debitWallet)}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Espèces à encaisser :</Text>
-                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.especes)}</Text>
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Crédit :</Text>
-                  <Text style={styles.summaryValueGreen}>+{formatXof(calc.creditWallet)}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Le client paiera :</Text>
-                  <Text style={styles.summaryValueRed}>-{formatXof(calc.paiementClient)}</Text>
-                </View>
-              </>
-            )}
-            
             {error && confirmVisible ? (
-              <View style={{ marginTop: spacing.sm }}>
+              <View style={{ marginBottom: spacing.sm }}>
                 <Alert message={error} />
               </View>
             ) : null}
 
             <View style={styles.confirmActions}>
-              <Pressable
-                onPress={onConfirm}
-                disabled={sending}
-                style={({ pressed }) => [
-                  styles.proceedBtn,
-                  styles.confirmActionBtn,
-                  sending && styles.proceedBtnDisabled,
-                  pressed && !sending && { opacity: 0.9 },
-                ]}
-              >
-                <Text style={styles.proceedBtnText}>{sending ? 'Traitement…' : 'Confirmer'}</Text>
-              </Pressable>
-
               <Pressable
                 onPress={() => {
                   setConfirmVisible(false);
@@ -551,9 +504,21 @@ export default function TransfertScreen() {
                   setError(null);
                 }}
                 disabled={sending}
-                style={[styles.confirmCancel, styles.confirmActionBtn]}
+                style={styles.sheetCloseBtn}
               >
-                <Text style={styles.confirmCancelText}>Annuler</Text>
+                <Text style={styles.sheetCloseText}>Fermer</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={onConfirm}
+                disabled={sending}
+                style={({ pressed }) => [
+                  styles.sheetConfirmBtn,
+                  sending && { opacity: 0.6 },
+                  pressed && !sending && { opacity: 0.9 },
+                ]}
+              >
+                <Text style={styles.sheetConfirmText}>{sending ? 'Traitement…' : 'Confirmer'}</Text>
               </Pressable>
             </View>
           </View>
@@ -950,6 +915,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: spacing.md,
   },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  confirmSheet: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  confirmSheetTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  confirmSheetText: {
+    fontSize: 15,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: spacing.md,
+  },
+  confirmSheetWarning: {
+    fontSize: 14,
+    color: colors.danger,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+  },
+  sheetCloseBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetCloseText: { fontSize: 16, fontWeight: '600', color: colors.textMuted },
+  sheetConfirmBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 8,
+    backgroundColor: BRAND_BLUE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetConfirmText: { fontSize: 16, fontWeight: '700', color: colors.white },
   confirmActions: {
     flexDirection: 'row',
     alignItems: 'center',
