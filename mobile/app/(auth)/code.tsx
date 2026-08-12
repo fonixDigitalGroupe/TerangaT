@@ -13,7 +13,6 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { authApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
-import { colors } from '../../src/theme';
 
 const PRIMARY = '#1A84D8';
 const NAVY = '#1a2233';
@@ -166,7 +165,7 @@ export default function CodeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#eef1f5' },
+  safe: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -178,12 +177,8 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   otpCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e8ecf2',
-    paddingHorizontal: 20,
-    paddingVertical: 26,
+    paddingHorizontal: 8,
+    paddingTop: 26,
     alignItems: 'center',
   },
   title: { fontSize: 22, fontWeight: '800', color: NAVY, textAlign: 'center' },
@@ -195,7 +190,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#fff',
     borderWidth: 1.5,
     borderColor: '#e2e6ec',
     alignItems: 'center',
