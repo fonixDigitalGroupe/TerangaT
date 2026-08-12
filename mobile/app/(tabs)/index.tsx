@@ -593,7 +593,10 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: '#eef1f5',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    marginTop: -spacing.md,
   },
   content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: 0 },
   topCardsRow: {
