@@ -142,24 +142,24 @@ export default function CodeScreen() {
               Renvoyer
             </Text>
           </Text>
-        </View>
 
-        {/* Bouton Vérifier */}
-        <Pressable
-          onPress={submit}
-          disabled={loading || code.length !== 4}
-          style={({ pressed }) => [
-            styles.cta,
-            (loading || code.length !== 4) && styles.ctaDisabled,
-            pressed && { opacity: 0.9 },
-          ]}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.ctaText}>Vérifier</Text>
-          )}
-        </Pressable>
+          {/* Bouton Vérifier */}
+          <Pressable
+            onPress={submit}
+            disabled={loading || code.length !== 4}
+            style={({ pressed }) => [
+              styles.cta,
+              (loading || code.length !== 4) && styles.ctaDisabled,
+              pressed && { opacity: 0.9 },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.ctaText}>Vérifier</Text>
+            )}
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -209,12 +209,13 @@ const styles = StyleSheet.create({
   resendRow: { textAlign: 'center', marginTop: 20, fontSize: 14, color: '#6b7280' },
   resendLink: { color: NAVY, fontWeight: '800' },
   cta: {
+    alignSelf: 'stretch',
     backgroundColor: PRIMARY,
     height: 54,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 22,
+    marginTop: 24,
   },
   ctaDisabled: { backgroundColor: '#9cc4ea' },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
