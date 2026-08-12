@@ -37,8 +37,15 @@ export default function TransactionsScreen() {
   // Filtres
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-  const [dateStart, setDateStart] = useState<Date | null>(null);
-  const [dateEnd, setDateEnd] = useState<Date | null>(null);
+  // Par défaut : du premier au dernier jour du mois courant.
+  const [dateStart, setDateStart] = useState<Date | null>(() => {
+    const n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), 1);
+  });
+  const [dateEnd, setDateEnd] = useState<Date | null>(() => {
+    const n = new Date();
+    return new Date(n.getFullYear(), n.getMonth() + 1, 0);
+  });
   const [pickerFor, setPickerFor] = useState<'start' | 'end' | null>(null);
 
   const fetchPage = useCallback(async (targetPage: number, replace: boolean) => {
