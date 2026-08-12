@@ -20,13 +20,11 @@ import { Alert } from '../../src/components/ui';
 
 const PRIMARY = '#0577DE';
 const LABEL = '#26415e';
-const SHOP_MAX = 34;
 
 export default function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [shopName, setShopName] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -44,10 +42,6 @@ export default function RegisterScreen() {
   const onContinue = async () => {
     setError(null);
     const phoneDigits = phone.replace(/\D/g, '');
-    if (!shopName.trim()) {
-      setError('Indiquez le nom de votre commerce.');
-      return;
-    }
     if (phoneDigits.length !== 9) {
       setError('Entrez un numéro sénégalais valide (9 chiffres).');
       return;
@@ -57,7 +51,7 @@ export default function RegisterScreen() {
       const otp = await authApi.sendOtp(phoneDigits, 'register');
       router.push({
         pathname: '/(auth)/code',
-        params: { phone: phoneDigits, shop_name: shopName.trim(), dev_code: otp.dev_code ?? '' },
+        params: { phone: phoneDigits, dev_code: otp.dev_code ?? '' },
       });
     } catch (e) {
       setError(apiErrorMessage(e, 'Envoi du code impossible.'));
@@ -68,37 +62,25 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
-      {/* Barre claire : retour */}
-      <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backCircle}>
-          <Ionicons name="arrow-back" size={22} color="#F88B1A" />
+      {/* Header : retour + titre */}
+      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+        <Pressable onPress={() => router.back()} hitSlop={10}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </Pressable>
+        <Text style={styles.headerTitle}>Inscription</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View>
-              <Text style={styles.bigTitle}>Dites-nous en un peu sur votre commerce</Text>
+              <Text style={styles.bigTitle}>Entrez votre numéro de téléphone</Text>
 
               {error && <Alert message={error} />}
 
-              {/* Nom du commerce */}
-              <Text style={styles.label}>Quel est le nom de votre commerce ?</Text>
-              <View style={styles.field}>
-                <TextInput
-                  style={[styles.input, { outlineStyle: 'none' } as object]}
-                  placeholder="Nom"
-                  placeholderTextColor="#9aa3b0"
-                  value={shopName}
-                  maxLength={SHOP_MAX}
-                  onChangeText={setShopName}
-                />
-              </View>
-              <Text style={styles.counter}>{shopName.length}/{SHOP_MAX}</Text>
-
               {/* Téléphone */}
-              <Text style={[styles.label, { marginTop: 22 }]}>Votre numéro de téléphone</Text>
+              <Text style={styles.label}>Votre numéro de téléphone</Text>
               <View style={styles.phoneField}>
                 <View style={styles.countrySel}>
                   <Text style={styles.flag}>🇸🇳</Text>
@@ -140,45 +122,32 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  topBar: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#f6f8fb',
+    paddingBottom: 14,
+    backgroundColor: '#1A84D8',
   },
-  backCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: '#fdecd8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
   scroll: { flexGrow: 1, padding: 22, paddingTop: 24 },
   bigTitle: { fontSize: 21, fontWeight: '700', color: '#1b3b5c', lineHeight: 28, marginBottom: 24 },
   label: { fontSize: 15, fontWeight: '600', color: LABEL, marginBottom: 9 },
-  field: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#e2e6ec',
-    borderRadius: 12,
-    justifyContent: 'center',
-  },
-  input: { fontSize: 16, color: '#1a1a1a', paddingHorizontal: 16 },
-  counter: { alignSelf: 'flex-end', fontSize: 13, color: '#9aa3b0', marginTop: 8 },
   phoneField: {
     height: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eef3f8',
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e2e6ec',
+    borderRadius: 8,
   },
-  countrySel: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16 },
+  countrySel: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14 },
   flag: { fontSize: 20 },
-  snCode: { fontSize: 16, fontWeight: '700', color: LABEL },
+  snCode: { fontSize: 16, fontWeight: '600', color: LABEL },
   phoneInput: { flex: 1, fontSize: 16, color: '#1a1a1a', letterSpacing: 1 },
-  cta: { backgroundColor: PRIMARY, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 32 },
+  cta: { backgroundColor: '#1E90FF', height: 52, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginTop: 28 },
   ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   loginRow: { textAlign: 'center', marginTop: 22, fontSize: 14, color: '#4b5563' },
   link: { color: PRIMARY, fontWeight: '700' },
