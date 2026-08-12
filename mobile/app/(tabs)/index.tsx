@@ -750,14 +750,14 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   proceedBtn: {
-    backgroundColor: colors.orange,
+    backgroundColor: BRAND_BLUE,
     borderRadius: 6,
     height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
   proceedBtnDisabled: {
-    backgroundColor: '#ffd7af',
+    backgroundColor: '#a9d4ff',
   },
   proceedBtnText: {
     color: colors.white,
