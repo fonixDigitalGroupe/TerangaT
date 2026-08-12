@@ -16,9 +16,18 @@
         .card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px; }
         label { display:block; font-size:14px; font-weight:600; color:#26415e; margin:16px 0 8px; }
         label:first-of-type { margin-top:4px; }
-        .seg { display:flex; gap:8px; }
-        .seg button { flex:1; height:48px; border:1px solid var(--border); background:#fff; border-radius:10px; font-size:15px; font-weight:600; color:var(--navy); cursor:pointer; }
-        .seg button.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+        .select { position:relative; }
+        .select select {
+            -webkit-appearance:none; appearance:none;
+            width:100%; height:52px; border:1px solid var(--border); background:#fff; border-radius:10px;
+            padding:0 42px 0 14px; font-size:15px; font-weight:600; color:var(--navy); cursor:pointer;
+            font-family:inherit;
+        }
+        .select::after {
+            content:''; position:absolute; right:16px; top:50%; width:9px; height:9px;
+            border-right:2px solid var(--muted); border-bottom:2px solid var(--muted);
+            transform:translateY(-70%) rotate(45deg); pointer-events:none;
+        }
         .field { display:flex; align-items:center; border:1px solid var(--border); border-radius:10px; overflow:hidden; height:52px; background:#fff; }
         .field .prefix { display:flex; align-items:center; gap:6px; align-self:stretch; padding:0 12px; background:#f4f6f9; border-right:1px solid var(--border); font-size:15px; }
         .field input { flex:1; border:0; outline:0; font-size:16px; padding:0 14px; background:transparent; color:var(--navy); width:100%; }
@@ -46,15 +55,19 @@
     <div class="wrap">
         <div class="card">
             <label>Type d'opération</label>
-            <div class="seg" id="typeSeg">
-                <button type="button" data-v="depot" class="on">Dépôt</button>
-                <button type="button" data-v="retrait">Retrait</button>
+            <div class="select">
+                <select id="typeSel">
+                    <option value="depot">Dépôt</option>
+                    <option value="retrait">Retrait</option>
+                </select>
             </div>
 
             <label>Opérateur</label>
-            <div class="seg" id="opSeg">
-                <button type="button" data-v="wave" class="on">Wave</button>
-                <button type="button" data-v="orange-money">Orange Money</button>
+            <div class="select">
+                <select id="opSel">
+                    <option value="wave">Wave</option>
+                    <option value="orange-money">Orange Money</option>
+                </select>
             </div>
 
             <label>Montant (FCFA)</label>
@@ -87,7 +100,9 @@
         const CODE = @json($code);
         const CSRF = document.querySelector('meta[name=csrf-token]').content;
 
-        let type = 'depot', operator = 'wave';
+        const typeSel = document.getElementById('typeSel');
+        const opSel = document.getElementById('opSel');
+        let type = typeSel.value, operator = opSel.value;
 
         const gridFee = (n) => {
             for (const t of FEE_GRID) if (n >= t.min && n <= t.max) return t.fee;
@@ -95,17 +110,8 @@
         };
         const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
 
-        function seg(id, cb) {
-            document.querySelectorAll('#' + id + ' button').forEach((b) => {
-                b.addEventListener('click', () => {
-                    document.querySelectorAll('#' + id + ' button').forEach((x) => x.classList.remove('on'));
-                    b.classList.add('on');
-                    cb(b.dataset.v);
-                });
-            });
-        }
-        seg('typeSeg', (v) => { type = v; render(); });
-        seg('opSeg', (v) => { operator = v; });
+        typeSel.addEventListener('change', () => { type = typeSel.value; render(); });
+        opSel.addEventListener('change', () => { operator = opSel.value; });
 
         const amountEl = document.getElementById('amount');
         const phoneEl = document.getElementById('phone');
