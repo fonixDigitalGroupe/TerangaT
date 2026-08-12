@@ -8,9 +8,9 @@ import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { colors } from '../../src/theme';
 
-const PRIMARY = '#0577DE';
-const ACCENT = '#F88B1A';
-const NAVY = '#1b3b5c';
+const PRIMARY = '#1A84D8';
+const ACCENT = '#1A84D8';
+const NAVY = '#1a2233';
 const SLOTS = [0, 1, 2, 3];
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
