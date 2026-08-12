@@ -22,8 +22,10 @@ import { paiementsApi, dashboardApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { AppHeader } from '../../src/components/AppHeader';
+import { TransactionRow } from '../../src/components/TransactionRow';
 import { colors, font, formatXof, spacing } from '../../src/theme';
 import { useAuth } from '../../src/auth/AuthContext';
+import type { Transaction } from '../../src/types';
 
 const KEYBOARD_ACCESSORY_ID = 'transfertDoneBar';
 
@@ -130,11 +132,15 @@ export default function TransfertScreen() {
   const [typePickerVisible, setTypePickerVisible] = useState(false);
   const [totalCommission, setTotalCommission] = useState(0);
   const [showCommission, setShowCommission] = useState(false);
+  const [recent, setRecent] = useState<Transaction[]>([]);
 
   useEffect(() => {
     dashboardApi
       .get()
-      .then((d) => setTotalCommission(d.stats?.total_commission ?? 0))
+      .then((d) => {
+        setTotalCommission(d.stats?.total_commission ?? 0);
+        setRecent(d.recent_transactions ?? []);
+      })
       .catch(() => {});
   }, []);
 
@@ -342,11 +348,29 @@ export default function TransfertScreen() {
                 styles.proceedBtn,
                 !canSend && styles.proceedBtnDisabled,
                 pressed && canSend && { opacity: 0.9 },
-                { marginTop: spacing.sm, alignSelf: 'center', width: '62%' }
+                { marginTop: spacing.md, alignSelf: 'center', width: '62%' }
               ]}
             >
               <Text style={styles.proceedBtnText}>Procéder</Text>
             </Pressable>
+            </View>
+
+            {/* Transactions récentes */}
+            <View style={styles.recentSection}>
+              <View style={styles.recentHeader}>
+                <Text style={styles.recentTitle}>Transactions récentes</Text>
+                <Pressable onPress={() => router.push('/(tabs)/transactions')} hitSlop={8}>
+                  <Text style={styles.recentLink}>Tout voir</Text>
+                </Pressable>
+              </View>
+              {recent.length === 0 ? (
+                <View style={styles.recentEmpty}>
+                  <Ionicons name="hourglass-outline" size={40} color="#8A99AC" style={styles.recentEmptyIcon} />
+                  <Text style={styles.recentEmptyText}>Pas d'historique disponible</Text>
+                </View>
+              ) : (
+                recent.slice(0, 5).map((t) => <TransactionRow key={t.id} tx={t} />)
+              )}
             </View>
 
 
@@ -556,7 +580,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.md },
+  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: 0 },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -608,7 +632,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   formContainer: {
-    paddingTop: 0,
+    paddingTop: spacing.sm,
   },
   fieldBox: {
     backgroundColor: colors.white,
@@ -751,12 +775,11 @@ const styles = StyleSheet.create({
   },
   recentSection: {
     marginTop: spacing.md,
-    backgroundColor: '#F5F7FA',
-    paddingHorizontal: spacing.lg,
+    backgroundColor: '#eef1f5',
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.xl,
-    marginHorizontal: -spacing.lg,
-    marginBottom: -spacing.sm,
+    marginHorizontal: -spacing.md,
     flex: 1,
   },
   recentHeader: {
