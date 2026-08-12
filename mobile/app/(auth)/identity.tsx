@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -15,12 +15,27 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
 import { Alert as UiAlert } from '../../src/components/ui';
 
 const PRIMARY = '#1E90FF';
-const ACCENT = '#1A84D8';
 const LABEL = '#26415e';
+
+const REGIONS = [
+  'Dakar',
+  'Diourbel',
+  'Fatick',
+  'Kaffrine',
+  'Kaolack',
+  'Kédougou',
+  'Kolda',
+  'Louga',
+  'Matam',
+  'Saint-Louis',
+  'Sédhiou',
+  'Tambacounda',
+  'Thiès',
+  'Ziguinchor',
+];
 
 export default function IdentityScreen() {
   const router = useRouter();
@@ -28,31 +43,14 @@ export default function IdentityScreen() {
   const { phone, shop_name } = useLocalSearchParams<{ phone?: string; shop_name?: string }>();
 
   const [fullName, setFullName] = useState('');
-  const [cniNumber, setCniNumber] = useState('');
-  const [cniRecto, setCniRecto] = useState<string | null>(null);
-  const [cniVerso, setCniVerso] = useState<string | null>(null);
-  const [selfie, setSelfie] = useState<string | null>(null);
+  const [region, setRegion] = useState('');
+  const [regionOpen, setRegionOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const pickDoc = async (setter: (u: string) => void) => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setError('Autorisez l’accès aux photos pour ajouter vos pièces.');
-      return;
-    }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      quality: 0.6,
-    });
-    if (!res.canceled && res.assets[0]?.uri) setter(res.assets[0].uri);
-  };
 
   const onContinue = () => {
     setError(null);
     if (!fullName.trim()) return setError('Entrez votre nom complet.');
-    if (!cniNumber.trim()) return setError('Entrez votre numéro de CNI.');
-    if (!cniRecto || !cniVerso || !selfie) return setError('Ajoutez la CNI recto, verso et le selfie.');
+    if (!region) return setError('Sélectionnez votre région.');
 
     router.push({
       pathname: '/(auth)/create-pin',
@@ -60,10 +58,7 @@ export default function IdentityScreen() {
         phone: phone ?? '',
         shop_name: shop_name ?? '',
         full_name: fullName.trim(),
-        cni_number: cniNumber.trim(),
-        cni_recto: cniRecto,
-        cni_verso: cniVerso,
-        selfie,
+        region,
       },
     });
   };
@@ -97,22 +92,15 @@ export default function IdentityScreen() {
                 />
               </View>
 
-              <Text style={[styles.label, { marginTop: 18 }]}>Numéro de la CNI</Text>
-              <View style={styles.field}>
-                <TextInput
-                  style={[styles.input, { outlineStyle: 'none' } as object]}
-                  placeholder="Ex : 1 234 1990 00123"
-                  placeholderTextColor="#9aa3b0"
-                  keyboardType="number-pad"
-                  value={cniNumber}
-                  onChangeText={setCniNumber}
-                />
-              </View>
-
-              <Text style={[styles.label, { marginTop: 18 }]}>Vos pièces</Text>
-              <DocRow label="CNI recto" uri={cniRecto} onPress={() => pickDoc(setCniRecto)} />
-              <DocRow label="CNI verso" uri={cniVerso} onPress={() => pickDoc(setCniVerso)} />
-              <DocRow label="Selfie avec CNI" uri={selfie} onPress={() => pickDoc(setSelfie)} />
+              <Text style={[styles.label, { marginTop: 18 }]}>Région</Text>
+              <Pressable style={styles.field} onPress={() => { Keyboard.dismiss(); setRegionOpen(true); }}>
+                <View style={styles.selectRow}>
+                  <Text style={[styles.selectText, !region && styles.selectPlaceholder]}>
+                    {region || 'Sélectionnez votre région'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={18} color="#9aa3b0" />
+                </View>
+              </Pressable>
 
               <Pressable onPress={onContinue} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
                 <Text style={styles.ctaText}>Continuer</Text>
@@ -121,20 +109,29 @@ export default function IdentityScreen() {
           </TouchableWithoutFeedback>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-}
 
-function DocRow({ label, uri, onPress }: { label: string; uri: string | null; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={styles.docRow}>
-      <View style={styles.docIcon}>
-        <Ionicons name={uri ? 'checkmark-circle' : 'camera-outline'} size={22} color={uri ? '#25b16a' : PRIMARY} />
-      </View>
-      <Text style={styles.docLabel}>{label}</Text>
-      {uri ? <Image source={{ uri }} style={styles.docThumb} /> : <Text style={styles.docAdd}>Ajouter</Text>}
-      <Ionicons name="chevron-forward" size={18} color="#c3c9d4" />
-    </Pressable>
+      {/* Sélecteur de région */}
+      <Modal visible={regionOpen} transparent animationType="slide" onRequestClose={() => setRegionOpen(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => setRegionOpen(false)}>
+          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]} onPress={() => {}}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Choisir une région</Text>
+            <ScrollView>
+              {REGIONS.map((r) => (
+                <Pressable
+                  key={r}
+                  style={styles.regionRow}
+                  onPress={() => { setRegion(r); setRegionOpen(false); setError(null); }}
+                >
+                  <Text style={[styles.regionText, region === r && styles.regionTextActive]}>{r}</Text>
+                  {region === r && <Ionicons name="checkmark" size={20} color={PRIMARY} />}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
@@ -155,18 +152,30 @@ const styles = StyleSheet.create({
   label: { fontSize: 15, fontWeight: '600', color: LABEL, marginBottom: 9 },
   field: { height: 50, borderWidth: 1, borderColor: '#e2e6ec', borderRadius: 12, justifyContent: 'center' },
   input: { fontSize: 16, color: '#1a1a1a', paddingHorizontal: 16 },
-  docRow: {
+  selectRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
+  selectText: { fontSize: 16, color: '#1a1a1a' },
+  selectPlaceholder: { color: '#9aa3b0' },
+  cta: { backgroundColor: PRIMARY, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 30 },
+  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    maxHeight: '70%',
+  },
+  sheetHandle: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: '#dfe3ea', marginBottom: 12 },
+  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#1a2233', marginBottom: 6 },
+  regionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    height: 58,
+    justifyContent: 'space-between',
+    paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#eef1f5',
   },
-  docIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#eef3f8', alignItems: 'center', justifyContent: 'center' },
-  docLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: '#1a2233' },
-  docThumb: { width: 44, height: 30, borderRadius: 6, backgroundColor: '#f5f7fa' },
-  docAdd: { fontSize: 14, color: PRIMARY, fontWeight: '700' },
-  cta: { backgroundColor: PRIMARY, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 30 },
-  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  regionText: { fontSize: 16, color: '#1a2233' },
+  regionTextActive: { color: PRIMARY, fontWeight: '700' },
 });

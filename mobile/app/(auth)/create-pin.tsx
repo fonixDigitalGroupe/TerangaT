@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/auth/AuthContext';
-import { agentApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
 import { Alert } from '../../src/components/ui';
 import { colors } from '../../src/theme';
@@ -19,15 +18,12 @@ export default function CreatePinScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { register } = useAuth();
-  const { phone, shop_name, full_name, cni_number, cni_recto, cni_verso, selfie } =
+  const { phone, shop_name, full_name, region } =
     useLocalSearchParams<{
       phone?: string;
       shop_name?: string;
       full_name?: string;
-      cni_number?: string;
-      cni_recto?: string;
-      cni_verso?: string;
-      selfie?: string;
+      region?: string;
     }>();
 
   const [phase, setPhase] = useState<'create' | 'confirm'>('create');
@@ -44,32 +40,16 @@ export default function CreatePinScreen() {
     setLoading(true);
     setError(null);
     try {
-      // 1) Créer le compte + connexion
+      // Créer le compte + connexion
       await register({
         first_name: full_name || undefined,
         phone,
         country: 'Sénégal',
+        region: region || undefined,
         shop_name: shop_name || undefined,
         password: finalCode,
         password_confirmation: finalCode,
       });
-
-      // 2) Envoi des pièces d'identité (KYC) — best effort, on est déjà authentifié
-      try {
-        const form = new FormData();
-        if (cni_number) form.append('cni_number', cni_number);
-        const appendImg = (field: string, uri?: string) => {
-          if (!uri) return;
-          const name = uri.split('/').pop() || `${field}.jpg`;
-          form.append(field, { uri, name, type: 'image/jpeg' } as unknown as Blob);
-        };
-        appendImg('cni_recto', cni_recto);
-        appendImg('cni_verso', cni_verso);
-        appendImg('selfie', selfie);
-        await agentApi.uploadKyc(form);
-      } catch {
-        // silencieux : le compte est créé, le KYC pourra être renvoyé depuis Paramètres
-      }
       // Connecté automatiquement -> le layout redirige vers l'app
     } catch (e) {
       setError(apiErrorMessage(e, 'Création du compte impossible.'));

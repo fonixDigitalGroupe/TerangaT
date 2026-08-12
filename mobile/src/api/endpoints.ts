@@ -18,6 +18,7 @@ export interface RegisterPayload {
   last_name?: string;
   phone: string;
   country: string;
+  region?: string;
   shop_name?: string;
   password: string;
   password_confirmation: string;
