@@ -93,6 +93,7 @@ export interface PaiementResponse {
 }
 
 export interface TransfertPayload {
+  type: 'dépôt' | 'retrait'; // type d'opération
   operator: Operator; // wallet du marchand, débité via SOFTPAY
   to_operator: Operator; // wallet du client, crédité par déboursement
   amount: number;

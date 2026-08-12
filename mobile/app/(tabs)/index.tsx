@@ -222,6 +222,7 @@ export default function TransfertScreen() {
     setSending(true);
     try {
       const res = await paiementsApi.transfert({
+        type: operationType === 'depot' ? 'dépôt' : 'retrait',
         operator: 'wave', // le marchand est toujours débité sur son Wave (nécessite des URLs d'action joignables côté API)
         to_operator: toOp === 'om' ? 'orange-money' : 'wave', // le client est crédité sur l'opérateur choisi
         amount: numericAmount, // montant souhaité par le client ; le backend calcule le brut à débiter

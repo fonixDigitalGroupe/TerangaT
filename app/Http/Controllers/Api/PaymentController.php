@@ -116,12 +116,15 @@ class PaymentController extends Controller
     public function transfert(Request $request)
     {
         $data = $request->validate([
+            'type'         => 'nullable|in:dépôt,retrait',       // type d'opération
             'operator'     => 'required|in:wave,orange-money',   // wallet du marchand (débité)
             'to_operator'  => 'required|in:wave,orange-money',   // wallet du client (crédité)
             'amount'       => 'required|integer|min:100|max:50000', // montant reçu par le client
             'from_number'  => 'required|string|max:20',
             'to_number'    => 'required|string|max:20',
         ]);
+
+        $type = $data['type'] ?? 'dépôt';
 
         $agent = $request->user()->agent;
         if (! $agent) {
@@ -140,7 +143,7 @@ class PaymentController extends Controller
         $brut         = $net + $frais - $merchantComm;
 
         try {
-            $tx = $this->createTransaction($agent->id, 'dépôt', [
+            $tx = $this->createTransaction($agent->id, $type, [
                 'operator'     => $data['operator'],
                 'client_phone' => $data['to_number'],   // Vers
                 'amount'       => $net,                 // ce que le client reçoit
