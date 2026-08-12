@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import QRCode from 'react-native-qrcode-svg';
 import {
   Image,
   InputAccessoryView,
@@ -269,7 +270,12 @@ export default function TransfertScreen() {
           <Text style={styles.commTagline}>Ñooko Bokk !</Text>
         </View>
         <View style={styles.commQr}>
-          <Ionicons name="qr-code" size={64} color="#1573d6" />
+          <QRCode
+            value={agentPhone || 'TERANGA'}
+            size={68}
+            color="#000000"
+            backgroundColor="#ffffff"
+          />
         </View>
       </LinearGradient>
 
