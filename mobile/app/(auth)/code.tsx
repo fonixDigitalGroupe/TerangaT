@@ -93,35 +93,37 @@ export default function CodeScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>
-          Saisissez le code de validation envoyé par <Text style={styles.channel}>SMS</Text> au{'\n'}
-          <Text style={styles.phone}>+221 {formatPhone(phone)}</Text>
-        </Text>
-
-        {dev_code ? <Text style={styles.devHint}>🔧 Mode test — code : {dev_code}</Text> : null}
-        {error && <Alert message={error} />}
-        {resent && !error ? <Alert message={resent} tone="success" /> : null}
-
-        {/* Cases OTP */}
-        <View style={styles.otpRow}>
-          {SLOTS.map((i) => (
-            <View key={i} style={[styles.otpBox, i === code.length && !loading && styles.otpBoxActive]}>
-              <Text style={styles.otpDigit}>{code[i] ?? ''}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Renvoyer */}
-        {loading ? (
-          <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} />
-        ) : (
-          <Text style={styles.resendRow}>
-            Vous n&apos;avez pas reçu de code ?{' '}
-            <Text style={styles.resendLink} onPress={resend}>
-              Renvoyer
-            </Text>
+        <View style={styles.otpCard}>
+          <Text style={styles.title}>
+            Saisissez le code de validation envoyé par <Text style={styles.channel}>SMS</Text> au{'\n'}
+            <Text style={styles.phone}>+221 {formatPhone(phone)}</Text>
           </Text>
-        )}
+
+          {dev_code ? <Text style={styles.devHint}>🔧 Mode test — code : {dev_code}</Text> : null}
+          {error && <Alert message={error} />}
+          {resent && !error ? <Alert message={resent} tone="success" /> : null}
+
+          {/* Cases OTP */}
+          <View style={styles.otpRow}>
+            {SLOTS.map((i) => (
+              <View key={i} style={[styles.otpBox, i === code.length && !loading && styles.otpBoxActive]}>
+                <Text style={styles.otpDigit}>{code[i] ?? ''}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Renvoyer */}
+          {loading ? (
+            <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} />
+          ) : (
+            <Text style={styles.resendRow}>
+              Vous n&apos;avez pas reçu de code ?{' '}
+              <Text style={styles.resendLink} onPress={resend}>
+                Renvoyer
+              </Text>
+            </Text>
+          )}
+        </View>
 
         {/* Clavier numérique */}
         <View style={styles.keypad}>
@@ -146,7 +148,7 @@ export default function CodeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.white },
+  safe: { flex: 1, backgroundColor: '#eef1f5' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,7 +158,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A84D8',
   },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
-  content: { flex: 1, paddingHorizontal: 24, paddingTop: 24 },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  otpCard: {
+    backgroundColor: colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e8ecf2',
+    padding: 20,
+  },
   title: { fontSize: 23, fontWeight: '600', color: '#9aa3b0', lineHeight: 31 },
   channel: { color: '#25b16a', fontWeight: '800' },
   phone: { color: NAVY, fontWeight: '800' },
