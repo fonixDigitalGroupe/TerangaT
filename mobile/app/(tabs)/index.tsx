@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import QRCode from 'react-native-qrcode-svg';
 import {
   Image,
   InputAccessoryView,
@@ -256,7 +255,7 @@ export default function TransfertScreen() {
     <View style={styles.container}>
       <AppHeader brand />
 
-      {/* Carte commissions */}
+      {/* Carte solde */}
       <LinearGradient
         colors={['#35A3E8', '#1A84D8', '#0C68C2']}
         locations={[0, 0.55, 1]}
@@ -264,25 +263,14 @@ export default function TransfertScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.commCard}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.commLabel}>Solde</Text>
-          <View style={styles.commAmountRow}>
-            <Text style={styles.commAmount}>
-              {showBalance ? formatXof(balance) : '••••••• FCFA'}
-            </Text>
-            <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8}>
-              <Ionicons name={showBalance ? 'eye-off' : 'eye'} size={20} color="#fff" />
-            </Pressable>
-          </View>
-          <Text style={styles.commTagline}>Ñooko Bokk !</Text>
-        </View>
-        <View style={styles.commQr}>
-          <QRCode
-            value={agentPhone || 'TERANGA'}
-            size={78}
-            color="#000000"
-            backgroundColor="#ffffff"
-          />
+        <Text style={styles.commLabel}>Solde disponible</Text>
+        <View style={styles.commAmountRow}>
+          <Text style={styles.commAmount}>
+            {showBalance ? formatXof(balance) : '••••••• FCFA'}
+          </Text>
+          <Pressable onPress={() => setShowBalance((v) => !v)} hitSlop={8}>
+            <Ionicons name={showBalance ? 'eye-off' : 'eye'} size={22} color="#fff" />
+          </Pressable>
         </View>
       </LinearGradient>
 
@@ -574,36 +562,28 @@ export default function TransfertScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#1A84D8' },
   commCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     borderRadius: 16,
-    padding: spacing.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
+    marginBottom: spacing.lg,
+    shadowColor: '#0C4A8A',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
-  commLabel: { color: colors.white, fontSize: 16, fontWeight: '700', marginBottom: spacing.sm },
-  commAmountRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  commAmount: { color: colors.white, fontSize: 18, fontWeight: '700', letterSpacing: 1 },
-  commTagline: {
-    color: colors.white,
-    fontSize: 22,
-    fontFamily: 'KaushanScript_400Regular',
-    marginTop: spacing.md,
-  },
-  commQr: {
-    width: 92,
-    height: 92,
-    borderRadius: 6,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.md,
-  },
+  commLabel: { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  commAmountRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  commAmount: { color: colors.white, fontSize: 26, fontWeight: '800', letterSpacing: 0.5 },
   contentContainer: {
     flex: 1,
     backgroundColor: '#ffffff',
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
   },
-  content: { flexGrow: 1, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: 0 },
+  content: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   topCardsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -656,23 +636,13 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    marginTop: spacing.xs,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
   fieldBox: {
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
-    borderRadius: 6,
-    height: 46,
+    borderRadius: 8,
+    height: 50,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
@@ -693,8 +663,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
-    borderRadius: 6,
-    height: 46,
+    borderRadius: 8,
+    height: 50,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
@@ -704,8 +674,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#e2e6ec',
-    borderRadius: 6,
-    height: 46,
+    borderRadius: 8,
+    height: 50,
     marginBottom: spacing.md,
   },
   selectHalf: {
@@ -757,8 +727,8 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   proceedBtn: {
-    borderRadius: 6,
-    height: 46,
+    borderRadius: 8,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -768,18 +738,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   summaryCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 8,
+    backgroundColor: '#f6f8fb',
+    borderRadius: 10,
     padding: spacing.md,
+    marginTop: spacing.xs,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#e2e6ec',
+    borderColor: '#e8ecf2',
   },
   summaryTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.md,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
   },
   summaryRow: {
     flexDirection: 'row',
