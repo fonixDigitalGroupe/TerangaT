@@ -1,27 +1,35 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { authApi } from '../../src/api/endpoints';
 import { apiErrorMessage } from '../../src/api/client';
-import { Alert } from '../../src/components/ui';
 import { colors } from '../../src/theme';
 
 const PRIMARY = '#1A84D8';
-const ACCENT = '#1A84D8';
 const NAVY = '#1a2233';
 const SLOTS = [0, 1, 2, 3];
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
 
-function formatPhone(p?: string): string {
+/** Numéro masqué façon +221 77*****55 */
+function maskPhone(p?: string): string {
   const d = (p ?? '').replace(/\D/g, '');
-  return [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' ');
+  if (d.length < 4) return d;
+  return `${d.slice(0, 2)}*****${d.slice(-2)}`;
 }
 
 export default function CodeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const inputRef = useRef<TextInput>(null);
   const { phone, shop_name, dev_code } = useLocalSearchParams<{
     phone?: string;
     shop_name?: string;
@@ -33,22 +41,26 @@ export default function CodeScreen() {
   const [loading, setLoading] = useState(false);
   const [resent, setResent] = useState<string | null>(null);
 
-  const submit = async (value: string) => {
+  const submit = async () => {
     if (!phone) {
       setError('Numéro manquant, revenez à l’étape précédente.');
       return;
     }
+    if (code.length !== 4) {
+      setError('Entrez les 4 chiffres du code.');
+      return;
+    }
+    Keyboard.dismiss();
     setError(null);
     setLoading(true);
     try {
-      await authApi.checkOtp(phone, value);
-      // Numéro vérifié -> vérification d'identité (KYC)
+      await authApi.checkOtp(phone, code);
       router.push({
         pathname: '/(auth)/identity',
         params: { phone, shop_name: shop_name ?? '' },
       });
     } catch (e) {
-      setError(apiErrorMessage(e, 'Code incorrect. Réessayez.'));
+      setError(apiErrorMessage(e, 'Le code est incorrect.'));
       setCode('');
     } finally {
       setLoading(false);
@@ -56,18 +68,14 @@ export default function CodeScreen() {
   };
 
   useEffect(() => {
-    if (code.length === 4 && !loading) void submit(code);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code]);
+    const t = setTimeout(() => inputRef.current?.focus(), 350);
+    return () => clearTimeout(t);
+  }, []);
 
-  const onKey = (k: string) => {
-    if (loading) return;
+  const onChange = (text: string) => {
     setError(null);
-    if (k === '⌫') {
-      setCode((c) => c.slice(0, -1));
-    } else if (k !== '') {
-      setCode((c) => (c.length < 4 ? c + k : c));
-    }
+    setResent(null);
+    setCode(text.replace(/\D/g, '').slice(0, 4));
   };
 
   const resend = async () => {
@@ -94,54 +102,64 @@ export default function CodeScreen() {
 
       <View style={styles.content}>
         <View style={styles.otpCard}>
-          <Text style={styles.title}>
-            Saisissez le code de validation envoyé par <Text style={styles.channel}>SMS</Text> au{'\n'}
-            <Text style={styles.phone}>+221 {formatPhone(phone)}</Text>
+          <Text style={styles.title}>Confirmez votre identité</Text>
+          <Text style={styles.subtitle}>
+            Veuillez entrer le code OTP qui a été envoyé au{' '}
+            <Text style={styles.phone}>+221 {maskPhone(phone)}</Text> pour valider votre compte.
           </Text>
 
           {dev_code ? <Text style={styles.devHint}>🔧 Mode test — code : {dev_code}</Text> : null}
-          {error && <Alert message={error} />}
-          {resent && !error ? <Alert message={resent} tone="success" /> : null}
 
-          {/* Cases OTP */}
-          <View style={styles.otpRow}>
+          {/* Cases OTP (clavier système) */}
+          <Pressable style={styles.otpRow} onPress={() => inputRef.current?.focus()}>
             {SLOTS.map((i) => (
-              <View key={i} style={[styles.otpBox, i === code.length && !loading && styles.otpBoxActive]}>
+              <View
+                key={i}
+                style={[styles.otpBox, i === code.length && !loading && styles.otpBoxActive]}
+              >
                 <Text style={styles.otpDigit}>{code[i] ?? ''}</Text>
               </View>
             ))}
-          </View>
+            <TextInput
+              ref={inputRef}
+              style={styles.hiddenInput}
+              value={code}
+              onChangeText={onChange}
+              keyboardType="number-pad"
+              maxLength={4}
+              caretHidden
+              autoFocus
+            />
+          </Pressable>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {resent && !error ? <Text style={styles.successText}>{resent}</Text> : null}
 
           {/* Renvoyer */}
-          {loading ? (
-            <ActivityIndicator color={PRIMARY} style={{ marginTop: 18 }} />
-          ) : (
-            <Text style={styles.resendRow}>
-              Vous n&apos;avez pas reçu de code ?{' '}
-              <Text style={styles.resendLink} onPress={resend}>
-                Renvoyer
-              </Text>
+          <Text style={styles.resendRow}>
+            Vous n&apos;avez pas reçu le code ?{' '}
+            <Text style={styles.resendLink} onPress={resend}>
+              Renvoyer
             </Text>
-          )}
+          </Text>
         </View>
 
-        {/* Clavier numérique */}
-        <View style={styles.keypad}>
-          {KEYS.map((k, i) => (
-            <Pressable
-              key={i}
-              onPress={() => onKey(k)}
-              disabled={k === ''}
-              style={({ pressed }) => [styles.key, pressed && k !== '' && styles.keyPressed]}
-            >
-              {k === '⌫' ? (
-                <Ionicons name="backspace-outline" size={28} color={NAVY} />
-              ) : (
-                <Text style={styles.keyText}>{k}</Text>
-              )}
-            </Pressable>
-          ))}
-        </View>
+        {/* Bouton Vérifier */}
+        <Pressable
+          onPress={submit}
+          disabled={loading || code.length !== 4}
+          style={({ pressed }) => [
+            styles.cta,
+            (loading || code.length !== 4) && styles.ctaDisabled,
+            pressed && { opacity: 0.9 },
+          ]}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.ctaText}>Vérifier</Text>
+          )}
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -161,20 +179,22 @@ const styles = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   otpCard: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e8ecf2',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 26,
+    alignItems: 'center',
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#1b3b5c', lineHeight: 28 },
-  channel: { color: '#25b16a', fontWeight: '800' },
-  phone: { color: NAVY, fontWeight: '800' },
+  title: { fontSize: 22, fontWeight: '800', color: NAVY, textAlign: 'center' },
+  subtitle: { fontSize: 14, color: '#8a93a3', textAlign: 'center', lineHeight: 21, marginTop: 12 },
+  phone: { color: NAVY, fontWeight: '700' },
   devHint: { fontSize: 14, color: PRIMARY, fontWeight: '700', marginTop: 14 },
-  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginTop: 30 },
+  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginTop: 26 },
   otpBox: {
-    width: 62,
-    height: 62,
-    borderRadius: 14,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
     backgroundColor: '#f5f7fa',
     borderWidth: 1.5,
     borderColor: '#e2e6ec',
@@ -183,20 +203,19 @@ const styles = StyleSheet.create({
   },
   otpBoxActive: { borderColor: PRIMARY, backgroundColor: '#fff' },
   otpDigit: { fontSize: 26, fontWeight: '800', color: NAVY },
-  resendRow: { textAlign: 'center', marginTop: 18, fontSize: 14, color: '#6b7280' },
-  resendLink: { color: ACCENT, fontWeight: '700' },
-  keypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 'auto',
-    paddingBottom: 8,
-  },
-  key: {
-    width: '33.33%',
-    height: 76,
+  hiddenInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
+  errorText: { color: '#e2483a', fontSize: 13, fontWeight: '600', alignSelf: 'flex-start', marginTop: 10 },
+  successText: { color: '#25b16a', fontSize: 13, fontWeight: '600', marginTop: 10 },
+  resendRow: { textAlign: 'center', marginTop: 20, fontSize: 14, color: '#6b7280' },
+  resendLink: { color: NAVY, fontWeight: '800' },
+  cta: {
+    backgroundColor: PRIMARY,
+    height: 54,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 22,
   },
-  keyPressed: { opacity: 0.4 },
-  keyText: { fontSize: 28, fontWeight: '600', color: NAVY },
+  ctaDisabled: { backgroundColor: '#9cc4ea' },
+  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });
