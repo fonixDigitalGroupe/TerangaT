@@ -82,6 +82,11 @@ export default function CreatePinScreen() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View>
+              <Text style={styles.title}>Définissez votre code secret</Text>
+              <Text style={styles.intro}>
+                Ce code à 4 chiffres sécurise votre compte et vous servira à vous connecter à chaque fois.
+              </Text>
+
               {error && <Alert message={error} />}
 
               <Text style={styles.label}>Code secret * (4 chiffres)</Text>
@@ -156,6 +161,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff', marginHorizontal: 8 },
   scroll: { flexGrow: 1, padding: 22, paddingTop: 24 },
+  title: { fontSize: 21, fontWeight: '700', color: '#1b3b5c', marginBottom: 8 },
+  intro: { fontSize: 14, color: '#8a93a3', lineHeight: 21, marginBottom: 22 },
   label: { fontSize: 15, fontWeight: '600', color: LABEL, marginBottom: 9 },
   field: {
     height: 52,

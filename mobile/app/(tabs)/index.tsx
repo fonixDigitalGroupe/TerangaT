@@ -288,10 +288,13 @@ export default function TransfertScreen() {
             </View>
 
             {/* Champ Mobile */}
-            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingRight: 12 }, focusedField === 'mobile' && styles.fieldBoxFocused, fieldErrors.mobile && styles.fieldBoxError]}>
-              <Text style={{ fontSize: 15, color: colors.text, marginLeft: 4, marginRight: 6 }}>+221</Text>
+            <View style={[styles.cleanInputWrapper, { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 0, overflow: 'hidden' }, focusedField === 'mobile' && styles.fieldBoxFocused, fieldErrors.mobile && styles.fieldBoxError]}>
+              <View style={styles.mobilePrefix}>
+                <Text style={{ fontSize: 18 }}>🇸🇳</Text>
+                <Text style={styles.mobilePrefixCode}>+221</Text>
+              </View>
               <TextInput
-                style={[styles.cleanInput, { outlineStyle: 'none', flex: 1, paddingLeft: 0, backgroundColor: 'transparent' } as object]}
+                style={[styles.cleanInput, styles.mobileInput, { outlineStyle: 'none' } as object]}
                 placeholder={toOp === 'wave' ? 'Numéro Wave' : 'Numéro Orange Money'}
                 placeholderTextColor="#9aa3b0"
                 keyboardType="phone-pad"
@@ -306,7 +309,6 @@ export default function TransfertScreen() {
                 onBlur={() => setFocusedField(null)}
                 inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
               />
-              <Text style={{ fontSize: 18 }}>🇸🇳</Text>
             </View>
 
             {/* Montant */}
@@ -682,6 +684,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
+  mobilePrefix: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    gap: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#f4f6f9',
+    borderRightWidth: 1,
+    borderRightColor: '#e2e6ec',
+  },
+  mobilePrefixCode: { fontSize: 15, color: colors.text },
+  mobileInput: { paddingHorizontal: 14, backgroundColor: 'transparent' },
   contactIconBtn: {
     padding: spacing.xs,
   },
